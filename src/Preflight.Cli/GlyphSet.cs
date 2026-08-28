@@ -1,6 +1,6 @@
 namespace Preflight.Cli;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
 
 /// <summary>
 /// The status glyphs, in one of the two documented variants.

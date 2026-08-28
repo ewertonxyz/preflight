@@ -145,7 +145,7 @@ public sealed class PluginRunTests : IDisposable
     private async Task Git(params string[] arguments)
     {
         var result = await _processes.RunAsync(
-            new Preflight.Abstractions.ProcessRequest
+            new Preflight.Abstractions.Services.ProcessRequest
             {
                 FileName = "git",
                 Arguments = arguments,

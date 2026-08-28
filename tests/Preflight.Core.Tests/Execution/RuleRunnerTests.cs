@@ -1,7 +1,9 @@
 namespace Preflight.Core.Tests.Execution;
 
 using NSubstitute;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
+using Preflight.Abstractions.Services;
 using Preflight.Core;
 using static Preflight.Core.Tests.Graph.GraphFixture;
 

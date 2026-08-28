@@ -1,6 +1,7 @@
 namespace Preflight.Core.Tests.Graph;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
 using Preflight.Core;
 using Preflight.Core.Policy;
 using static Preflight.Core.Tests.Graph.GraphFixture;

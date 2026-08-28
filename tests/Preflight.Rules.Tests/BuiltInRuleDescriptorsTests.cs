@@ -1,7 +1,8 @@
 namespace Preflight.Rules.Tests;
 
 using System.Reflection;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
 using Preflight.Rules;
 
 /// <summary>

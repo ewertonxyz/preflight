@@ -1,6 +1,7 @@
 namespace Preflight.TestSupport;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
 
 /// <summary>
 /// Builds descriptor sets for the tests that render a graph or a rule table.

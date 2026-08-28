@@ -1,7 +1,7 @@
 namespace Preflight.Core.Policy;
 
 using System.Diagnostics.CodeAnalysis;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Services;
 
 /// <summary>
 /// The <see cref="IPolicyReader"/> handed to a single rule.

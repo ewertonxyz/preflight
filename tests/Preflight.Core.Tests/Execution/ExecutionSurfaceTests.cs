@@ -42,9 +42,9 @@ public sealed class ExecutionSurfaceTests
     {
         var execution = new RuleExecution
         {
-            RuleId = new Abstractions.RuleId("core.a.alpha"),
-            Status = Abstractions.RuleStatus.Passed,
-            EffectiveSeverity = Abstractions.Severity.Error,
+            RuleId = new Abstractions.Rules.RuleId("core.a.alpha"),
+            Status = Abstractions.Model.RuleStatus.Passed,
+            EffectiveSeverity = Abstractions.Model.Severity.Error,
             Blocking = true,
             Gating = true,
             Duration = TimeSpan.Zero,

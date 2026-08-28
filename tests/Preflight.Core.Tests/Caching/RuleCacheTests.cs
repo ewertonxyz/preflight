@@ -1,6 +1,7 @@
 namespace Preflight.Core.Tests.Caching;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
 using Preflight.Core.Caching;
 using Preflight.Core.Tests.Execution;
 using static Preflight.Core.Tests.Caching.CacheFixture;

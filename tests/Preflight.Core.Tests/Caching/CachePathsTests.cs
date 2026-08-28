@@ -1,7 +1,9 @@
 namespace Preflight.Core.Tests.Caching;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
 using Preflight.Core.Caching;
+using Preflight.Core.Plugins;
 using Preflight.Core.Policy;
 
 /// <summary>
@@ -41,8 +43,8 @@ public sealed class CachePathsTests
     /// Four rows, one per component of the cache key's table. Each is the bug
     /// that section names: a rule id left out serves one rule's result for
     /// another's; a fingerprint left out never invalidates; a policy digest left
-    /// out ignores a changed <c>maxBytes</c>; a major left out reads a result
-    /// serialised under a contract that no longer means the same thing.
+    /// out ignores a changed <c>maxBytes</c>; a generation left out reads a
+    /// result serialised under a contract that no longer means the same thing.
     /// </remarks>
     [Fact]
     public void KeyFor_WhenAnyDocumentedComponentChanges_ChangesToo()
@@ -52,7 +54,7 @@ public sealed class CachePathsTests
         Key(ruleId: Other).ShouldNotBe(baseline);
         Key(fingerprint: OtherInputs).ShouldNotBe(baseline);
         Key(digest: "other-digest").ShouldNotBe(baseline);
-        Key(major: 2).ShouldNotBe(baseline);
+        Key(generation: "0.2").ShouldNotBe(baseline);
     }
 
     /// <summary>
@@ -106,9 +108,10 @@ public sealed class CachePathsTests
             .ShouldNotBe(Key(ruleId: new RuleId("core.a.a"), fingerprint: new CacheFingerprint("bc")));
 
     [Fact]
-    public void AbstractionsMajor_IsTheMajorOfTheContractAssembly() =>
-        CachePaths.AbstractionsMajor
-            .ShouldBe(typeof(IValidationRule).Assembly.GetName().Version!.Major);
+    public void AbstractionsGeneration_IsTheGenerationOfTheContractAssembly() =>
+        CachePaths.AbstractionsGeneration.ShouldBe(
+            AbstractionsCompatibility.GenerationOf(
+                typeof(IValidationRule).Assembly.GetName().Version!));
 
     /// <summary>
     /// Every kind of policy value renders to something of its own.
@@ -253,7 +256,7 @@ public sealed class CachePathsTests
         string digest = "digest",
         ValidationStage stage = ValidationStage.BuildReadiness,
         BuildTarget? target = null,
-        int major = 1,
+        string generation = "0.1",
         Guid? assemblyId = null) =>
         CachePaths.KeyFor(
             ruleId ?? Probe,
@@ -261,7 +264,7 @@ public sealed class CachePathsTests
             digest,
             stage,
             target ?? Target,
-            major,
+            generation,
             assemblyId ?? RuleAssembly);
 
     private static EffectivePolicy PolicyWithRawSetting(string raw) => Build(

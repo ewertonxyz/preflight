@@ -1,7 +1,8 @@
 namespace Preflight.Rules;
 
 using System.Globalization;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
 
 /// <summary>
 /// Fails when a changed file is larger than the policy allows.
@@ -93,7 +94,7 @@ public sealed class LargeFileRule : IValidationRule
         Expected = $"at most {maxBytes.ToString("N0", CultureInfo.InvariantCulture)} bytes",
         Actual = $"{size.ToString("N0", CultureInfo.InvariantCulture)} bytes",
         Remediation =
-            "Move the file out of version control, or raise 'maxBytes' for this rule " +
-            "in the pipeline's policy if the size is intended.",
+            "Move the file out of version control, or ask the pipeline's author to " +
+            "raise 'maxBytes' for this rule if the size is intended.",
     };
 }

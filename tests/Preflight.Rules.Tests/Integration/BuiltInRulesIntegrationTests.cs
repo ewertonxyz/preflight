@@ -1,7 +1,9 @@
 namespace Preflight.Rules.Tests.Integration;
 
 using NSubstitute;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
+using Preflight.Abstractions.Services;
 using Preflight.Core;
 using Preflight.Rules;
 using Preflight.TestSupport;

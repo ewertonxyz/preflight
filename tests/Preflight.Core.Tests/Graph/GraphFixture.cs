@@ -1,6 +1,7 @@
 namespace Preflight.Core.Tests.Graph;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
 
 /// <summary>
 /// Builds descriptor sets for the graph tests.

@@ -1,6 +1,7 @@
 namespace Preflight.Core.Policy;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Services;
 
 /// <summary>
 /// Converts a raw parsed policy value (<see langword="bool"/>,
@@ -9,7 +10,7 @@ using Preflight.Abstractions;
 /// </summary>
 /// <remarks>
 /// The user chose to throw rather than fail silently on a type mismatch: a rule
-/// asking <see cref="Preflight.Abstractions.IPolicyReader.GetValue{T}"/> for
+/// asking <see cref="Preflight.Abstractions.Services.IPolicyReader.GetValue{T}"/> for
 /// the wrong type and quietly receiving its own fallback is indistinguishable
 /// from the key being absent, which is exactly the false green this project
 /// exists to prevent. Because a rule runs isolated behind a try/catch, the

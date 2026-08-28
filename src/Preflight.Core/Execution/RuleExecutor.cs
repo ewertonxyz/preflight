@@ -1,6 +1,8 @@
 namespace Preflight.Core;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
+using Preflight.Abstractions.Services;
 using Preflight.Core.Caching;
 using Preflight.Core.Policy;
 

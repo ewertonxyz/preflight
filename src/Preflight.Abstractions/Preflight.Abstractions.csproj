@@ -7,6 +7,11 @@
     It is the single assembly an external production references in order to write
     its own rules, and every dependency added here becomes a dependency every
     plugin author inherits. A test asserts this rather than trusting it.
+
+    The three folders are the three questions a plugin author asks in order:
+    Rules holds what they write and what the engine hands back, Services holds
+    the interfaces the engine implements for them, and Model holds the data
+    those two exchange. The namespaces follow the folders.
   -->
 
   <PropertyGroup>
@@ -14,19 +19,33 @@
     <Description>Contracts for writing Preflight validation rules.</Description>
 
     <!--
-      Declared, not inherited. This number is the contract between the engine and
-      every plugin, and the loader refuses a plugin built
-      against a minor this one does not have. Left undeclared, the SDK produces
-      1.0.0.0 for every assembly in the repository, the whole refusal table
-      becomes unreachable, and the claim that ICacheableRule arrived as a minor
-      is recorded nowhere a machine can read.
+      Declared here rather than inherited, even though it currently equals the
+      product version in Directory.Build.props. This number is the contract
+      between the engine and every plugin, and it moves when the surface a
+      plugin compiles against moves — which is not the same event as a release
+      of the tool. Keeping the declaration local is what lets the two diverge
+      the day they need to, without a reader having to work out which of the
+      two a given number meant.
+
+      0.1.1, and the leading zero is doing work: while the major is 0, SemVer
+      makes the minor the breaking axis, so a plugin built against 0.1.x runs
+      on a 0.1.y host and is refused on 0.2.0. The loader and the cache key
+      both get that rule from AbstractionsCompatibility.GenerationOf rather
+      than reimplementing it.
+
+      Nothing is published under a stability promise yet. The grouping of the
+      contract into Rules, Services and Model would have cost a major on a 1.x
+      line — a plugin references its types by full name in metadata, so moving
+      them is the same break as deleting them — and on a 0.x line it costs a
+      minor instead. The break is identical; what changes is the promise that
+      was never made.
 
       AssemblyVersion is deliberately left to follow Version rather than being
       pinned to <major>.0.0.0, which is a common habit and would collapse the
       first two rows of the compatibility table into "always loads". Guarded by
       AbstractionsDependencyTests.
     -->
-    <Version>1.0.0</Version>
+    <Version>0.1.1</Version>
   </PropertyGroup>
 
 </Project>

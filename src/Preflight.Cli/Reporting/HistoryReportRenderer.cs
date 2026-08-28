@@ -200,7 +200,7 @@ public sealed class HistoryReportRenderer
     private void WriteUpperBound(StringBuilder writer, HistoryReport report)
     {
         var blocks = report.BlockingVerdicts
-            .Where(stage => stage.Stage == Preflight.Abstractions.ValidationStage.BuildReadiness)
+            .Where(stage => stage.Stage == Preflight.Abstractions.Model.ValidationStage.BuildReadiness)
             .Sum(stage => stage.Count);
 
         if (report.UpperBoundNotSpent is not { } bound)

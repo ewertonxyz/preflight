@@ -1,6 +1,8 @@
 namespace Preflight.Core.Tests;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
+using Preflight.Abstractions.Services;
 
 /// <summary>
 /// Pins the exact member set of <see cref="RuleContext"/> — including the

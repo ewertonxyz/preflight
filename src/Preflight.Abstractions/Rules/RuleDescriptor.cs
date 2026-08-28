@@ -1,11 +1,15 @@
-namespace Preflight.Abstractions;
+namespace Preflight.Abstractions.Rules;
+
+using Preflight.Abstractions.Model;
 
 /// <summary>
 /// The static description of a validation rule.
 /// </summary>
 /// <remarks>
 /// Every <c>Default</c>-prefixed member is only a default; policy has the final
-/// word on each one for a given production.
+/// word on each one for a given pipeline. A rule states what it believes is
+/// right and never learns whether it was overridden — which is what keeps a
+/// rule from branching on its own severity.
 /// </remarks>
 public sealed record RuleDescriptor
 {

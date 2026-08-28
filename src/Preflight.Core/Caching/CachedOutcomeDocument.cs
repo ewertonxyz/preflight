@@ -2,7 +2,8 @@ namespace Preflight.Core.Caching;
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
 
 /// <summary>
 /// What one cached result looks like on disk.

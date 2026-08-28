@@ -1,6 +1,6 @@
 namespace Preflight.Core;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Rules;
 using Preflight.Core.Policy;
 
 /// <summary>

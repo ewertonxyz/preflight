@@ -1,6 +1,7 @@
 namespace Preflight.Core.Tests;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
 
 /// <summary>
 /// Fixes the defaults of <see cref="RuleDescriptor"/> and pins the one place

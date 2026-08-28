@@ -1,6 +1,7 @@
 namespace Preflight.Core;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Services;
 
 /// <summary>
 /// The change source could not produce a list.

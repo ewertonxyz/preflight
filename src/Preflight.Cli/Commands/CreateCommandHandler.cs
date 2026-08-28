@@ -1,6 +1,7 @@
 namespace Preflight.Cli.Commands;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
 using Preflight.Core;
 using Preflight.Rules;
 
@@ -251,7 +252,8 @@ public static class CreateCommandHandler
         $$"""
         namespace {{projectNamespace}};
 
-        using Preflight.Abstractions;
+        using Preflight.Abstractions.Model;
+        using Preflight.Abstractions.Rules;
 
         /// <summary>
         /// TODO: what this rule checks, in one sentence a content author would

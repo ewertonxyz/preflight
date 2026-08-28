@@ -1,6 +1,6 @@
 namespace Preflight.Core.Tests;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
 
 /// <summary>
 /// Fixes the default shape of <see cref="FindingLocation"/>.

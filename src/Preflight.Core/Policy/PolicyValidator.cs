@@ -2,7 +2,7 @@ namespace Preflight.Core.Policy;
 
 using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Rules;
 
 /// <summary>
 /// Validates already-parsed policy input against the schema.

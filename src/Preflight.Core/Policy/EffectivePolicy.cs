@@ -1,6 +1,8 @@
 namespace Preflight.Core.Policy;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
+using Preflight.Abstractions.Services;
 
 /// <summary>
 /// The fully resolved policy: <c>RuleDescriptor</c> defaults merged under the

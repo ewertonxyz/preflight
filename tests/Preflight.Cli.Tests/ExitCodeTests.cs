@@ -1,6 +1,6 @@
 namespace Preflight.Cli.Tests;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Rules;
 using Preflight.Core;
 using Preflight.Core.Plugins;
 using Preflight.Core.Policy;

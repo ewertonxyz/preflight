@@ -1,7 +1,7 @@
 namespace Preflight.Cli.Tests;
 
 using System.Text;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
 
 /// <summary>
 /// Fixes the glyph table of the console report and the choice

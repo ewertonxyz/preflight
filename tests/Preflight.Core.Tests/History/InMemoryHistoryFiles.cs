@@ -1,7 +1,7 @@
 namespace Preflight.Core.Tests.History;
 
 using System.Text;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Services;
 
 /// <summary>
 /// The three <see cref="IFileSystem"/> members the history reader uses, over a

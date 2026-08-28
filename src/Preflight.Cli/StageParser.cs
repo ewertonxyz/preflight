@@ -1,6 +1,6 @@
 namespace Preflight.Cli;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
 
 /// <summary>
 /// Maps between the <c>--stage</c> spelling on the command line and

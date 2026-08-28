@@ -5,7 +5,7 @@ namespace Preflight.Core.Caching;
 /// </summary>
 /// <remarks>
 /// A new interface rather than members on
-/// <see cref="Preflight.Abstractions.IFileSystem"/>, for the reason that
+/// <see cref="Preflight.Abstractions.Services.IFileSystem"/>, for the reason that
 /// interface states in its own remarks: it is read-only by construction,
 /// because the rule that this tool never writes to the workspace is expressed
 /// in the type system. A new member on it would also be a major version of the

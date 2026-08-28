@@ -5,7 +5,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
+using Preflight.Abstractions.Services;
 
 /// <summary>
 /// Compiles without linking and reports whatever the compiler said.
@@ -79,7 +81,9 @@ public sealed class CompileProbeRule : IValidationRule, ICacheableRule
                 Message = "The workspace manifest is not valid JSON.",
                 Location = new FindingLocation(manifestPath),
                 Actual = exception.Message,
-                Remediation = "Fix the syntax, or point 'manifestPath' at the right file in the policy.",
+                Remediation =
+                    "Fix the syntax, or ask the pipeline's author to point 'manifestPath' " +
+                    "at the right file.",
             });
         }
 

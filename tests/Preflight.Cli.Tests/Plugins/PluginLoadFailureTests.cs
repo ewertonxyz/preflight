@@ -1,6 +1,7 @@
 namespace Preflight.Cli.Tests.Plugins;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
 using Preflight.Core;
 using Preflight.Core.Plugins;
 using Preflight.TestSupport;
@@ -75,7 +76,7 @@ public sealed class PluginLoadFailureTests
     /// The fixture is a real type from real assemblies, bound to a second copy
     /// of the contract, which is exactly what a broken loader hands the engine.
     /// A hand-written stand-in could not be built: a fake interface would need
-    /// the full name <c>Preflight.Abstractions.IValidationRule</c>, and
+    /// the full name <c>Preflight.Abstractions.Rules.IValidationRule</c>, and
     /// declaring that namespace inside a test project makes the real interface
     /// ambiguous for every other file in it.
     /// </para>

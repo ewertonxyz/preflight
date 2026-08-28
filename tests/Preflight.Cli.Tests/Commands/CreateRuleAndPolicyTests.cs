@@ -2,7 +2,7 @@ namespace Preflight.Cli.Tests.Commands;
 
 using System.Xml.Linq;
 using NSubstitute;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Rules;
 using Preflight.Cli.Commands;
 using Preflight.Core;
 using Preflight.Core.Policy;

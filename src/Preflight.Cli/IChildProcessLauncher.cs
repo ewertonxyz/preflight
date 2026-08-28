@@ -5,7 +5,7 @@ namespace Preflight.Cli;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Not <see cref="Preflight.Abstractions.IProcessRunner"/>. That interface
+/// Not <see cref="Preflight.Abstractions.Services.IProcessRunner"/>. That interface
 /// buffers both streams into strings and returns them when the child exits,
 /// which is right for a rule reading a compiler's error list and wrong for a
 /// wrapper: a 38-minute build would emit nothing until it finished, and a

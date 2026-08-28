@@ -2,6 +2,7 @@ namespace Preflight.Cli.Tests.Commands;
 
 using System.Text;
 using Preflight.Cli.Commands;
+using Preflight.TestSupport;
 
 /// <summary>
 /// Runs the commands against a policy that came out of an installed package,
@@ -92,14 +93,14 @@ public sealed class PackagePolicyResolutionTests : IDisposable
     {
         var tree = _root.CreateSubdirectory("projecta-src");
 
-        Write(tree, PackageManifest.FileName, """
+        Write(tree, PackageManifest.FileName, $$"""
             {
               "schemaVersion": 1,
               "name": "projecta",
               "version": "1.4.0",
               "policyFile": "preflight.projecta.json",
               "ruleAssemblies": [],
-              "abstractionsMinimumVersion": "1.0.0"
+              "abstractionsMinimumVersion": "{{ContractVersion.Current}}"
             }
             """);
 

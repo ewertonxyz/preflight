@@ -1,6 +1,6 @@
 namespace Preflight.Cli.Commands;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Rules;
 using Preflight.Core.Plugins;
 
 /// <summary>

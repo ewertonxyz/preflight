@@ -3,7 +3,9 @@ namespace Preflight.Core.Caching;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
+using Preflight.Core.Plugins;
 using Preflight.Core.Policy;
 
 
@@ -25,7 +27,7 @@ public static class CachePaths
     public const string SearchPattern = "*" + Extension;
 
     /// <summary>
-    /// The major version of <c>Preflight.Abstractions</c> this engine was built
+    /// The generation of <c>Preflight.Abstractions</c> this engine was built
     /// against.
     /// </summary>
     /// <remarks>
@@ -35,17 +37,18 @@ public static class CachePaths
     /// resurrect a shape that no longer means what it says.
     /// </para>
     /// <para>
-    /// Null-forgiving rather than a fallback.
-    /// <see cref="AssemblyName.Version"/> is annotated as nullable and is never
-    /// null for an assembly the runtime has loaded — which this one has, since
-    /// the expression begins by taking a type out of it. A <c>?? 0</c> beside
-    /// it would be a branch no input can reach: a permanent hole in the branch
-    /// count dressed as caution, and the project's first answer to one of those
-    /// is to delete the condition rather than to test it or to exclude it.
+    /// The generation rather than the major, and the difference is not
+    /// cosmetic while the contract is below 1.0. The major is <c>0</c> for
+    /// every 0.x release, so a key built from it would be identical across
+    /// 0.1 and 0.2 — two contracts SemVer explicitly allows to be
+    /// incompatible — and the cache would serve a pass computed under a shape
+    /// that no longer exists. <see cref="AbstractionsCompatibility.GenerationOf"/>
+    /// owns that rule, and the loader reads it from the same place, so the two
+    /// cannot drift into disagreeing about which contracts are the same.
     /// </para>
     /// </remarks>
-    public static int AbstractionsMajor { get; } =
-        typeof(IValidationRule).Assembly.GetName().Version!.Major;
+    public static string AbstractionsGeneration { get; } =
+        AbstractionsCompatibility.GenerationOf(AbstractionsCompatibility.HostVersion);
 
     /// <summary>
     /// The directory the cache lives in.
@@ -108,7 +111,7 @@ public static class CachePaths
         string policyDigest,
         ValidationStage stage,
         BuildTarget target,
-        int abstractionsMajor,
+        string abstractionsGeneration,
         Guid ruleAssemblyId)
     {
         ArgumentNullException.ThrowIfNull(policyDigest);
@@ -122,7 +125,7 @@ public static class CachePaths
             stage.ToString(),
             target.Platform,
             target.Configuration,
-            abstractionsMajor.ToString(CultureInfo.InvariantCulture),
+            abstractionsGeneration,
             ruleAssemblyId.ToString("N", CultureInfo.InvariantCulture));
 
         return Digest(components);

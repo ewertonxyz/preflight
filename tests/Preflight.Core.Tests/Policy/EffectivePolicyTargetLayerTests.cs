@@ -1,6 +1,8 @@
 namespace Preflight.Core.Tests.Policy;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
+using Preflight.Abstractions.Services;
 using Preflight.Core.Policy;
 
 /// <summary>

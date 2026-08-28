@@ -1,6 +1,7 @@
 namespace Preflight.Core;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Rules;
+using Preflight.Abstractions.Services;
 
 /// <summary>
 /// Supplies each rule the logger it is handed in its context.

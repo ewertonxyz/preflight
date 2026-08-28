@@ -1,6 +1,6 @@
 namespace Preflight.Core.Tests.Execution;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Services;
 using Preflight.Core;
 
 /// <summary>

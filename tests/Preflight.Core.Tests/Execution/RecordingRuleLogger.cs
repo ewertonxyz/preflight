@@ -1,7 +1,8 @@
 namespace Preflight.Core.Tests.Execution;
 
 using System.Collections.Concurrent;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Rules;
+using Preflight.Abstractions.Services;
 using Preflight.Core;
 
 /// <summary>

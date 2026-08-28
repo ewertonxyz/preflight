@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using NSubstitute;
 using Preflight.Cli.Commands;
+using Preflight.TestSupport;
 
 /// <summary>
 /// The refusals an installer has to make before it writes a byte, and the one
@@ -127,10 +128,10 @@ public sealed class PipelineInstallerRefusalTests : IDisposable
     }
 
     private string Archive(string name, params (string Entry, string Content)[] entries) =>
-        Archive(name, "1.0.0", entries);
+        Archive(name, ContractVersion.Current, entries);
 
     private static string Manifest(
-        string contractMinimum = "1.0.0",
+        string? contractMinimum = null,
         IReadOnlyDictionary<string, string>? digests = null) =>
         $$"""
         {
@@ -139,7 +140,7 @@ public sealed class PipelineInstallerRefusalTests : IDisposable
           "version": "1.4.0",
           "policyFile": "preflight.projecta.json",
           "ruleAssemblies": [],
-          "abstractionsMinimumVersion": "{{contractMinimum}}",
+          "abstractionsMinimumVersion": "{{contractMinimum ?? ContractVersion.Current}}",
           "sha256ByRelativePath": {
             {{string.Join(",\n    ", (digests ?? new Dictionary<string, string>())
                 .Select(pair => $"\"{pair.Key}\": \"{pair.Value}\""))}}

@@ -4,6 +4,7 @@ using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Preflight.TestSupport;
 
 /// <summary>
 /// Builds real pipeline packages for the install tests.
@@ -68,7 +69,7 @@ public static class PackageFixtures
             version,
             policyFile = policyFileName,
             ruleAssemblies = Array.Empty<string>(),
-            abstractionsMinimumVersion = contractMinimum ?? "1.0.0",
+            abstractionsMinimumVersion = contractMinimum ?? ContractVersion.Current,
             sha256ByRelativePath = digests,
         };
 

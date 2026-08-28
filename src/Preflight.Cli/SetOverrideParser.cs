@@ -1,7 +1,7 @@
 namespace Preflight.Cli;
 
 using System.Globalization;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Rules;
 using Preflight.Core;
 using Preflight.Core.Policy;
 

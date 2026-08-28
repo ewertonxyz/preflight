@@ -2,7 +2,9 @@ namespace Preflight.Core.Tests;
 
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
+using Preflight.Abstractions.Services;
 
 /// <summary>
 /// Pins the exact member set of every service interface a rule receives —

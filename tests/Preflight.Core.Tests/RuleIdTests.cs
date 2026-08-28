@@ -1,6 +1,6 @@
 namespace Preflight.Core.Tests;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Rules;
 
 /// <summary>
 /// Fixes the shape and validation of <see cref="RuleId"/> before anything else

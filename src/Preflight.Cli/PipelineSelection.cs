@@ -1,6 +1,6 @@
 namespace Preflight.Cli;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Services;
 using Preflight.Core.Policy;
 
 /// <summary>

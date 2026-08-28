@@ -1,6 +1,6 @@
 namespace Preflight.Cli.Reporting;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
 
 /// <summary>
 /// The two SARIF enumerations, derived from one execution.

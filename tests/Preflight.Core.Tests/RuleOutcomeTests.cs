@@ -1,7 +1,8 @@
 namespace Preflight.Core.Tests;
 
 using System.Reflection;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
 
 /// <summary>
 /// Fixes the four factory methods on <see cref="RuleOutcome"/>, the two
@@ -82,6 +83,30 @@ public sealed class RuleOutcomeTests
 
         skipped.Status.ShouldBe(RuleStatus.Skipped);
         errored.Status.ShouldBe(RuleStatus.Errored);
+    }
+
+    /// <remarks>
+    /// The factories copy what they are handed. Without the copy,
+    /// <c>Findings</c> would be a view onto an array the caller still holds,
+    /// and the read-only list type would be promising something it does not
+    /// deliver — a rule refilling one buffer per iteration would rewrite
+    /// outcomes it had already returned, and the report would show the last
+    /// finding several times over.
+    /// </remarks>
+    [Theory]
+    [InlineData(RuleStatus.Warning)]
+    [InlineData(RuleStatus.Failed)]
+    public void Factories_WhenTheCallerMutatesTheArrayItPassed_DoNotChangeTheOutcome(RuleStatus status)
+    {
+        var buffer = new[] { new Finding { Message = "first" } };
+
+        var outcome = status is RuleStatus.Warning
+            ? RuleOutcome.Warned(buffer)
+            : RuleOutcome.Failed(buffer);
+
+        buffer[0] = new Finding { Message = "overwritten" };
+
+        outcome.Findings.ShouldHaveSingleItem().Message.ShouldBe("first");
     }
 
     [Fact]
