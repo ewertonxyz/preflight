@@ -1,4 +1,7 @@
-namespace Preflight.Abstractions;
+namespace Preflight.Abstractions.Rules;
+
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Services;
 
 /// <summary>
 /// Everything a rule receives from the engine to do its work.
@@ -26,20 +29,3 @@ public sealed class RuleContext
 
     public required IProcessRunner Processes { get; init; }
 }
-
-public sealed record BuildTarget(string Platform, string Configuration);
-
-/// <summary>
-/// A single file touched between the diff base and the workspace.
-/// </summary>
-/// <remarks>
-/// Populated from the diff in <see cref="ValidationStage.PreSubmit"/> and empty
-/// otherwise. <see cref="PreviousRelativePath"/> is meant to be set only when
-/// <see cref="Kind"/> is <see cref="ChangeKind.Renamed"/>, but that is a
-/// convention for whoever produces the list — the type itself does not enforce
-/// it. See IDEAS.md.
-/// </remarks>
-public sealed record ChangedFile(
-    string RelativePath,
-    ChangeKind Kind,
-    string? PreviousRelativePath = null);

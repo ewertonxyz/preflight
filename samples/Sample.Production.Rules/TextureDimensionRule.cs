@@ -1,6 +1,7 @@
 namespace Sample.Production.Rules;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
 
 /// <summary>
 /// Fails when a changed texture is larger than the production allows.

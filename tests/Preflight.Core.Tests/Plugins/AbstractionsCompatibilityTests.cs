@@ -1,6 +1,6 @@
 namespace Preflight.Core.Tests.Plugins;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Rules;
 using Preflight.Core.Plugins;
 
 /// <summary>
@@ -16,18 +16,29 @@ using Preflight.Core.Plugins;
 public sealed class AbstractionsCompatibilityTests
 {
     /// <remarks>
-    /// The first three rows are the plugin version contract's own table. The rest are the
-    /// borders it leaves unstated, and each is a decision somebody would
+    /// <para>
+    /// The first three rows are the version contract's own table. The rest are
+    /// the borders it leaves unstated, and each is a decision somebody would
     /// otherwise make by accident when they touched the comparison:
+    /// </para>
     /// <list type="bullet">
     /// <item>the exact same version, which a naive strict comparison refuses;</item>
-    /// <item>patch in either direction, which 11.2 defines as documentation and
-    /// therefore as something that must never decide;</item>
+    /// <item>patch in either direction, which the contract defines as
+    /// documentation and therefore as something that must never decide;</item>
     /// <item>a host newer by a major, which the table shows only the other way
     /// round;</item>
-    /// <item>a pre-1.0 plugin, which needs no special arm because 0.x is a
-    /// different major from 1.x and the first condition already refuses it.</item>
+    /// <item>a plugin from a 0.x line against a 1.x host, which is a different
+    /// contract in the ordinary way.</item>
     /// </list>
+    /// <para>
+    /// The last three rows are the ones a pre-1.0 engine turns from theory into
+    /// the everyday case. While the major is 0, SemVer moves the breaking axis
+    /// to the minor, so 0.1 and 0.2 are as unrelated as 1.x and 2.x — and the
+    /// asymmetry that lets 1.2.0 load on 1.4.0 does <em>not</em> carry over:
+    /// 0.1.0 on 0.2.0 is refused in both directions. A comparison written as
+    /// <c>plugin.Major == host.Major</c> passes every row above and fails
+    /// exactly these, which is why they are here.
+    /// </para>
     /// </remarks>
     [Theory]
     [InlineData("1.2.0", "1.4.0", true)]
@@ -38,12 +49,36 @@ public sealed class AbstractionsCompatibilityTests
     [InlineData("1.2.5", "1.2.0", true)]
     [InlineData("1.0.0", "2.0.0", false)]
     [InlineData("0.9.0", "1.0.0", false)]
-    public void IsCompatible_AcrossTheVersionMatrix_MatchesSection112(
+    [InlineData("0.1.0", "0.1.1", true)]
+    [InlineData("0.1.0", "0.2.0", false)]
+    [InlineData("0.2.0", "0.1.0", false)]
+    public void IsCompatible_AcrossTheVersionMatrix_MatchesTheRefusalTable(
         string plugin,
         string host,
         bool expected) =>
         AbstractionsCompatibility.IsCompatible(Version.Parse(plugin), Version.Parse(host))
             .ShouldBe(expected);
+
+    /// <summary>
+    /// What a version answers when asked which unbroken line it belongs to.
+    /// </summary>
+    /// <remarks>
+    /// Pinned on its own rather than only through <c>IsCompatible</c>, because
+    /// the cache key reads it too and the two callers must agree about which
+    /// contracts are the same. A generation that changed shape — <c>0.1.1</c>
+    /// answering <c>0.1.1</c> instead of <c>0.1</c>, say — would still satisfy
+    /// every compatibility row above while quietly invalidating the cache on
+    /// every patch release.
+    /// </remarks>
+    [Theory]
+    [InlineData("1.4.0", "1")]
+    [InlineData("1.0.0", "1")]
+    [InlineData("2.7.3", "2")]
+    [InlineData("0.1.1", "0.1")]
+    [InlineData("0.2.0", "0.2")]
+    [InlineData("0.0.5", "0.0")]
+    public void GenerationOf_NamesTheLineTwoVersionsShareOrDoNot(string version, string expected) =>
+        AbstractionsCompatibility.GenerationOf(Version.Parse(version)).ShouldBe(expected);
 
     /// <summary>
     /// A refusal names both versions, the plugin, and what would fix it.

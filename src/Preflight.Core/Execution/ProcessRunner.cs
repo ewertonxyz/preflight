@@ -1,7 +1,7 @@
 namespace Preflight.Core;
 
 using System.Diagnostics;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Services;
 
 /// <summary>
 /// Runs a real child process.

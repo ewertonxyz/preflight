@@ -1,4 +1,4 @@
-namespace Preflight.Abstractions;
+namespace Preflight.Abstractions.Model;
 
 /// <summary>
 /// A single piece of evidence a rule reports.
@@ -24,5 +24,3 @@ public sealed record Finding
 
     public string? Remediation { get; init; }
 }
-
-public sealed record FindingLocation(string RelativePath, int? Line = null, int? Column = null);

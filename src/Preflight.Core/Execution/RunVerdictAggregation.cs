@@ -1,6 +1,6 @@
 namespace Preflight.Core;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
 
 /// <summary>
 /// Turns a set of executions into the run's verdict.

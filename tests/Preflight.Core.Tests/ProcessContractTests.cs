@@ -1,6 +1,6 @@
 namespace Preflight.Core.Tests;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Services;
 
 /// <summary>
 /// Fixes the defaults of <see cref="ProcessRequest"/> and the positional

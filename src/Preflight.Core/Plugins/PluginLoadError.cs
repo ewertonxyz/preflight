@@ -1,7 +1,7 @@
 namespace Preflight.Core.Plugins;
 
 using System.Globalization;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Rules;
 
 /// <summary>
 /// One reason a plugin directory could not be turned into a set of rules.

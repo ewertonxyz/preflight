@@ -1,6 +1,7 @@
 namespace Preflight.Core.History;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
 
 /// <summary>
 /// A percentile pair over one series, together with the sample it came from.

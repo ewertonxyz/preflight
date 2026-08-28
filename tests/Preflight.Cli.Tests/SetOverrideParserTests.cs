@@ -1,6 +1,6 @@
 namespace Preflight.Cli.Tests;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Rules;
 
 /// <summary>
 /// Fixes the <c>--set</c> syntax of policy precedence: the two

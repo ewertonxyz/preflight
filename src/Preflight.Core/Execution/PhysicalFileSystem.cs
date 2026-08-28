@@ -1,6 +1,6 @@
 namespace Preflight.Core;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Services;
 
 /// <summary>
 /// Reads the real disk.

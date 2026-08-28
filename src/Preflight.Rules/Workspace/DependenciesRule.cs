@@ -1,7 +1,8 @@
 namespace Preflight.Rules;
 
 using System.Text.Json;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
 
 /// <summary>
 /// Checks that every declared dependency can be satisfied, and that it has
@@ -59,7 +60,9 @@ public sealed class DependenciesRule : IValidationRule
                 Message = "The workspace manifest is not valid JSON.",
                 Location = new FindingLocation(manifestPath),
                 Actual = exception.Message,
-                Remediation = "Fix the syntax, or point 'manifestPath' at the right file in the policy.",
+                Remediation =
+                    "Fix the syntax, or ask the pipeline's author to point 'manifestPath' " +
+                    "at the right file.",
             });
         }
 

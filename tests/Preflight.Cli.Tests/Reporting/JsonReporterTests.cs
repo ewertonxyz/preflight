@@ -1,6 +1,6 @@
 namespace Preflight.Cli.Tests.Reporting;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
 using Preflight.Cli.Reporting;
 using Preflight.Core;
 using Preflight.TestSupport;

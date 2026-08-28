@@ -1,7 +1,7 @@
 namespace Sample.Production.Rules;
 
 using System.Buffers.Binary;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Services;
 
 /// <summary>
 /// The pixel dimensions of a texture.

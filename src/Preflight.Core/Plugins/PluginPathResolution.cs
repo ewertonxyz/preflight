@@ -1,6 +1,6 @@
 namespace Preflight.Core.Plugins;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Services;
 
 /// <summary>
 /// Which assemblies a run will probe, and which of the given paths were

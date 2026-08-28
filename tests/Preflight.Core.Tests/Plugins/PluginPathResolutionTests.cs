@@ -1,7 +1,7 @@
 namespace Preflight.Core.Tests.Plugins;
 
 using NSubstitute;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Services;
 using Preflight.Core.Plugins;
 
 /// <summary>

@@ -2,7 +2,8 @@ namespace Preflight.Cli.Tests.Reporting;
 
 using System.Globalization;
 using System.Text;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
 using Preflight.Cli.Reporting;
 using Preflight.Core;
 using Preflight.TestSupport;

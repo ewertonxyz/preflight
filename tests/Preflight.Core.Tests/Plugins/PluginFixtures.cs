@@ -1,6 +1,7 @@
 namespace Preflight.Core.Tests.Plugins;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
 
 /// <summary>
 /// A rule that behaves, under an id no production uses.

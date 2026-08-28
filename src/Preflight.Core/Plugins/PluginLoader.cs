@@ -1,6 +1,6 @@
 namespace Preflight.Core.Plugins;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Rules;
 
 /// <summary>
 /// Turns the assemblies a run was pointed at into the rules it will execute.

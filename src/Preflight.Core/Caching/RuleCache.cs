@@ -1,6 +1,7 @@
 namespace Preflight.Core.Caching;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
 using Preflight.Core.Policy;
 
 /// <summary>
@@ -169,7 +170,7 @@ public sealed class RuleCache
             CachePaths.PolicyDigestFor(rule.Descriptor.Id, _policy),
             context.Stage,
             context.Target,
-            CachePaths.AbstractionsMajor,
+            CachePaths.AbstractionsGeneration,
             rule.GetType().Assembly.ManifestModule.ModuleVersionId);
     }
 

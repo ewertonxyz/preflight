@@ -1,7 +1,9 @@
 namespace Preflight.Rules.Tests.Samples;
 
 using NSubstitute;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
+using Preflight.Abstractions.Services;
 using Sample.Production.Rules;
 using static Preflight.Rules.Tests.RuleFixture;
 

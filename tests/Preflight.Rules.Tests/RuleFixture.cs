@@ -1,7 +1,9 @@
 namespace Preflight.Rules.Tests;
 
 using NSubstitute;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
+using Preflight.Abstractions.Services;
 
 /// <summary>
 /// Assembles a <see cref="RuleContext"/> with inert defaults.

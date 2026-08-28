@@ -2,7 +2,7 @@ namespace Preflight.Cli.Tests.Plugins;
 
 using System.Reflection;
 using System.Runtime.Loader;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Rules;
 using Preflight.Core.Plugins;
 using Preflight.TestSupport;
 

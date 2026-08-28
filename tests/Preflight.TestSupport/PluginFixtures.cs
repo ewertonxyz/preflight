@@ -118,7 +118,7 @@ public static class PluginFixtures
     /// <para>
     /// What comes back is exactly what a broken plugin loader would hand the
     /// engine: a type whose <c>GetInterfaces</c> names
-    /// <c>Preflight.Abstractions.IValidationRule</c> and which
+    /// <c>Preflight.Abstractions.Rules.IValidationRule</c> and which
     /// <c>IsAssignableFrom</c> rejects. It is built from
     /// <c>Preflight.Rules.dll</c> rather than from the sample so that this
     /// fixture depends on nothing the plugin tests also depend on.

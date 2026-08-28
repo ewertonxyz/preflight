@@ -1,6 +1,6 @@
 namespace Preflight.Core.Tests.History;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
 using Preflight.Core.History;
 
 /// <summary>

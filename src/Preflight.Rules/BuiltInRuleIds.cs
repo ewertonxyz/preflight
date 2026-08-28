@@ -1,6 +1,6 @@
 namespace Preflight.Rules;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Rules;
 
 /// <summary>
 /// The ids of the six built-in rules.

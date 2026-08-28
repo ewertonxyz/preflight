@@ -1,6 +1,6 @@
 namespace Preflight.Core;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Rules;
 
 /// <summary>
 /// Puts the executions of a run into the order they are presented in.

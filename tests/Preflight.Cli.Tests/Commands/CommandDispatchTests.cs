@@ -2,6 +2,7 @@ namespace Preflight.Cli.Tests.Commands;
 
 using System.Text;
 using Preflight.Cli.Commands;
+using Preflight.TestSupport;
 
 /// <summary>
 /// Drives every subcommand phase 10 added through the real parser and the real
@@ -97,7 +98,7 @@ public sealed class CommandDispatchTests : IDisposable
               "version": "{{version}}",
               "policyFile": "preflight.{{name}}.json",
               "ruleAssemblies": [],
-              "abstractionsMinimumVersion": "1.0.0"
+              "abstractionsMinimumVersion": "{{ContractVersion.Current}}"
             }
             """);
 

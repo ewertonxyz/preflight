@@ -1,7 +1,7 @@
 namespace Preflight.Cli.Tests.Reporting;
 
 using System.Text.RegularExpressions;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Rules;
 using Preflight.Cli.Reporting;
 using Preflight.Core;
 using Preflight.TestSupport;

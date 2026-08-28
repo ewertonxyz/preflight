@@ -2,7 +2,8 @@ namespace Preflight.Core.Policy;
 
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Rules;
+using Preflight.Abstractions.Services;
 
 /// <summary>
 /// Resolves one policy file's <c>extends</c> chain into a single, fully merged

@@ -1,6 +1,7 @@
 namespace Preflight.TestSupport;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
 using Preflight.Core;
 
 /// <summary>

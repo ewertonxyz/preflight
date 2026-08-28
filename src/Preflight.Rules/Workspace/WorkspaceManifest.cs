@@ -2,7 +2,7 @@ namespace Preflight.Rules;
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Services;
 
 /// <summary>
 /// What the workspace declares it needs.

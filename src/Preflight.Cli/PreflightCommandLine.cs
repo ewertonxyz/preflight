@@ -3,7 +3,7 @@ namespace Preflight.Cli;
 using System.CommandLine;
 using System.CommandLine.Parsing;
 using System.Reflection;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
 using Preflight.Cli.Commands;
 using Preflight.Cli.Interactive;
 using Preflight.Core;

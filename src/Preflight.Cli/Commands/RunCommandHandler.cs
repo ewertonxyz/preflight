@@ -1,6 +1,7 @@
 namespace Preflight.Cli.Commands;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
 using Preflight.Cli.Reporting;
 using Preflight.Core;
 

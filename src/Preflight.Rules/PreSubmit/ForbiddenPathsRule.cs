@@ -1,7 +1,8 @@
 namespace Preflight.Rules;
 
 using System.Text.RegularExpressions;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
 
 /// <summary>
 /// Fails when a changed file matches a path pattern the production forbids.

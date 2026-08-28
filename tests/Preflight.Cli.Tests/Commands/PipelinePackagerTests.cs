@@ -2,6 +2,7 @@ namespace Preflight.Cli.Tests.Commands;
 
 using System.Text;
 using Preflight.Cli.Commands;
+using Preflight.TestSupport;
 
 /// <summary>
 /// Fixes what <c>preflight pipeline pack</c> produces, and what it refuses to
@@ -53,7 +54,7 @@ public sealed class PipelinePackagerTests : IDisposable
               "version": "{{version ?? "1.4.0"}}",
               "policyFile": "preflight.{{name}}.json",
               "ruleAssemblies": [],
-              "abstractionsMinimumVersion": "1.0.0"
+              "abstractionsMinimumVersion": "{{ContractVersion.Current}}"
             }
             """);
 
@@ -290,14 +291,14 @@ public sealed class PipelinePackagerTests : IDisposable
     {
         var tree = _root.CreateSubdirectory("no-policy");
 
-        Write(tree, PackageManifest.FileName, """
+        Write(tree, PackageManifest.FileName, $$"""
             {
               "schemaVersion": 1,
               "name": "projecta",
               "version": "1.4.0",
               "policyFile": "preflight.projecta.json",
               "ruleAssemblies": [],
-              "abstractionsMinimumVersion": "1.0.0"
+              "abstractionsMinimumVersion": "{{ContractVersion.Current}}"
             }
             """);
         Write(tree, "rules/acme.dll", "not the policy");

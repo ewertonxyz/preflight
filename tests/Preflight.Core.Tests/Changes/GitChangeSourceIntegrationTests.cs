@@ -1,6 +1,7 @@
 namespace Preflight.Core.Tests.Changes;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Services;
 using Preflight.Core;
 
 /// <summary>

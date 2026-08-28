@@ -2,6 +2,7 @@ namespace Preflight.Cli.Tests.Commands;
 
 using System.Text;
 using Preflight.Cli.Commands;
+using Preflight.TestSupport;
 
 /// <summary>
 /// Fixes that <c>preflight pipeline validate</c> reports everything wrong with
@@ -110,14 +111,14 @@ public sealed class PipelineValidatorTests : IDisposable
     {
         var tree = _root.CreateSubdirectory("clean");
 
-        Write(tree, PackageManifest.FileName, """
+        Write(tree, PackageManifest.FileName, $$"""
             {
               "schemaVersion": 1,
               "name": "projecta",
               "version": "1.4.0",
               "policyFile": "preflight.projecta.json",
               "ruleAssemblies": [],
-              "abstractionsMinimumVersion": "1.0.0"
+              "abstractionsMinimumVersion": "{{ContractVersion.Current}}"
             }
             """);
 
@@ -154,14 +155,14 @@ public sealed class PipelineValidatorTests : IDisposable
     {
         var tree = _root.CreateSubdirectory("no-policy");
 
-        Write(tree, PackageManifest.FileName, """
+        Write(tree, PackageManifest.FileName, $$"""
             {
               "schemaVersion": 1,
               "name": "projecta",
               "version": "1.4.0",
               "policyFile": "preflight.projecta.json",
               "ruleAssemblies": [],
-              "abstractionsMinimumVersion": "1.0.0"
+              "abstractionsMinimumVersion": "{{ContractVersion.Current}}"
             }
             """);
 
@@ -206,14 +207,14 @@ public sealed class PipelineValidatorTests : IDisposable
     {
         var tree = _root.CreateSubdirectory("bad-policy");
 
-        Write(tree, PackageManifest.FileName, """
+        Write(tree, PackageManifest.FileName, $$"""
             {
               "schemaVersion": 1,
               "name": "projecta",
               "version": "1.4.0",
               "policyFile": "preflight.projecta.json",
               "ruleAssemblies": [],
-              "abstractionsMinimumVersion": "1.0.0"
+              "abstractionsMinimumVersion": "{{ContractVersion.Current}}"
             }
             """);
 

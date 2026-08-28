@@ -2,7 +2,7 @@ namespace Preflight.Cli.Reporting;
 
 using System.Globalization;
 using System.Text;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Rules;
 using Preflight.Core;
 
 /// <summary>

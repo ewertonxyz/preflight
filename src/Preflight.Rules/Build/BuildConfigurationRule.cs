@@ -1,7 +1,8 @@
 namespace Preflight.Rules;
 
 using System.Text.Json;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
 
 /// <summary>
 /// Checks that the build configuration for the target is complete and coherent.
@@ -62,7 +63,9 @@ public sealed class BuildConfigurationRule : IValidationRule
                 Location = new FindingLocation(relativePath),
                 Expected = $"a configuration for {context.Target.Platform}/{context.Target.Configuration}",
                 Actual = "no file at that path",
-                Remediation = $"Add {relativePath}, or set 'path' for this rule in the policy.",
+                Remediation =
+                    $"Add {relativePath}, or ask the pipeline's author to point 'path' " +
+                    "at the right file.",
             });
         }
 

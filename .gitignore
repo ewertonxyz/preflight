@@ -48,3 +48,6 @@ desktop.ini
 
 ## Local policy overlay. The developer's own override; CI must never see it.
 preflight.local.json
+
+## Local JetBrains Junie folder.
+.junie/

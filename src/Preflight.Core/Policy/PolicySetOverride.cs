@@ -1,6 +1,6 @@
 namespace Preflight.Core.Policy;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Rules;
 
 /// <summary>
 /// One already-typed <c>--set</c> override: a rule id (or none, for a root

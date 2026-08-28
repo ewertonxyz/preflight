@@ -1,4 +1,4 @@
-namespace Preflight.Abstractions;
+namespace Preflight.Abstractions.Rules;
 
 /// <summary>
 /// A rule that can describe its own inputs, and may therefore be cached.
@@ -6,11 +6,11 @@ namespace Preflight.Abstractions;
 /// <remarks>
 /// <para>
 /// A separate, optional interface rather than a member on
-/// <see cref="IValidationRule"/>, and the versioning contract is the whole reason: adding a
-/// member to the interface every plugin implements is a <b>major</b> version
-/// and forces every plugin to be recompiled. A new type is a minor one. A rule
-/// that does not implement this is never cached and does not change by one
-/// character.
+/// <see cref="IValidationRule"/>, and the versioning contract decides that:
+/// adding a member to the interface every plugin implements is a <b>major</b>
+/// version and forces every plugin to be recompiled, where a new type is a
+/// minor one. A rule that does not implement this is never cached and does not
+/// change by one character.
 /// </para>
 /// <para>
 /// It also keeps a simple rule simple. Somebody checking a file size should not
@@ -28,9 +28,11 @@ public interface ICacheableRule
     /// Returning <see langword="null"/> means "I cannot describe my inputs in
     /// this run", and the result is that nothing is cached.
     /// <b>There is no approximate fingerprint.</b> A key that errs by optimism
-    /// produces a <c>Passed</c> over a workspace that changed — the false green
-    /// of principle 7, in its most expensive form to diagnose, because the
-    /// evidence of the mistake is precisely the run that did not happen.
+    /// produces a <c>Passed</c> over a workspace that changed — a check
+    /// reporting success without having run, which is the worst defect this
+    /// tool can have, and here in the form that is most expensive to diagnose,
+    /// because the evidence of the mistake is precisely the run that did not
+    /// happen.
     /// </para>
     /// <para>
     /// A rule that reads the clock, the network or a service cannot enumerate
@@ -38,21 +40,8 @@ public interface ICacheableRule
     /// </para>
     /// </remarks>
     /// <param name="context">The same context the rule will be executed with.</param>
-    /// <param name="cancellationToken">Cancellation.</param>
+    /// <param name="cancellationToken">Cancelled by the user's interrupt and by this rule's timeout.</param>
     Task<CacheFingerprint?> ComputeFingerprintAsync(
         RuleContext context,
         CancellationToken cancellationToken);
 }
-
-/// <summary>
-/// An opaque description of one rule's inputs.
-/// </summary>
-/// <remarks>
-/// The engine never inspects the value; it only compares it. What goes in it is
-/// the rule's own business. The engine does not know what a rule reads, and an
-/// engine-inferred fingerprint was rejected for exactly that reason: it could
-/// only err by optimism, and optimism here is a cached pass over a workspace
-/// that changed.
-/// </remarks>
-/// <param name="Value">Whatever identifies this set of inputs.</param>
-public readonly record struct CacheFingerprint(string Value);

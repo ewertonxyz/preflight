@@ -1,7 +1,7 @@
 namespace Preflight.Cli.Tests;
 
 using NSubstitute;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Rules;
 using Preflight.Core.Policy;
 
 /// <summary>

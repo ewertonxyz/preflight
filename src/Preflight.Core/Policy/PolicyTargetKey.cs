@@ -1,6 +1,6 @@
 namespace Preflight.Core.Policy;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
 
 /// <summary>
 /// The target of a run, separating what the user said from what defaulted.

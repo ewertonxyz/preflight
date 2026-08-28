@@ -56,8 +56,27 @@
 
   <PropertyGroup Label="Metadata">
     <Product>Preflight</Product>
+
+    <!--
+      The product version, carried by every assembly in the repository.
+
+      0.x is a statement rather than a placeholder: nothing here is published
+      under a stability promise yet, and SemVer reserves the leading zero for
+      exactly that. It also moves the breaking axis one place to the right —
+      while the major is 0, a minor is what a major would otherwise be — and
+      the plugin contract check and the cache key both read the version through
+      AbstractionsCompatibility.GenerationOf so that neither has to know that
+      rule twice.
+
+      Preflight.Abstractions overrides this with its own declaration. The two
+      numbers agree today and are free to diverge: the contract moves when the
+      surface a plugin compiles against moves, which is not the same event as a
+      release of the tool.
+    -->
+    <Version>0.1.1</Version>
+
     <Authors>Preflight contributors</Authors>
-    <RepositoryUrl>https://github.com/ewertonxyz/preflight</RepositoryUrl>
+    <RepositoryUrl>https://github.com/ewertonxyz/preflight-pvt</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>

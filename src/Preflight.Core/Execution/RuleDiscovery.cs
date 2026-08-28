@@ -1,7 +1,7 @@
 namespace Preflight.Core;
 
 using System.Reflection;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Rules;
 
 /// <summary>
 /// Thrown when a type that declared itself a rule cannot be turned into one.

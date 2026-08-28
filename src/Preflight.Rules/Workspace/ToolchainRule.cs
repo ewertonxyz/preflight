@@ -1,7 +1,9 @@
 namespace Preflight.Rules;
 
 using System.Text.Json;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
+using Preflight.Abstractions.Services;
 
 /// <summary>
 /// Checks that every tool the workspace declares is installed and at an
@@ -48,7 +50,9 @@ public sealed class ToolchainRule : IValidationRule
                 Message = "The workspace manifest is not valid JSON.",
                 Location = new FindingLocation(manifestPath),
                 Actual = exception.Message,
-                Remediation = "Fix the syntax, or point 'manifestPath' at the right file in the policy.",
+                Remediation =
+                    "Fix the syntax, or ask the pipeline's author to point 'manifestPath' " +
+                    "at the right file.",
             });
         }
 
@@ -67,7 +71,7 @@ public sealed class ToolchainRule : IValidationRule
                 Actual = "no file at that path",
                 Remediation =
                     $"Add {WorkspaceManifest.DefaultFileName} at the workspace root, " +
-                    "or set 'manifestPath' for this rule in the policy.",
+                    "or ask the pipeline's author to set 'manifestPath' for this rule.",
             });
         }
 

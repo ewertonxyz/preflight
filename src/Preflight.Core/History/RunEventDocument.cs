@@ -2,7 +2,8 @@ namespace Preflight.Core.History;
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Preflight.Abstractions;
+using Preflight.Abstractions.Model;
+using Preflight.Abstractions.Rules;
 
 /// <summary>
 /// The JSON shape of a run, used by both <c>--format json</c> and the NDJSON

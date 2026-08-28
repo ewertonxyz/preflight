@@ -1,6 +1,6 @@
 namespace Preflight.Cli.Tests.Reporting;
 
-using Preflight.Abstractions;
+using Preflight.Abstractions.Rules;
 using Preflight.Cli.Reporting;
 
 /// <summary>
