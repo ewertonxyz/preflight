@@ -1,0 +1,22 @@
+﻿Preflight history — last 30 days
+
+Runs                              142
+  Passed                          118
+  Passed with warnings              9
+  Blocked                          15
+
+Preflight duration     p50  18.4s   p95  31.2s   (n=142)
+
+Blocking verdicts at BuildReadiness            15
+  Upper bound of build time not spent — not computed, for want of a p50 'build' duration.
+  Record one with 'preflight measure --label build -- <build command>'.
+
+Slowest rules (p50)
+  core.build.compile-probe        14.9s
+  core.workspace.dependencies      2.1s
+  core.build.configuration         0.8s
+
+Most frequent failures
+  core.workspace.toolchain          9
+  core.presubmit.large-file         4
+  core.build.configuration          2

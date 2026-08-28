@@ -1,0 +1,7 @@
+﻿Preflight — build-readiness — atlas — win64/Development
+policy  base → atlas                                  local overlay not applied
+
+  ⨂  core.build.compile-probe                            0.3s
+     System.TimeoutException: the probe did not finish within 60s.
+
+  Blocked — 1 errored in 1.0s

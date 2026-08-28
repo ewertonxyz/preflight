@@ -1,0 +1,7 @@
+﻿Preflight — build-readiness — atlas — win64/Development
+policy  base → atlas                                  local overlay not applied
+
+  ·  core.presubmit.large-file                           0.1s
+  ·  core.presubmit.forbidden-paths                      0.1s
+
+  Blocked — 2 n/a in 1.0s

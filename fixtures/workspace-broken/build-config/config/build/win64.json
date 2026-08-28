@@ -1,0 +1,5 @@
+{
+  // No "contentRoot". This is the documented finding, and the
+  // console reporter's golden file reproduces it word for word.
+  "configuration": "Development"
+}

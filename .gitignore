@@ -1,0 +1,50 @@
+## Build output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+*.binlog
+
+## Test output
+[Tt]est[Rr]esult*/
+coverage*.json
+coverage*.xml
+coverage*.info
+*.coverage
+
+## Verify writes a .received file next to the .verified one whenever a snapshot
+## disagrees. It is the failure itself, not a source artifact: committing one
+## turns a red test green by replacing the expectation with whatever the code
+## just produced. The .verified files ARE versioned — they are the assertion.
+*.received.*
+
+## Reqnroll generates a .feature.cs next to each .feature at build time.
+## Generated code is a build output: committing it means every build produces a
+## diff, and a stale one silently disagrees with its .feature file.
+*.feature.cs
+
+## IDE
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+## NuGet
+*.nupkg
+*.snupkg
+packages/
+!fixtures/**/packages/
+!fixtures/**/packages/**
+
+## OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+## Preflight's own runtime output. Per-machine, append-only, never versioned.
+.preflight/
+
+## Local policy overlay. The developer's own override; CI must never see it.
+preflight.local.json

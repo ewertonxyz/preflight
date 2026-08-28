@@ -1,0 +1,53 @@
+# Normalise line endings on commit; check out native on each platform.
+# The console reporter is golden-file tested, and a CRLF/LF
+# mismatch between two machines would fail those tests for a reason that has
+# nothing to do with the code.
+* text=auto
+
+# Source and project files: always LF in the repository.
+*.cs        text eol=lf diff=csharp
+*.csproj    text eol=lf
+*.props     text eol=lf
+*.targets   text eol=lf
+*.slnx      text eol=lf
+*.json      text eol=lf
+*.jsonc     text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.md        text eol=lf
+*.editorconfig text eol=lf
+*.gitattributes text eol=lf
+*.gitignore text eol=lf
+
+# Gherkin is source, and is edited beside the .cs that binds it. Reqnroll parses
+# either line ending, so this is consistency rather than correctness - but a
+# feature file that arrives CRLF while its step definitions arrive LF is a diff
+# nobody asked for the first time somebody edits one on another platform.
+*.feature   text eol=lf
+
+# Test fixtures are compared byte for byte. Never touch them.
+#
+# .verified.txt is the pair Verify actually writes; .approved.txt is the older
+# ApprovalTests spelling, kept because the rule costs nothing and its absence
+# would cost a day. Without the .verified entry these fall under `* text=auto`
+# and arrive with CRLF on a fresh clone, while the reporter emits LF - so every
+# golden fails on a machine that did not generate it, which reads as the other
+# person's environment being broken.
+tests/**/*.approved.txt  -text
+tests/**/*.verified.txt  -text
+tests/**/*.received.txt  -text
+fixtures/**              -text
+
+# PowerShell scripts. Windows PowerShell 5.1 reads a file without a BOM as ANSI,
+# so these are kept ASCII-only and no BOM is added.
+*.ps1       text eol=crlf
+
+# Binaries.
+*.png       binary
+*.jpg       binary
+*.gif       binary
+*.ico       binary
+*.dll       binary
+*.exe       binary
+*.pdb       binary
+*.snk       binary

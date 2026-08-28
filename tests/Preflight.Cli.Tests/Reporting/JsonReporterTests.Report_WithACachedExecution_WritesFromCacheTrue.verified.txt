@@ -1,0 +1,30 @@
+﻿{
+  "type": "run",
+  "runId": "11111111-2222-3333-4444-555555555555",
+  "startedAt": "2026-08-26T14:30:00+00:00",
+  "durationMs": 1000,
+  "stage": "BuildReadiness",
+  "platform": "win64",
+  "configuration": "Development",
+  "pipeline": "atlas",
+  "policyChain": [
+    "preflight.base.json",
+    "preflight.atlas.json"
+  ],
+  "verdict": "Blocked",
+  "partial": false,
+  "failOnWarning": false,
+  "noSkip": false,
+  "executedCount": 1,
+  "executions": [
+    {
+      "ruleId": "core.build.compile-probe",
+      "status": "Passed",
+      "effectiveSeverity": "Error",
+      "blocking": true,
+      "gating": false,
+      "durationMs": 0,
+      "fromCache": true
+    }
+  ]
+}

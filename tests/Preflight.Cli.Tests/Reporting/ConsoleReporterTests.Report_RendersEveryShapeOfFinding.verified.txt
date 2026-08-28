@@ -1,0 +1,54 @@
+﻿Preflight — build-readiness — atlas — win64/Development
+policy  base → atlas                                  local overlay not applied
+
+  ✗  core.build.configuration                            0.2s
+     Finding shape 0.
+     Finding shape 1.
+       at  config/build/win64.json
+     Finding shape 2.
+       expected  an entry
+     Finding shape 3.
+       at  config/build/win64.json
+       expected  an entry
+     Finding shape 4.
+       actual    nothing
+     Finding shape 5.
+       at  config/build/win64.json
+       actual    nothing
+     Finding shape 6.
+       expected  an entry
+       actual    nothing
+     Finding shape 7.
+       at  config/build/win64.json
+       expected  an entry
+       actual    nothing
+     Finding shape 8.
+       fix       add the entry
+     Finding shape 9.
+       at  config/build/win64.json
+       fix       add the entry
+     Finding shape 10.
+       expected  an entry
+       fix       add the entry
+     Finding shape 11.
+       at  config/build/win64.json
+       expected  an entry
+       fix       add the entry
+     Finding shape 12.
+       actual    nothing
+       fix       add the entry
+     Finding shape 13.
+       at  config/build/win64.json
+       actual    nothing
+       fix       add the entry
+     Finding shape 14.
+       expected  an entry
+       actual    nothing
+       fix       add the entry
+     Finding shape 15.
+       at  config/build/win64.json
+       expected  an entry
+       actual    nothing
+       fix       add the entry
+
+  Blocked — 1 failed in 1.0s

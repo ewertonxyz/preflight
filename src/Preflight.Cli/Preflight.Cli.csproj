@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Argument parsing, configuration loading, reporters, exit codes.
+
+    AssemblyName is 'preflight' so the produced binary matches every command line
+    in the documentation.
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>preflight</AssemblyName>
+    <RootNamespace>Preflight.Cli</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup Label="Runtime">
+    <!-- The argument parser. Version in the central package management file. -->
+    <PackageReference Include="System.CommandLine" />
+
+    <!-- The arrow-key picker, confined to Interactive/. Version in the central file. -->
+    <PackageReference Include="Spectre.Console" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Preflight.Core\Preflight.Core.csproj" />
+    <ProjectReference Include="..\Preflight.Rules\Preflight.Rules.csproj" />
+  </ItemGroup>
+
+</Project>

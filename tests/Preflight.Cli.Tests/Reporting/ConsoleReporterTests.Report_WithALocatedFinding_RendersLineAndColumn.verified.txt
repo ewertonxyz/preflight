@@ -1,0 +1,10 @@
+﻿Preflight — build-readiness — atlas — win64/Development
+policy  base → atlas                                  local overlay not applied
+
+  ✗  core.build.compile-probe                            0.5s
+     error CS1002: ; expected
+       at  src/Game/Player.cs:42
+     error CS0103: the name 'foo' does not exist
+       at  src/Game/Player.cs:87:13
+
+  Blocked — 1 failed in 1.0s

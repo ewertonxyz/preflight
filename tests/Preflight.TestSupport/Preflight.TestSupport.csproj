@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Shared test support. Not a test project, deliberately.
+
+    The name must not end in .Tests or .Specs: Directory.Build.props turns any
+    project that does into an OutputType=Exe test binary, and Microsoft.Testing
+    .Platform exits 8 when a test binary contains no tests. The tooling choice
+    says that exit code is never suppressed, so the wrong name here would fail
+    every run for a reason nobody would look for in a csproj.
+
+    It lives under tests/ for a second, quieter reason: .editorconfig scopes its
+    test relaxations to [tests/**/*.cs], and the fixtures moved in here rely on
+    them — CA1812 in particular, since a fixture type is constructed by the test
+    rather than by the code that declares it.
+  -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup Label="Assertions, doubles and data">
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="NSubstitute" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Shouldly" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Preflight.Core\Preflight.Core.csproj" />
+  </ItemGroup>
+
+</Project>

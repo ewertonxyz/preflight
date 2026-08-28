@@ -1,0 +1,86 @@
+﻿{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Preflight",
+          "rules": [
+            {
+              "id": "core.workspace.toolchain",
+              "name": "core.workspace.toolchain",
+              "shortDescription": {
+                "text": "core.workspace.toolchain"
+              },
+              "helpUri": "https://wiki/preflight/rules/toolchain"
+            },
+            {
+              "id": "core.build.configuration",
+              "name": "core.build.configuration",
+              "shortDescription": {
+                "text": "core.build.configuration"
+              }
+            },
+            {
+              "id": "core.build.compile-probe",
+              "name": "core.build.compile-probe",
+              "shortDescription": {
+                "text": "core.build.compile-probe"
+              }
+            }
+          ]
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": false,
+          "exitCode": 1,
+          "startTimeUtc": "2026-08-26T14:30:00.000Z",
+          "endTimeUtc": "2026-08-26T14:30:01.000Z"
+        }
+      ],
+      "automationDetails": {
+        "guid": "11111111-2222-3333-4444-555555555555"
+      },
+      "results": [
+        {
+          "ruleId": "core.workspace.toolchain",
+          "ruleIndex": 0,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "The rule passed."
+          }
+        },
+        {
+          "ruleId": "core.build.configuration",
+          "ruleIndex": 1,
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "Missing platform configuration entry.\nexpected: a \u0022contentRoot\u0022 entry\nactual: key not present\nfix: add \u0022contentRoot\u0022 pointing to the packaged content folder"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "config/build/win64.json"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "core.build.compile-probe",
+          "ruleIndex": 2,
+          "kind": "notApplicable",
+          "level": "none",
+          "message": {
+            "text": "The rule was skipped. Blocked by core.build.configuration."
+          }
+        }
+      ]
+    }
+  ]
+}

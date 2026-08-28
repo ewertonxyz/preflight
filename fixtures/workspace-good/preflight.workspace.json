@@ -1,0 +1,19 @@
+{
+  // The tool this workspace is built with. Two explicit bounds, no range
+  // grammar.
+  "tools": [
+    {
+      "name": "git",
+      "command": "git",
+      "arguments": ["--version"],
+      "minimumVersion": "2.0.0"
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "Serilog",
+      "version": "3.1.1",
+      "restoredMarker": "packages/serilog"
+    }
+  ]
+}

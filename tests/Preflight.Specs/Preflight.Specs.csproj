@@ -1,0 +1,77 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Behaviour specifications, in Gherkin, via Reqnroll.
+
+    Scope is deliberate and narrow. This project covers behaviour a production
+    owner would recognise as a rule of the system: verdict aggregation, the
+    blocking-by-gating matrix, skip attribution to the root
+    cause, and the observable contract of the executable. Those read well as
+    scenarios because they are policy.
+
+    Unit-level work stays in xUnit. A Gherkin scenario asserting that Kahn's
+    algorithm orders a diamond correctly would be worse than the unit test, not
+    better.
+  -->
+
+  <PropertyGroup>
+    <!--
+      Reqnroll generates a .feature.cs file per feature at build time. Generated
+      code does not answer to a hand-written style guide, and holding it to one
+      would mean either editing generated files or suppressing rules one at a
+      time forever.
+    -->
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+
+    <!--
+      Directory.Build.props sets InvariantGlobalization for the whole solution,
+      which is right for the shipped binary: no ICU dependency, and no
+      culture-sensitive string comparison anywhere near a rule id or a path. It
+      is the same concern that promotes CA1305, CA1307 and CA1310 to warnings in
+      .editorconfig.
+
+      Reqnroll resolves a real culture — en-us by default — to pick the Gherkin
+      keyword language, and throws CultureNotFoundException at assembly
+      initialisation under invariant mode. The exception is scoped to this
+      project so the production binary keeps the stricter setting.
+    -->
+    <InvariantGlobalization>false</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
+    <PackageReference Include="Reqnroll.xUnit.v3" />
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="Bogus" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="Shouldly" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Preflight.Cli\Preflight.Cli.csproj" />
+
+    <!--
+      For PluginFixtures and RepositoryLayout: the plugin scenarios point the
+      real executable at a directory of real assemblies, and both the sample's
+      build output and the temporary directories are located the same way every
+      other test in the repository locates them.
+    -->
+    <ProjectReference Include="..\Preflight.TestSupport\Preflight.TestSupport.csproj" />
+
+    <!--
+      Built before these scenarios run, and deliberately not referenced. The
+      sample has to exist on disk for a plugin directory to be assembled from
+      it; a copy of it in this project's output would be resolvable from the
+      default load context and would make the isolation meaningless.
+    -->
+    <ProjectReference Include="..\..\samples\Sample.Production.Rules\Sample.Production.Rules.csproj"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>

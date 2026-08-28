@@ -1,0 +1,64 @@
+﻿{
+  "windowMs": 2592000000,
+  "runCount": 142,
+  "passedCount": 118,
+  "passedWithWarningsCount": 9,
+  "blockedCount": 15,
+  "erroredCount": 0,
+  "promotedBlockCount": 0,
+  "contrastRunCount": 0,
+  "partialRunCount": 0,
+  "unreadableLineCount": 0,
+  "ignoredLineCount": 0,
+  "blockingVerdicts": [
+    {
+      "stage": "BuildReadiness",
+      "count": 15
+    }
+  ],
+  "preflightDuration": {
+    "sampleSize": 142,
+    "p50Ms": 18400,
+    "p95Ms": 31200
+  },
+  "measured": [
+    {
+      "label": "build",
+      "duration": {
+        "sampleSize": 27,
+        "p50Ms": 2282000
+      }
+    }
+  ],
+  "slowestRules": [
+    {
+      "ruleId": "core.build.compile-probe",
+      "p50Ms": 14900
+    },
+    {
+      "ruleId": "core.workspace.dependencies",
+      "p50Ms": 2100
+    },
+    {
+      "ruleId": "core.build.configuration",
+      "p50Ms": 800
+    }
+  ],
+  "slowestRulesNotShown": 0,
+  "mostFrequentFailures": [
+    {
+      "ruleId": "core.workspace.toolchain",
+      "count": 9
+    },
+    {
+      "ruleId": "core.presubmit.large-file",
+      "count": 4
+    },
+    {
+      "ruleId": "core.build.configuration",
+      "count": 2
+    }
+  ],
+  "mostFrequentFailuresNotShown": 0,
+  "upperBoundNotSpentMs": 34230000
+}

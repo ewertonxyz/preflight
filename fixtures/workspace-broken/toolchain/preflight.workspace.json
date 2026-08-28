@@ -1,0 +1,14 @@
+{
+  // A tool that is on PATH everywhere, pinned to a range no real install
+  // satisfies. Breaking the toolchain rule by naming a command that does not
+  // exist would also be a valid fixture, and a worse one: it would pass on a
+  // machine where somebody happened to have a binary by that name.
+  "tools": [
+    {
+      "name": "git",
+      "command": "git",
+      "arguments": ["--version"],
+      "minimumVersion": "999.0.0"
+    }
+  ]
+}

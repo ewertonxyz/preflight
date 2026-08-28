@@ -1,0 +1,85 @@
+<Project>
+
+  <!--
+    Preflight — properties shared by every project.
+
+    The target framework, the nullable setting and warnings-as-errors live here;
+    .editorconfig holds the style rules these settings enforce.
+  -->
+
+  <PropertyGroup Label="Target">
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Correctness">
+    <!--
+      A validation tool that ships with warnings is not in a position to lecture
+      anyone about workspace hygiene.
+    -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+
+    <!--
+      NuGet advisories are reported but never fail the build.
+      An advisory published upstream overnight would otherwise break a build that
+      changed nothing, on a machine whose owner cannot fix it. It belongs in the
+      CI log as a warning and in a deliberate follow-up, not as a red build on an
+      unrelated commit. Exit code 2 against exit code 1 is the same idea:
+      the person who broke it and the person who can fix it are not always the same.
+    -->
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>
+    <NuGetAuditLevel>low</NuGetAuditLevel>
+    <WarningsNotAsErrors>NU1900;NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Build reproducibility">
+    <!--
+      A tool whose own build is not reproducible is a poor advertisement for
+      determinism.
+    -->
+    <Deterministic>true</Deterministic>
+    <EnablePackageValidation>false</EnablePackageValidation>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Packaging">
+    <!-- Only Preflight.Abstractions is ever published; it opts back in. -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Metadata">
+    <Product>Preflight</Product>
+    <Authors>Preflight contributors</Authors>
+    <RepositoryUrl>https://github.com/ewertonxyz/preflight</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <!--
+    Test projects. Kept here rather than duplicated across four csproj files.
+    OutputType is Exe because an xUnit v3 test project is a real executable: the
+    runner hosts each assembly in its own process rather than loading them all
+    into one.
+  -->
+  <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('.Tests')) Or $(MSBuildProjectName.EndsWith('.Specs'))">
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+    <OutputType>Exe</OutputType>
+
+    <!--
+      The runner is Microsoft.Testing.Platform, selected in global.json under
+      "test". It is not configured here: TestingPlatformDotnetTestSupport is the
+      opt-in for running MTP projects through the *legacy* VSTest mode, and
+      setting it in MTP mode is exactly the migration step the docs tell you to
+      undo. Leaving it out is the correct configuration, not an omission.
+    -->
+  </PropertyGroup>
+
+</Project>

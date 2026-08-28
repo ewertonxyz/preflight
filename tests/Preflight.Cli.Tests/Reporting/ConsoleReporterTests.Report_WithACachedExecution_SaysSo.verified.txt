@@ -1,0 +1,7 @@
+﻿Preflight — build-readiness — atlas — win64/Development
+policy  base → atlas                                  local overlay not applied
+
+  ✓  core.workspace.toolchain                            0.4s
+  ✓  core.build.compile-probe                            0.0s  (cached)
+
+  Blocked — 2 passed in 1.0s

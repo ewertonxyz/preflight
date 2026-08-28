@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup Label="Test framework">
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
+  </ItemGroup>
+
+  <ItemGroup Label="Assertions, doubles and data">
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="Bogus" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="Shouldly" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Preflight.Rules\Preflight.Rules.csproj" />
+
+    <!--
+      Preflight.TestSupport pulls in Preflight.Core transitively, and that is
+      fine: the constraint is on src/Preflight.Rules, not on the project that tests
+      it. RulesDependencyTests inspects the source csproj and the Preflight.Rules
+      assembly itself, neither of which this reference touches.
+    -->
+    <!--
+      The concrete IFileSystem and IProcessRunner, for the integration layer
+      of the suite. This does not touch the rule above, which
+      constrains src/Preflight.Rules: RulesDependencyTests reads that project's
+      csproj and that assembly's metadata, and neither is affected by a
+      reference declared here.
+    -->
+    <ProjectReference Include="..\..\src\Preflight.Core\Preflight.Core.csproj" />
+    <ProjectReference Include="..\Preflight.TestSupport\Preflight.TestSupport.csproj" />
+
+    <!--
+      The worked example of a production's own rule, tested here because it is a
+      rule and this is where rules are tested.
+
+      PrivateAssets="All" stops it flowing on to Preflight.Cli.Tests, which
+      references this project for the built-in descriptors. The plugin tests
+      there load the sample from a temporary directory into a load context of
+      its own, and an identical copy sitting in their own output folder would
+      make it ambiguous which one they proved anything about.
+    -->
+    <ProjectReference Include="..\..\samples\Sample.Production.Rules\Sample.Production.Rules.csproj"
+                      PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>

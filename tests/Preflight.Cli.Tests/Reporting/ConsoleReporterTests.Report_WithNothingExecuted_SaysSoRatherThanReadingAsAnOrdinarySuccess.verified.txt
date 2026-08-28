@@ -1,0 +1,5 @@
+﻿Preflight — build-readiness — atlas — win64/Development
+policy  base → atlas                                  local overlay not applied
+
+
+  Passed — 0 rules executed (all selected rules disabled by policy) in 1.0s

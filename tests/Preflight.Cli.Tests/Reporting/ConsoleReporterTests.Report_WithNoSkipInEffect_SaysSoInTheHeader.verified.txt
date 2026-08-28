@@ -1,0 +1,14 @@
+﻿Preflight — build-readiness — atlas — win64/Development
+policy  base → atlas                                  local overlay not applied   --no-skip in effect
+
+  ✓  core.workspace.toolchain                            0.4s
+  ✗  core.build.configuration                            0.6s
+     Missing platform configuration entry.
+       at  config/build/win64.json
+       expected  a "contentRoot" entry
+       actual    key not present
+       fix       add "contentRoot" pointing to the packaged content folder
+  ⊘  core.build.compile-probe                         skipped
+     blocked by  core.build.configuration   (failed, gating)
+
+  Blocked — 1 failed, 1 skipped, 1 passed in 1.0s

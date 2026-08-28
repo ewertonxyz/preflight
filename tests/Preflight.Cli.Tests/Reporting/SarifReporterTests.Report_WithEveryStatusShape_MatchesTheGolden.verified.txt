@@ -1,0 +1,140 @@
+﻿{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Preflight",
+          "rules": [
+            {
+              "id": "core.a.passed",
+              "name": "core.a.passed",
+              "shortDescription": {
+                "text": "core.a.passed"
+              }
+            },
+            {
+              "id": "core.b.warning",
+              "name": "core.b.warning",
+              "shortDescription": {
+                "text": "core.b.warning"
+              },
+              "helpUri": "https://example.invalid/warning"
+            },
+            {
+              "id": "core.c.failed",
+              "name": "core.c.failed",
+              "shortDescription": {
+                "text": "core.c.failed"
+              }
+            },
+            {
+              "id": "core.d.skipped",
+              "name": "core.d.skipped",
+              "shortDescription": {
+                "text": "core.d.skipped"
+              }
+            },
+            {
+              "id": "core.e.not-applicable",
+              "name": "core.e.not-applicable",
+              "shortDescription": {
+                "text": "core.e.not-applicable"
+              }
+            },
+            {
+              "id": "core.f.errored",
+              "name": "core.f.errored",
+              "shortDescription": {
+                "text": "core.f.errored"
+              }
+            }
+          ]
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": false,
+          "exitCode": 3,
+          "startTimeUtc": "2026-08-26T14:30:00.000Z",
+          "endTimeUtc": "2026-08-26T14:30:01.000Z",
+          "toolExecutionNotifications": [
+            {
+              "level": "error",
+              "message": {
+                "text": "System.InvalidOperationException: the rule is broken"
+              },
+              "associatedRule": {
+                "id": "core.f.errored"
+              }
+            }
+          ]
+        }
+      ],
+      "automationDetails": {
+        "guid": "11111111-2222-3333-4444-555555555555"
+      },
+      "results": [
+        {
+          "ruleId": "core.a.passed",
+          "ruleIndex": 0,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "The rule passed."
+          }
+        },
+        {
+          "ruleId": "core.b.warning",
+          "ruleIndex": 1,
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "a warning finding"
+          }
+        },
+        {
+          "ruleId": "core.c.failed",
+          "ruleIndex": 2,
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "a failing finding\nexpected: a semicolon\nactual: a newline\nfix: add the semicolon"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Game/Player.cs"
+                },
+                "region": {
+                  "startLine": 42,
+                  "startColumn": 13
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "core.d.skipped",
+          "ruleIndex": 3,
+          "kind": "notApplicable",
+          "level": "none",
+          "message": {
+            "text": "The rule was skipped. Blocked by core.c.failed."
+          }
+        },
+        {
+          "ruleId": "core.e.not-applicable",
+          "ruleIndex": 4,
+          "kind": "notApplicable",
+          "level": "none",
+          "message": {
+            "text": "The rule had nothing to check."
+          }
+        }
+      ]
+    }
+  ]
+}

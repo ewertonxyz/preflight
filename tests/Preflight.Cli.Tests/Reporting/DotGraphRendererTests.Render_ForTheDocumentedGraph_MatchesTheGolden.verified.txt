@@ -1,0 +1,11 @@
+﻿digraph preflight {
+  rankdir=LR;
+  { rank=same; "core.a.top"; }
+  { rank=same; "core.a.left"; "core.a.right"; }
+  { rank=same; "core.a.bottom"; }
+
+  "core.a.top" -> "core.a.left";
+  "core.a.top" -> "core.a.right";
+  "core.a.left" -> "core.a.bottom";
+  "core.a.right" -> "core.a.bottom";
+}

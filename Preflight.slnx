@@ -1,0 +1,23 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/src/">
+    <Project Path="src/Preflight.Abstractions/Preflight.Abstractions.csproj" />
+    <Project Path="src/Preflight.Cli/Preflight.Cli.csproj" />
+    <Project Path="src/Preflight.Core/Preflight.Core.csproj" />
+    <Project Path="src/Preflight.Rules/Preflight.Rules.csproj" />
+  </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/Sample.Production.Rules/Sample.Production.Rules.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Preflight.Cli.Tests/Preflight.Cli.Tests.csproj" />
+    <Project Path="tests/Preflight.Core.Tests/Preflight.Core.Tests.csproj" />
+    <Project Path="tests/Preflight.Rules.Tests/Preflight.Rules.Tests.csproj" />
+    <Project Path="tests/Preflight.Specs/Preflight.Specs.csproj" />
+    <Project Path="tests/Preflight.TestSupport/Preflight.TestSupport.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The built-in rules.
+
+    This project references Abstractions and NOTHING ELSE. In particular it must
+    never reference Preflight.Core. If the internal rules had
+    privileged access to the engine, every gap in the Abstractions surface would
+    be silently worked around here and would only be discovered by the first
+    external plugin author, who has no such escape hatch.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\Preflight.Abstractions\Preflight.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Contracts only.
+
+    This project must never gain a PackageReference or a ProjectReference.
+    It is the single assembly an external production references in order to write
+    its own rules, and every dependency added here becomes a dependency every
+    plugin author inherits. A test asserts this rather than trusting it.
+  -->
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Description>Contracts for writing Preflight validation rules.</Description>
+
+    <!--
+      Declared, not inherited. This number is the contract between the engine and
+      every plugin, and the loader refuses a plugin built
+      against a minor this one does not have. Left undeclared, the SDK produces
+      1.0.0.0 for every assembly in the repository, the whole refusal table
+      becomes unreachable, and the claim that ICacheableRule arrived as a minor
+      is recorded nowhere a machine can read.
+
+      AssemblyVersion is deliberately left to follow Version rather than being
+      pinned to <major>.0.0.0, which is a common habit and would collapse the
+      first two rows of the compatibility table into "always loads". Guarded by
+      AbstractionsDependencyTests.
+    -->
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+</Project>

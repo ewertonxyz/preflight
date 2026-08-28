@@ -1,0 +1,13 @@
+{
+  "compileProbe": {
+    // Exits non-zero and prints one diagnostic in the MSBuild form. A real
+    // compiler here would tie the fixture to whatever is installed on the
+    // machine, and the rule's job is to read diagnostics, not to own a
+    // toolchain.
+    "command": "cmd",
+    "arguments": [
+      "/c",
+      "echo src/Program.cs(1,1): error CS1002: ; expected&& exit 1"
+    ]
+  }
+}

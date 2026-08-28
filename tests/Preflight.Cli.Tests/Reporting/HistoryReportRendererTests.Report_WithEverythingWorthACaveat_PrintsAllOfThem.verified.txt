@@ -1,0 +1,33 @@
+﻿Preflight history — last 30 days
+
+Runs                              145
+  Passed                          118
+  Passed with warnings              9
+  Blocked                          15
+  Errored                           3
+
+Preflight duration     p50  18.4s   p95  31.2s   (n=142)
+Build duration         p50  38m02s  p95  —       (n=27, measured; p95 needs n>=50)
+
+Blocking verdicts at BuildReadiness            15
+Upper bound of build time not spent            9h30m
+  = 15 blocking verdicts x p50 build duration
+  Assumes every blocked run would otherwise have failed the build.
+  Not all would. Treat as a ceiling, not a saving.
+  4 runs blocked only by --fail-on-warning, not counted as blocking verdicts
+  9 runs made with --no-skip, which report more failures by design
+  2 runs cancelled, and left out of the duration percentiles
+  3 history lines could not be read and were skipped
+  1 history line named an event type this version does not know
+
+Slowest rules (p50)
+  core.build.compile-probe        14.9s
+  core.workspace.dependencies      2.1s
+  core.build.configuration         0.8s
+  4 more not shown
+
+Most frequent failures
+  core.workspace.toolchain          9
+  core.presubmit.large-file         4
+  core.build.configuration          2
+  2 more not shown

@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup Label="Test framework">
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
+  </ItemGroup>
+
+  <ItemGroup Label="Assertions, doubles and data">
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="Bogus" />
+    <!-- Golden files for the console reporter. -->
+    <PackageReference Include="Verify.XunitV3" />
+
+    <!-- A console the picker can draw on, and a keyboard to answer it with. -->
+    <PackageReference Include="Spectre.Console.Testing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="Shouldly" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Preflight.Cli\Preflight.Cli.csproj" />
+    <ProjectReference Include="..\Preflight.TestSupport\Preflight.TestSupport.csproj" />
+
+    <!--
+      For BuiltInRuleDescriptorsTests.Discovered(), which finds the six rules
+      the way the engine does. Duplicating that reflection here would give the
+      end-to-end tests their own idea of what "the built-in rules" are, and the
+      two would drift the first time a rule was added.
+    -->
+    <ProjectReference Include="..\Preflight.Rules.Tests\Preflight.Rules.Tests.csproj" />
+
+    <!--
+      Built before these tests run, and deliberately not referenced.
+
+      The plugin tests need the sample as a file on disk to copy into a
+      temporary directory and load through a real AssemblyLoadContext.
+      ReferenceOutputAssembly="false" buys the build ordering without putting a
+      second copy of it in this project's output, where it would be resolvable
+      from the default context and would make the isolation tests prove nothing.
+      RepositoryLayout.BuildOutputPathOf finds the one that was built.
+    -->
+    <ProjectReference Include="..\..\samples\Sample.Production.Rules\Sample.Production.Rules.csproj"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>

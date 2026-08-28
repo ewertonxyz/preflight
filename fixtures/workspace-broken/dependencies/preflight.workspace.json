@@ -1,0 +1,14 @@
+{
+  "tools": [
+    { "name": "git", "command": "git", "arguments": ["--version"], "minimumVersion": "2.0.0" }
+  ],
+  "dependencies": [
+    {
+      "id": "Serilog",
+      "version": "3.1.1",
+      // Nothing at this path. That is a warning, not a failure:
+      // one command fixes it and nobody has to decide anything.
+      "restoredMarker": "packages/serilog"
+    }
+  ]
+}

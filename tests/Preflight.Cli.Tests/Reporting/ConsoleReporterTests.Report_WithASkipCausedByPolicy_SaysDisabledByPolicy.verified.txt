@@ -1,0 +1,7 @@
+﻿Preflight — build-readiness — atlas — win64/Development
+policy  base → atlas                                  local overlay not applied
+
+  ⊘  core.build.compile-probe                         skipped
+     blocked by  core.build.configuration   (disabled by policy)
+
+  Blocked — 1 skipped in 1.0s

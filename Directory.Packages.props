@@ -1,0 +1,167 @@
+<Project>
+
+  <!--
+    Central Package Management.
+
+    Every package version for the whole solution lives here. A csproj declares
+    that it needs a package; it never declares which version. This is the same
+    separation between rule and policy, applied to
+    dependencies: the projects state what they need, one file states the terms.
+
+    The practical payoff is that two projects cannot silently drift onto
+    different versions of the same package, which is the usual way a build starts
+    behaving differently depending on which project restored last.
+  -->
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup Label="Test framework">
+    <!--
+      xUnit v3. The v2 packages are what `dotnet new xunit` still scaffolds, and
+      staying on them because a template said so is not a decision. v3 runs each
+      test assembly as its own process, which matters here: the concurrency contract
+      makes freedom from shared mutable state a contract for rule authors, and a
+      runner that isolates assemblies is the one that will actually catch a
+      violation instead of hiding it behind a shared AppDomain.
+    -->
+    <PackageVersion Include="xunit.v3" Version="4.0.0" />
+
+    <!--
+      TRX reporting under MTP. MIT, github.com/microsoft/testfx.
+
+      Note the company it does not keep: xunit.runner.visualstudio and
+      Microsoft.NET.Test.Sdk are absent, because both belong to VSTest and the
+      .NET 10 SDK refuses to run an MTP project through the VSTest target at all.
+      MTP is not a preference here; xUnit v3 is MTP-based and the SDK forces the
+      pairing.
+    -->
+    <PackageVersion Include="Microsoft.Testing.Extensions.TrxReport" Version="2.3.3" />
+  </ItemGroup>
+
+  <ItemGroup Label="Assertions">
+    <!--
+      Shouldly, not FluentAssertions.
+
+      FluentAssertions moved to a paid commercial licence at v8 in January 2025;
+      v7 stays Apache 2.0 but is frozen. AwesomeAssertions is the community fork
+      of v7 and is a reasonable choice, but it carries fork-maintenance risk with
+      no commercial backing behind it.
+
+      Shouldly has neither problem: continuously maintained, permissively
+      licensed throughout its history, and its failure messages name the
+      expression that failed rather than just the values. For a repository whose
+      whole argument is about dependency and policy discipline, picking the
+      dependency with no licence history is the consistent move.
+    -->
+    <PackageVersion Include="Shouldly" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="Test doubles and data">
+    <!--
+      NSubstitute fakes the four context services:
+      IFileSystem, IProcessRunner, IRuleLogger and IChangeSource. Those exist
+      precisely so the built-in rules can be tested without a disk or a compiler.
+
+      Bogus generates the bulk data those tests need — thousands of ChangedFile
+      entries for a pre-submit rule, plausible paths and sizes — without a
+      hand-written fixture that everyone is afraid to touch.
+    -->
+    <PackageVersion Include="NSubstitute" Version="6.2.0" />
+    <PackageVersion Include="Bogus" Version="35.6.5" />
+
+    <!--
+      Spectre.Console.Testing drives the arrow-key picker without a terminal.
+      MIT, same repository as the library it tests.
+
+      It is here rather than absent because the alternative left the one piece of
+      that feature nobody could see: the picker builds its rows, marks the active
+      one, and maps the chosen label back to a value, and none of that is the
+      library's code. A TestConsole with keystrokes pushed into it exercises
+      exactly that and nothing else, which is the line ADR-035 nº16 was drawing
+      when it said the rendering is not tested.
+    -->
+    <PackageVersion Include="Spectre.Console.Testing" Version="0.51.1" />
+  </ItemGroup>
+
+  <ItemGroup Label="Snapshot testing">
+    <!--
+      Verify covers the golden files. The console reporter is
+      the one component whose correctness is entirely about exact bytes — glyphs,
+      alignment, ordering, the unicode and ASCII variants — and hand-written
+      string assertions over a 20-line report are unreadable and unmaintainable.
+    -->
+    <PackageVersion Include="Verify.XunitV3" Version="32.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="Behaviour specifications">
+    <!--
+      Reqnroll, the open-source successor to SpecFlow after Tricentis
+      discontinued it.
+
+      Scoped deliberately: it covers engine behaviour that a production owner
+      would recognise as a rule of the system — verdict aggregation, the
+      blocking-by-gating matrix, skip attribution to the root
+      cause. Those read well as scenarios because they are policy, not code.
+      Unit-level work stays in xUnit, where it belongs.
+    -->
+    <PackageVersion Include="Reqnroll.xUnit.v3" Version="3.3.4" />
+  </ItemGroup>
+
+  <!--
+    Coverage carries NO PackageReference on purpose. It is driven entirely by two
+    local tools pinned in .config/dotnet-tools.json: coverlet.console collects and
+    ReportGenerator renders. Both MIT, both cross-platform, neither needing an
+    account or a hosted service. See scripts/coverage.ps1.
+
+    The usual coverlet.collector / coverlet.msbuild packages are absent because
+    neither works here. Both hook the VSTest pipeline, and the .NET 10 SDK runs
+    these projects through Microsoft.Testing.Platform instead. They restore and
+    build cleanly and then silently produce nothing, which is worse than being
+    missing: a coverage step that reports success having measured nothing is the
+    false green of principle 7 aimed at the instrumentation itself.
+
+    coverlet.console does not care about the runner. It instruments the assemblies
+    and executes the test binary, and an xUnit v3 test project *is* a binary.
+  -->
+
+  <!--
+    Runtime packages. Preflight.Abstractions still carries none and never will:
+    it depends on nothing beyond the BCL, and that is verified by a test rather
+    than trusted. Everything here belongs to
+    Preflight.Cli, which is the only project allowed a third-party dependency.
+
+    System.CommandLine is the argument parser. It went
+    stable at 2.0.0 after years of beta, which is why the design could name it
+    before it existed in a shippable form.
+
+    One consequence to expect rather than discover: Directory.Build.props sets
+    TreatWarningsAsErrors with AnalysisLevel latest-recommended, and the handler
+    code System.CommandLine generates has historically produced nullable
+    warnings. Those arrive here as build errors, not warnings.
+  -->
+  <ItemGroup Label="Runtime">
+    <PackageVersion Include="System.CommandLine" Version="2.0.11" />
+
+    <!--
+      Spectre.Console draws the arrow-key picker, and nothing else. MIT,
+      github.com/spectreconsole/spectre.console.
+
+      Written by hand it would be ReadKey, raw ANSI, terminal resize, Ctrl+C and
+      restoring the terminal from an exception — a week of edge cases for one
+      widget, and every one of those edge cases is a way to leave somebody's
+      terminal broken after a validation run. Sharprompt is the smaller surface
+      and was turned down for the reason this file exists: it has no commercial
+      or foundation backing behind it, and every other entry here was chosen
+      against that same bar.
+
+      Confined to Interactive/ and never reachable from Reporting/. Two systems
+      deciding the same ANSI bytes is how the golden files stop being the truth,
+      and an architecture test holds the boundary. See ADR-035.
+    -->
+    <PackageVersion Include="Spectre.Console" Version="0.51.1" />
+  </ItemGroup>
+
+</Project>

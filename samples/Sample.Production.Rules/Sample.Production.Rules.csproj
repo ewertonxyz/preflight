@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The worked example: a production's own rule, in its
+    own project, referencing Preflight.Abstractions and nothing else.
+
+    Private="false" is the line the whole plugin model rests on, and it is the
+    one a plugin author gets wrong by doing nothing. The default copies
+    Preflight.Abstractions.dll into the output; the plugin then ships its own
+    copy of the contract, the load context finds it sitting beside the plugin,
+    and the IValidationRule the rule implements is a different type from the one
+    the engine knows. That is one of the most irritating bugs in
+    .NET plugin systems. PluginSampleIntegrationTests asserts the DLL is absent
+    from this project's output, so the attribute cannot be lost silently.
+
+    This project is documentation that compiles. It is excluded from the coverage
+    report in scripts/coverage.ps1 for that reason: a sample shaped by a coverage
+    target stops being the thing a reader should copy.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Preflight.Abstractions\Preflight.Abstractions.csproj"
+                      Private="false" />
+  </ItemGroup>
+
+</Project>

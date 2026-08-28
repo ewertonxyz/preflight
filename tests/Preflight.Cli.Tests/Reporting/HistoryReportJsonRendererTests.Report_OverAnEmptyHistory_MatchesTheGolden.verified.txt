@@ -1,0 +1,22 @@
+﻿{
+  "windowMs": 2592000000,
+  "runCount": 0,
+  "passedCount": 0,
+  "passedWithWarningsCount": 0,
+  "blockedCount": 0,
+  "erroredCount": 0,
+  "promotedBlockCount": 0,
+  "contrastRunCount": 0,
+  "partialRunCount": 0,
+  "unreadableLineCount": 0,
+  "ignoredLineCount": 0,
+  "blockingVerdicts": [],
+  "preflightDuration": {
+    "sampleSize": 0
+  },
+  "measured": [],
+  "slowestRules": [],
+  "slowestRulesNotShown": 0,
+  "mostFrequentFailures": [],
+  "mostFrequentFailuresNotShown": 0
+}
