@@ -1,6 +1,7 @@
 namespace Preflight.Specs.Steps;
 
 using System.Diagnostics;
+using System.Text;
 using Preflight.TestSupport;
 using Reqnroll;
 
@@ -430,6 +431,17 @@ public sealed class WorkspaceSteps : IDisposable
         {
             RedirectStandardOutput = true,
             RedirectStandardError = true,
+
+            // Decoded as UTF-8 whatever the host's console is set to. Without
+            // these two, the bytes the child wrote are decoded with the parent's
+            // Console.OutputEncoding - a console code page on a developer
+            // machine, UTF-8 with no console attached on a build agent - so the
+            // same scenario could read differently in two places. It costs
+            // nothing today, because no step asserts on a glyph and GlyphSet
+            // falls back to ASCII when the encoding does not round-trip; it
+            // would cost a day on the first scenario that asserts a checkmark.
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8,
             UseShellExecute = false,
 
             // The workspace is the current directory, because that is how the

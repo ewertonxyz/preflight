@@ -72,14 +72,16 @@ public sealed class RulesDependencyTests
 
     private static string[] ReferencedAssemblyNamesOfRules()
     {
-        // Loaded by name rather than through a marker type: Preflight.Rules holds
-        // no types until the CLI, and adding one purely so that a test can point
-        // at it would be production surface serving a test.
+        // Loaded by name rather than through typeof(SomeRule).Assembly, and by
+        // the same name the csproj check above uses. A typeof points at
+        // whichever assembly that type currently lives in, so moving a rule
+        // would quietly re-aim this guard at a different assembly and it would
+        // keep passing. The shared constant is what makes the two halves of the
+        // guard incapable of drifting apart.
         var rules = Assembly.Load(new AssemblyName(RulesAssemblyName));
 
         return [.. rules.GetReferencedAssemblies()
             .Select(reference => reference.Name)
             .OfType<string>()];
     }
-
 }

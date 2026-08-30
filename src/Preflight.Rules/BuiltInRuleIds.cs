@@ -3,7 +3,7 @@ namespace Preflight.Rules;
 using Preflight.Abstractions.Rules;
 
 /// <summary>
-/// The ids of the six built-in rules.
+/// The ids of the rules that ship with the tool.
 /// </summary>
 /// <remarks>
 /// Declared once because they appear in three places that must agree: the

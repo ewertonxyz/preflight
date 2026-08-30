@@ -14,18 +14,18 @@ using static Preflight.Rules.Tests.RuleFixture;
 /// <remarks>
 /// <para>
 /// The sample is documentation that compiles, and these tests exist because
-/// documentation that compiles can still be wrong. It teaches three things the
-/// example is really teaching — reading through
-/// <see cref="IFileSystem"/>, checking the cancellation token inside the loop,
-/// and returning <c>NotApplicable</c> rather than <c>Passed</c> when nothing
-/// was examined — and each of them is something a reader will copy into a real
-/// production rule.
+/// documentation that compiles can still be wrong. Three things in it are
+/// what a reader will copy into a real rule: reading through
+/// <see cref="IFileSystem"/> rather than reaching for the disk, checking the
+/// cancellation token inside the loop, and returning <c>NotApplicable</c>
+/// rather than <c>Passed</c> when nothing was examined. Each of the three is
+/// asserted below.
 /// </para>
 /// <para>
-/// The admission criterion for a built-in rule does not apply: it governs a
-/// rule shipped <em>inside</em> the tool, and the whole point of this one is
-/// that it lives outside it. What does apply is the invariant that a failing
-/// rule always says how to fix it, because that is the part being copied.
+/// The bar a rule must clear to ship inside the tool does not apply here: the
+/// whole point of this one is that it lives outside. What does apply is that a
+/// failing rule always says how to fix it, because that is the part being
+/// copied.
 /// </para>
 /// </remarks>
 public sealed class SampleTextureDimensionRuleTests
@@ -33,9 +33,9 @@ public sealed class SampleTextureDimensionRuleTests
     private static readonly TextureDimensionRule Rule = new();
 
     /// <remarks>
-    /// A commit touching only source files gives the rule nothing to measure. A
-    /// tick here would claim a check that never happened, which is what is a
-    /// small lie that erodes trust in the whole report.
+    /// A commit touching only source files gives the rule nothing to measure.
+    /// A tick here would claim a check that never happened, and a reader who
+    /// catches the report in one small lie stops believing the rest of it.
     /// </remarks>
     [Fact]
     public async Task ExecuteAsync_WithNoTextureAmongTheChangedFiles_IsNotApplicable()
@@ -58,8 +58,8 @@ public sealed class SampleTextureDimensionRuleTests
     /// <remarks>
     /// <c>Expected</c> and <c>Actual</c> are separate fields rather than prose
     /// inside the message, and <c>Remediation</c> is not optional in practice:
-    /// a rule that rejects a commit without saying what to do about it is the
-    /// thing no rule may ship.
+    /// a rule that rejects a commit without saying what to do about it leaves
+    /// the reader stuck with a red line and no next step.
     /// </remarks>
     [Fact]
     public async Task ExecuteAsync_WithATextureOverTheLimit_FailsSayingExpectedActualAndRemediation()
@@ -139,9 +139,10 @@ public sealed class SampleTextureDimensionRuleTests
     }
 
     /// <remarks>
-    /// One of the three things the example teaches: a loop over a thousand
-    /// textures that never checks the token cannot be stopped, and the engine's
-    /// timeout becomes a promise it cannot keep.
+    /// The third of the three things a reader copies from this sample. A loop
+    /// over a thousand textures that never checks the token cannot be stopped:
+    /// the engine's timeout fires, the run is recorded as over, and the thread
+    /// keeps working on a result nobody will read.
     /// </remarks>
     [Fact]
     public async Task ExecuteAsync_WhenCancelled_Throws()

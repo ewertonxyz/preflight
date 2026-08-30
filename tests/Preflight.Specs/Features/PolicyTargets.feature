@@ -1,13 +1,14 @@
-Feature: Limites por plataforma no mesmo arquivo de política
-    Um jogo que sai para PS5 e para Switch 2 não tem o mesmo orçamento nas duas.
-    Antes disso a única saída era um arquivo de política por combinação de
-    plataforma e configuração — sete arquivos para três projetos, repetindo 90%
-    um do outro.
+Feature: Per-platform limits in one policy file
+    A game shipping on PS5 and on Switch 2 does not have the same budget on
+    both. Before this, the only way out was one policy file per platform and
+    configuration pair — seven files for three projects, repeating 90% of each
+    other.
 
-    O bloco `targets` põe a diferença ao lado do que é comum, e uma plataforma
-    que nenhum bloco menciona continua sendo o caso normal, não um erro.
+    The `targets` block puts the difference beside what is common, and a
+    platform no block mentions goes on being the ordinary case rather than an
+    error.
 
-    Scenario: A mesma regra reprova numa plataforma e passa noutra
+    Scenario: The same rule fails on one platform and passes on another
         Given a workspace
         And the workspace needs nothing
         And the file "preflight.base.json" contains
@@ -30,7 +31,7 @@ Feature: Limites por plataforma no mesmo arquivo de política
         Then it exits with code 0
         And the report says "disabled by policy"
 
-    Scenario: Uma plataforma que nenhum bloco menciona não é erro
+    Scenario: A platform no block mentions is not an error
         Given a workspace
         And the workspace needs nothing
         And the file "preflight.base.json" contains
@@ -48,7 +49,7 @@ Feature: Limites por plataforma no mesmo arquivo de política
         Then it exits with code 0
         And the report does not say "disabled by policy"
 
-    Scenario: Uma chave de alvo que ninguém consegue parsear é recusa no carregamento
+    Scenario: A target key nobody can parse is a refusal at load time
         Given a workspace
         And the workspace needs nothing
         And the file "preflight.base.json" contains

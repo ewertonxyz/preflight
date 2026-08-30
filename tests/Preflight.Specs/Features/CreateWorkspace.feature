@@ -1,13 +1,13 @@
-Feature: Ligar o Preflight num projeto que nunca o teve
-    Um projeto novo não tem manifesto, e a regra de toolchain reprova quando ele
-    falta — por decisão, porque um NotApplicable ali seria um alçapão que deixaria
-    a regra verde para sempre diante de um caminho digitado errado.
+Feature: Turning Preflight on in a project that never had it
+    A new project has no manifest, and the toolchain rule fails when one is
+    missing — by decision, because a NotApplicable there would be a trapdoor
+    that left the rule green forever in the face of a mistyped path.
 
-    O comando `create workspace` é o que fecha essa lacuna: ele escreve o
-    esqueleto que o projeto ainda não tem, sem descobrir nada sozinho, e recusa
-    tocar num manifesto que já exista.
+    The `create workspace` command is what closes that gap: it writes the
+    skeleton the project does not have yet, discovers nothing on its own, and
+    refuses to touch a manifest that already exists.
 
-    Scenario: Um workspace novo passa a validar em vez de bloquear
+    Scenario: A new workspace starts validating instead of blocking
         Given a workspace
         When preflight is invoked with "create workspace"
         Then it exits with code 0
@@ -16,7 +16,7 @@ Feature: Ligar o Preflight num projeto que nunca o teve
         And the report says "n/a"
         And the report does not say "FAIL"
 
-    Scenario: O comando recusa sobrescrever um manifesto existente
+    Scenario: The command refuses to overwrite an existing manifest
         Given a workspace
         And the workspace needs git "2.0.0" or newer
         And the file "preflight.workspace.json" is remembered

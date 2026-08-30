@@ -1,12 +1,12 @@
-Feature: Escolher o pipeline sem digitar o flag
-    Num estúdio com três jogos sobre a mesma engine, ninguém digita `--pipeline`
-    corretamente todo dia. O checkout declara qual pipeline ele é, e o flag
-    continua vencendo quando alguém precisa validar contra outro.
+Feature: Choosing the pipeline without typing the flag
+    In a studio running three games on one engine, nobody types `--pipeline`
+    correctly every day. The checkout declares which pipeline it is, and the
+    flag still wins when somebody needs to validate against another one.
 
-    O que não acontece é a ferramenta escolher sozinha: vários pipelines e nenhuma
-    escolha é recusa, não queda silenciosa para a política base.
+    What does not happen is the tool choosing on its own: several pipelines and
+    no choice made is a refusal, not a quiet fall back to the base policy.
 
-    Scenario: A chave do checkout dispensa o flag
+    Scenario: The key in the checkout makes the flag unnecessary
         Given a workspace
         And the workspace needs nothing
         And the file "preflight.base.json" contains
@@ -21,7 +21,7 @@ Feature: Escolher o pipeline sem digitar o flag
         Then it exits with code 0
         And the report says "atlas"
 
-    Scenario: Vários pipelines e nenhuma escolha é recusa
+    Scenario: Several pipelines and no choice made is a refusal
         Given a workspace
         And the workspace needs nothing
         And the file "preflight.base.json" contains
@@ -41,7 +41,7 @@ Feature: Escolher o pipeline sem digitar o flag
         And the error output says "atlas"
         And the error output says "switch2"
 
-    Scenario: O flag vence a chave do checkout
+    Scenario: The flag beats the key in the checkout
         Given a workspace
         And the workspace needs nothing
         And the file "preflight.base.json" contains

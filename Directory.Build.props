@@ -76,7 +76,7 @@
     <Version>0.1.1</Version>
 
     <Authors>Preflight contributors</Authors>
-    <RepositoryUrl>https://github.com/ewertonxyz/preflight-pvt</RepositoryUrl>
+    <RepositoryUrl>https://github.com/ewertonxyz/preflight</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>

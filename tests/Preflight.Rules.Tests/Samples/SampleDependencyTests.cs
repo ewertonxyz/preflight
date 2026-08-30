@@ -15,11 +15,11 @@ using static Preflight.TestSupport.RepositoryLayout;
 /// would be teaching an escape hatch nobody else has.
 /// </para>
 /// <para>
-/// Checked from both angles for the reason the architecture guard gives: the
-/// csproj check catches the <em>declaration</em>, which is the reviewable
-/// artefact somebody edits, and the metadata check catches <em>use</em>,
-/// including a reference that arrived transitively and would show up in no diff
-/// on this csproj.
+/// Checked from both angles, because neither alone is enough. The csproj check
+/// catches the <em>declaration</em>, which is the reviewable artefact somebody
+/// actually edits; the metadata check catches <em>use</em>, including a
+/// reference that arrived through a package or another project and would show
+/// up in no diff on this csproj at all.
 /// </para>
 /// </remarks>
 public sealed class SampleDependencyTests
@@ -35,8 +35,10 @@ public sealed class SampleDependencyTests
     /// it is the one a plugin author gets wrong by doing nothing at all: the
     /// default copies <c>Preflight.Abstractions.dll</c> into the output, the
     /// plugin ships its own copy of the contract, and the load context finds it
-    /// sitting beside the plugin. The result is one of the most irritating bugs
-    /// in.NET plugin systems.
+    /// sitting beside the plugin. The plugin's types then implement a
+    /// different <c>IValidationRule</c> from the one the engine is looking for,
+    /// and it is rejected as not being a rule at all — while everything about
+    /// it looks correct.
     /// </remarks>
     [Fact]
     public void Sample_ReferencesOnlyTheContracts_AndDoesNotCarryThem()
@@ -74,8 +76,8 @@ public sealed class SampleDependencyTests
     // The obvious shapes of one do not work. Scanning local variable types
     // cannot see a static call whose result is a byte array, and proving it
     // properly would mean walking IL. What would be left is an assertion that
-    // looks like a guard and is not one, which is exactly the kind of test
-    // the plugin loader deleted from Preflight.Cli.Tests.
+    // looks like a guard and is not one — worse than no test, because the next
+    // reader trusts it.
     //
     // It is already covered, behaviourally and completely, by
     // SampleTextureDimensionRuleTests: every one of those tests hands the rule

@@ -1,6 +1,5 @@
 namespace Preflight.Rules;
 
-using System.Text.RegularExpressions;
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
 
@@ -42,68 +41,6 @@ public sealed class ForbiddenPathsRule : IValidationRule
         DefaultGating = false,
     };
 
-    /// <summary>
-    /// Translates one glob into a regular expression.
-    /// </summary>
-    /// <remarks>
-    /// <para>
-    /// <c>**</c> crosses directory separators and <c>*</c> does not, which is
-    /// the distinction the whole pattern language turns on: <c>*.pfx</c> means
-    /// a certificate at the root, <c>**/*.pfx</c> means one anywhere.
-    /// Collapsing them would make every pattern accidentally recursive.
-    /// </para>
-    /// <para>
-    /// Matching is case-insensitive. Windows and macOS filesystems are, so a
-    /// case-sensitive matcher would let <c>Secrets/KEY.PFX</c> through on the
-    /// machines most developers use — and letting a secret through is the
-    /// direction of error that matters here.
-    /// </para>
-    /// </remarks>
-    internal static Regex Compile(string pattern)
-    {
-        var expression = new System.Text.StringBuilder("^");
-
-        for (var index = 0; index < pattern.Length; index++)
-        {
-            var character = pattern[index];
-
-            if (character == '*')
-            {
-                if (index + 1 < pattern.Length && pattern[index + 1] == '*')
-                {
-                    // '**/' also matches zero directories, so '**/*.pfx' catches
-                    // a certificate at the root as well as a nested one. Without
-                    // that, every pattern would need writing twice.
-                    index++;
-
-                    if (index + 1 < pattern.Length && pattern[index + 1] == '/')
-                    {
-                        index++;
-                        expression.Append("(?:.*/)?");
-
-                        continue;
-                    }
-
-                    expression.Append(".*");
-
-                    continue;
-                }
-
-                expression.Append("[^/]*");
-
-                continue;
-            }
-
-            expression.Append(character == '?' ? "[^/]" : Regex.Escape(character.ToString()));
-        }
-
-        expression.Append('$');
-
-        return new Regex(
-            expression.ToString(),
-            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-    }
-
     public Task<RuleOutcome> ExecuteAsync(RuleContext context, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -111,59 +48,44 @@ public sealed class ForbiddenPathsRule : IValidationRule
         var patterns = context.Policy.GetValue("patterns", DefaultPatterns);
 
         // No patterns is not the same as no files. The rule was configured to
-        // forbid nothing, so it examined nothing, and the reasoning for
-        // NotApplicable applies unchanged.
+        // forbid nothing, so it examined nothing, and reporting a tick would
+        // claim a check that never ran.
         if (patterns.Length == 0 || context.ChangedFiles.Count == 0)
         {
             return Task.FromResult(RuleOutcome.NotApplicable());
         }
 
-        var compiled = patterns.Select(pattern => (Pattern: pattern, Regex: Compile(pattern))).ToArray();
-        var findings = new List<Finding>();
-        var examined = 0;
+        var globs = Array.ConvertAll(patterns, GlobPattern.Compile);
+        var scan = new ChangedFileScan();
 
         foreach (var file in context.ChangedFiles)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Deleting a forbidden file is the fix, not the violation. A rule
-            // that failed here would tell someone their cleanup commit is the
-            // problem, and there would be no commit that satisfies it.
-            if (file.Kind == ChangeKind.Deleted)
+            if (!scan.Examines(file))
             {
                 continue;
             }
 
-            examined++;
-
-            foreach (var (pattern, regex) in compiled)
+            if (Array.Find(globs, glob => glob.Matches(file.RelativePath)) is { } matched)
             {
-                if (regex.IsMatch(file.RelativePath))
-                {
-                    findings.Add(Describe(file.RelativePath, pattern));
-
-                    // One finding per file, not one per matching pattern. Two
-                    // overlapping patterns describe one problem, and reporting
-                    // it twice makes the count in the summary line wrong.
-                    break;
-                }
+                // One finding per file, not one per matching pattern. Two
+                // overlapping patterns describe one problem, and reporting it
+                // twice makes the count in the summary line disagree with the
+                // number of files a reader has to fix.
+                scan.Report(Describe(file.RelativePath, matched.Text));
             }
         }
 
-        return Task.FromResult(Outcome(examined, findings));
+        return Task.FromResult(scan.Outcome());
     }
-
-    private static RuleOutcome Outcome(int examined, List<Finding> findings) => examined switch
-    {
-        0 => RuleOutcome.NotApplicable(),
-        _ when findings.Count > 0 => RuleOutcome.Failed([.. findings]),
-        _ => RuleOutcome.Passed(),
-    };
 
     /// <remarks>
     /// The finding names the path and the pattern, never the content. This rule
-    /// is one of the two places a secret could enter the report, and from there
-    /// a CI log — and, from the history, the NDJSON history.
+    /// and the compile probe are the two places file content could reach the
+    /// report, and from there a build log and the run's stored history — so
+    /// quoting the line a secret sits on would publish it to everyone who can
+    /// read a build.
     /// </remarks>
     private static Finding Describe(string relativePath, string pattern) => new()
     {

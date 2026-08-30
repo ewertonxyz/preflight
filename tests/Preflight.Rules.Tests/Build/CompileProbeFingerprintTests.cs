@@ -9,10 +9,11 @@ using Preflight.Core;
 /// </summary>
 /// <remarks>
 /// <para>
-/// On a real disk, because the whole question is what the files say and a
-/// substituted file system would be asserting the substitute. This is the same
-/// argument for having an integration layer at all, and the same one that found
-/// three defects in the CLI that eighty-seven green unit tests had not.
+/// On a real disk, because the whole question is what the bytes on disk say,
+/// and a fingerprint checked against a substituted file system asserts only
+/// that the substitute was configured to agree with it. That is the argument
+/// for having an integration layer at all: a unit test proves the code does
+/// what it was told, and this proves it was told the right thing.
 /// </para>
 /// <para>
 /// Every "changes" test below is guarding the expensive direction. A
