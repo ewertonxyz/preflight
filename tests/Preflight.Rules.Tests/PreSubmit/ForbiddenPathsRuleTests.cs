@@ -63,9 +63,10 @@ public sealed class ForbiddenPathsRuleTests
     /// </summary>
     /// <remarks>
     /// This rule and the compile probe are the two places file content could
-    /// enter the report, and from there a CI log — and, from the history, the
-    /// NDJSON history. Quoting the line a secret is on would publish it to
-    /// everyone who can read a build.
+    /// enter the report, and the report is not the end of the journey: it goes
+    /// into a build log anyone on the team can read, and into the run's stored
+    /// history, which is kept. Quoting the line a secret sits on would publish
+    /// it to all three at once, permanently.
     /// </remarks>
     [Fact]
     public async Task ExecuteAsync_ReportsThePathAndNeverTheContent()
@@ -126,7 +127,7 @@ public sealed class ForbiddenPathsRuleTests
     [InlineData("src/?.cs", "src/ab.cs", false)]
     [InlineData("**/*.local.json", "config/app.local.json", true)]
     [InlineData("**/*.local.json", "config/app.json", false)]
-    public async Task ExecuteAsync_MatchesTheDocumentedGlobSemantics(
+    public async Task ExecuteAsync_AppliesTheGlobSemantics(
         string pattern,
         string path,
         bool shouldMatch)
@@ -150,7 +151,7 @@ public sealed class ForbiddenPathsRuleTests
     }
 
     [Fact]
-    public async Task ExecuteAsync_WithNoPolicy_UsesTheDocumentedDefaults()
+    public async Task ExecuteAsync_WithNoPolicy_UsesDefaultPatterns()
     {
         var outcome = await _rule.ExecuteAsync(
             Context([Added("config/.env")], EmptyPolicy()),
@@ -170,10 +171,12 @@ public sealed class ForbiddenPathsRuleTests
     }
 
     /// <remarks>
-    /// The shape the test plan names: thousands of entries generated rather
-    /// than hand-written, with the one that matters planted and visible. Bogus
-    /// is not used for the planted path — a generated one would make the
-    /// assertion depend on a seed.
+    /// A pre-submit rule receives whatever the change set holds, and a merge or
+    /// a generated-asset commit reaches five figures. Ten thousand entries are
+    /// generated rather than hand-written, and the one that matters is a
+    /// literal: a generated path would make the assertion depend on a seed, so
+    /// a regression would surface as an intermittent failure nobody can
+    /// reproduce.
     /// </remarks>
     [Fact]
     public async Task ExecuteAsync_OverTenThousandFiles_FindsThePlantedOne()

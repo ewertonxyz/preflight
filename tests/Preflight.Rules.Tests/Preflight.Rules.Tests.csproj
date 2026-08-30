@@ -5,10 +5,9 @@
     <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
   </ItemGroup>
 
-  <ItemGroup Label="Assertions, doubles and data">
+  <ItemGroup Label="Assertions and doubles">
     <PackageReference Include="Shouldly" />
     <PackageReference Include="NSubstitute" />
-    <PackageReference Include="Bogus" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,17 +19,14 @@
     <ProjectReference Include="..\..\src\Preflight.Rules\Preflight.Rules.csproj" />
 
     <!--
-      Preflight.TestSupport pulls in Preflight.Core transitively, and that is
-      fine: the constraint is on src/Preflight.Rules, not on the project that tests
-      it. RulesDependencyTests inspects the source csproj and the Preflight.Rules
-      assembly itself, neither of which this reference touches.
-    -->
-    <!--
-      The concrete IFileSystem and IProcessRunner, for the integration layer
-      of the suite. This does not touch the rule above, which
-      constrains src/Preflight.Rules: RulesDependencyTests reads that project's
-      csproj and that assembly's metadata, and neither is affected by a
-      reference declared here.
+      Preflight.Core supplies the concrete IFileSystem and IProcessRunner for
+      the integration layer of this suite, and Preflight.TestSupport pulls it in
+      transitively as well.
+
+      Neither loosens the rule those tests exist to guard. That rule binds
+      src/Preflight.Rules, not the project testing it, and RulesDependencyTests
+      reads that project's own csproj and that assembly's own metadata — so a
+      reference declared here cannot make it pass.
     -->
     <ProjectReference Include="..\..\src\Preflight.Core\Preflight.Core.csproj" />
     <ProjectReference Include="..\Preflight.TestSupport\Preflight.TestSupport.csproj" />

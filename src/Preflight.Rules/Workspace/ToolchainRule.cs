@@ -1,6 +1,6 @@
 namespace Preflight.Rules;
 
-using System.Text.Json;
+using System.Text.RegularExpressions;
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
 using Preflight.Abstractions.Services;
@@ -14,8 +14,35 @@ using Preflight.Abstractions.Services;
 /// whose failure makes everything downstream pointless: nothing else can be
 /// true about a build if the compiler that would produce it is not there.
 /// </remarks>
-public sealed class ToolchainRule : IValidationRule
+public sealed partial class ToolchainRule : IValidationRule
 {
+    /// <summary>
+    /// The leading numeric run of a version-looking token, at most four
+    /// components long.
+    /// </summary>
+    /// <remarks>
+    /// Four, because <see cref="Version"/> holds four and a fifth makes
+    /// <see cref="Version.TryParse(string, out Version)"/> fail. A tool that
+    /// prints five is not describing something this comparison needs to
+    /// distinguish.
+    ///
+    /// Generated at compile time rather than built with
+    /// <see cref="RegexOptions.Compiled"/>. That option emits IL on the first
+    /// match, and this process lives for seconds against one match per declared
+    /// tool — a cost that never amortises. The generator pays it at build time
+    /// instead.
+    /// </remarks>
+    [GeneratedRegex(@"^\d+(\.\d+){0,3}", RegexOptions.CultureInvariant)]
+    private static partial Regex LeadingVersion { get; }
+
+    /// <remarks>
+    /// Enough for a version banner and the first line of an error, and short
+    /// enough that a report listing several missing tools still fits a
+    /// terminal. A tool asked for its version answers in one line when it
+    /// works; everything longer is it explaining why it did not.
+    /// </remarks>
+    private const int VersionBannerLimit = 200;
+
     public RuleDescriptor Descriptor { get; } = new()
     {
         Id = BuiltInRuleIds.Toolchain,
@@ -23,9 +50,10 @@ public sealed class ToolchainRule : IValidationRule
         Stage = ValidationStage.Workspace,
         DefaultBlocking = true,
 
-        // The only rule of the six where gating is true and
-        // means something: with no toolchain, running anything after it is
-        // spending time to produce noise.
+        // Gating, and here it decides something: with no compiler installed,
+        // nothing downstream can produce a verdict worth reading, so running it
+        // spends time to manufacture noise. Everything in the workspace and
+        // build stages hangs off this rule for that reason.
         DefaultGating = true,
     };
 
@@ -33,27 +61,11 @@ public sealed class ToolchainRule : IValidationRule
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var manifestPath = Path.Combine(
-            context.WorkspaceRoot.FullName,
-            context.Policy.GetValue("manifestPath", WorkspaceManifest.DefaultFileName));
+        var read = await WorkspaceManifestRead.ReadAsync(context, cancellationToken);
 
-        WorkspaceManifest? manifest;
-
-        try
+        if (read.Malformed is { } malformed)
         {
-            manifest = await WorkspaceManifest.LoadAsync(context.FileSystem, manifestPath, cancellationToken);
-        }
-        catch (JsonException exception)
-        {
-            return RuleOutcome.Failed(new Finding
-            {
-                Message = "The workspace manifest is not valid JSON.",
-                Location = new FindingLocation(manifestPath),
-                Actual = exception.Message,
-                Remediation =
-                    "Fix the syntax, or ask the pipeline's author to point 'manifestPath' " +
-                    "at the right file.",
-            });
+            return RuleOutcome.Failed(malformed);
         }
 
         // A missing manifest fails rather than reporting n/a, and the choice is
@@ -61,12 +73,12 @@ public sealed class ToolchainRule : IValidationRule
         // 'manifestPath' would make the rule green forever, and a rule that is
         // permanently green is worse than one that is absent, because it is
         // counted as evidence.
-        if (manifest is null)
+        if (read.Manifest is not { } manifest)
         {
             return RuleOutcome.Failed(new Finding
             {
                 Message = "The workspace manifest is missing.",
-                Location = new FindingLocation(manifestPath),
+                Location = new FindingLocation(read.ManifestPath),
                 Expected = "a manifest declaring the tools this workspace needs",
                 Actual = "no file at that path",
                 Remediation =
@@ -142,17 +154,6 @@ public sealed class ToolchainRule : IValidationRule
         return Version.TryParse(leading, out var version) ? version : null;
     }
 
-    /// <remarks>
-    /// At most four components, because <see cref="Version"/> holds four and a
-    /// fifth makes <see cref="Version.TryParse(string, out Version)"/> fail. A
-    /// tool that prints five is not describing something this comparison needs
-    /// to distinguish.
-    /// </remarks>
-    private static readonly System.Text.RegularExpressions.Regex LeadingVersion = new(
-        @"^\d+(\.\d+){0,3}",
-        System.Text.RegularExpressions.RegexOptions.Compiled |
-        System.Text.RegularExpressions.RegexOptions.CultureInvariant);
-
     private static async Task<Finding?> CheckAsync(
         RuleContext context,
         ToolRequirement tool,
@@ -173,9 +174,11 @@ public sealed class ToolchainRule : IValidationRule
         }
         catch (OperationCanceledException)
         {
-            // Not swallowed. A timeout is Errored, produced by
-            // the engine; a rule that caught its own cancellation would report
-            // Failed and blame the workspace for the tool's own deadline.
+            // Not swallowed. A timeout is Errored — a defect in the rule or in
+            // the environment, and the engine's verdict to give. A rule that
+            // caught its own cancellation would report Failed instead, telling
+            // the reader the workspace is broken when what happened is that the
+            // tool ran past a deadline.
             throw;
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
@@ -198,7 +201,7 @@ public sealed class ToolchainRule : IValidationRule
             {
                 Message = $"Could not read a version from '{tool.Name}'.",
                 Expected = "a version number on the first line of output",
-                Actual = Summarise(result.StandardOutput),
+                Actual = FindingText.Truncate(result.StandardOutput, VersionBannerLimit),
                 Remediation = $"Check that '{tool.Command} {string.Join(' ', tool.Arguments)}' prints a version.",
             };
         }
@@ -250,20 +253,7 @@ public sealed class ToolchainRule : IValidationRule
     {
         Message = $"'{tool.Name}' is not available.",
         Expected = $"'{tool.Command}' on PATH",
-        Actual = detail.Length == 0 ? "the command could not be run" : Summarise(detail),
+        Actual = detail.Length == 0 ? "the command could not be run" : FindingText.Truncate(detail, VersionBannerLimit),
         Remediation = $"Install '{tool.Name}' and make sure '{tool.Command}' is on PATH.",
     };
-
-    /// <remarks>
-    /// Truncated, because this text reaches the console report and, from the
-    /// NDJSON history — where a record is capped at 64 KB. A compiler that
-    /// prints its whole help on a bad argument would otherwise put all of it in
-    /// both.
-    /// </remarks>
-    private static string Summarise(string text)
-    {
-        var trimmed = text.Trim();
-
-        return trimmed.Length <= 200 ? trimmed : trimmed[..200] + "…";
-    }
 }

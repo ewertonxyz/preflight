@@ -1,0 +1,37 @@
+# Codecov's own defaults are not a decision anybody took, and a gate nobody
+# chose is the one that gets switched off in the first tight week.
+#
+# project: auto compares against the base commit. It encodes "do not go down"
+# without hardcoding a number, which is why the local coverage script carries no
+# threshold either: a limit set above what the suite really reaches is the one
+# that gets lowered in the first tight week, and after that nobody believes any
+# of the numbers. The suite is at 100% of lines, branches and methods today, so
+# this is what it honestly achieves rather than a round number.
+#
+# patch: 100% because new code arriving uncovered into a suite at 100% is a
+# regression, not a rounding error.
+#
+# None of this takes effect until the first report reaches Codecov. The file is
+# written now so that the first upload ever made lands under a policy somebody
+# chose rather than under the one it would have inherited.
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 0%
+    patch:
+      default:
+        target: 100%
+
+# The uploaded reports record paths relative to their <source> element, which
+# already ends in src/ - so a file arrives as
+# Preflight.Core/Changes/GitChangeSource.cs while the repository holds it at
+# src/Preflight.Core/Changes/GitChangeSource.cs. Without this, every file lands
+# unmatched and Codecov reports success over nothing it managed to measure.
+fixes:
+  - "::src/"
+
+comment:
+  layout: "reach, diff, flags, files"
+  require_changes: true

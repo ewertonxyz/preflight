@@ -7,16 +7,20 @@ using System.Text;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The only write this tool performs inside a workspace, and a seam of its own
-/// rather than a method on <c>IFileSystem</c>. That contract is read-only by
-/// construction (<c>Docs/design.md 5.5</c>), and every rule holds one — opening
-/// a write on it to serve a command that is not a rule would hand the capability
-/// to all of them.
+/// The only write this tool performs inside a workspace, and a type of its own
+/// rather than a method on <c>IFileSystem</c>. That contract reads and never
+/// writes, and a copy of it is handed to every rule that runs — adding a write
+/// to it so that one command could use it would hand the capability to all of
+/// them at the same time.
 /// </para>
 /// <para>
-/// The non-objective in <c>Docs/design.md 2</c> reads "Nenhuma regra corrige
-/// nada": it governs rules repairing their own findings, not a command the user
-/// typed. See ADR-028.
+/// No rule ever repairs what it finds, which is what keeps a validation run
+/// from quietly changing the workspace it is judging. That prohibition is about
+/// a rule correcting its own finding; a command somebody typed asking for a
+/// file to be written is the person applying the correction, which is the other
+/// half of the same rule. Keeping the boundary here means a rule that wanted to
+/// write would have to gain access to a type it is not given — a change visible
+/// in a review, rather than one more member on a contract it already holds.
 /// </para>
 /// </remarks>
 public interface IWorkspaceFileWriter

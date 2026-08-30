@@ -19,8 +19,10 @@ public sealed class LargeFileRule : IValidationRule
     /// </summary>
     /// <remarks>
     /// A number that has to exist, because a rule cannot refuse to run for want
-    /// of configuration. The worked example in the docs moves it to 50 MB for a
-    /// production with large assets, which is the point of it being policy.
+    /// of configuration. It is low enough to catch an asset committed by
+    /// accident and low enough to annoy a production that ships large ones on
+    /// purpose — which is the point of it being policy: such a production moves
+    /// it to 50 MB in one line and everything else about the rule stays put.
     /// </remarks>
     public const long DefaultMaxBytes = 5 * 1024 * 1024;
 
@@ -31,9 +33,10 @@ public sealed class LargeFileRule : IValidationRule
         Stage = ValidationStage.PreSubmit,
         DefaultBlocking = true,
 
-        // Gating is false on the leaves. Nothing depends on this
-        // rule, so the value is irrelevant there — stated explicitly so nobody
-        // reads the descriptor's own `true` default as meaning something.
+        // Nothing depends on this rule, so gating would change nothing whatever
+        // it said. Written out anyway, because the descriptor's own default is
+        // true and a reader finding it inherited cannot tell a decision from an
+        // omission.
         DefaultGating = false,
     };
 
@@ -42,25 +45,16 @@ public sealed class LargeFileRule : IValidationRule
         ArgumentNullException.ThrowIfNull(context);
 
         var maxBytes = context.Policy.GetValue("maxBytes", DefaultMaxBytes);
-        var findings = new List<Finding>();
-        var examined = 0;
+        var scan = new ChangedFileScan();
 
         foreach (var file in context.ChangedFiles)
         {
-            // This is the rule author's contract rather than a
-            // style point: a pre-submit rule can receive tens of thousands of
-            // entries, and one that never checks the token cannot be stopped.
             cancellationToken.ThrowIfCancellationRequested();
 
-            // A deleted file has no size to measure, and asking for one throws.
-            // Filtering here rather than at the size call is what makes a commit
-            // that only deletes things report n/a: nothing was examined.
-            if (file.Kind == ChangeKind.Deleted)
+            if (!scan.Examines(file))
             {
                 continue;
             }
-
-            examined++;
 
             // The new path, never the old one. A rename's PreviousRelativePath
             // names a file that no longer exists.
@@ -69,24 +63,19 @@ public sealed class LargeFileRule : IValidationRule
 
             if (size > maxBytes)
             {
-                findings.Add(Describe(file.RelativePath, size, maxBytes));
+                scan.Report(Describe(file.RelativePath, size, maxBytes));
             }
         }
 
-        return Task.FromResult(Outcome(examined, findings));
+        return Task.FromResult(scan.Outcome());
     }
 
-    private static RuleOutcome Outcome(int examined, List<Finding> findings) => examined switch
-    {
-        // Stated as a rule rather than as a convenience: nothing was
-        // examined, so there is nothing to say. Passed here would be a small
-        // lie, and small lies in a validation report erode
-        // trust in the whole thing.
-        0 => RuleOutcome.NotApplicable(),
-        _ when findings.Count > 0 => RuleOutcome.Failed([.. findings]),
-        _ => RuleOutcome.Passed(),
-    };
-
+    /// <remarks>
+    /// Both numbers are grouped and both are stated. "Exceeds the limit" alone
+    /// leaves the reader working out by how much, and whether the fix is to
+    /// move one asset or to raise a limit that was set too low for what this
+    /// production ships.
+    /// </remarks>
     private static Finding Describe(string relativePath, long size, long maxBytes) => new()
     {
         Message = "Changed file exceeds the size limit.",

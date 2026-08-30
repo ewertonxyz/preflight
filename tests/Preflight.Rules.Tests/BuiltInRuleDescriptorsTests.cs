@@ -9,18 +9,13 @@ using Preflight.Rules;
 /// Fixes the built-in rule table and the graph it produces.
 /// </summary>
 /// <remarks>
-/// <para>
 /// <c>RuleDescriptor</c> defaults both <c>DefaultBlocking</c> and
-/// <c>DefaultGating</c> to <see langword="true"/>, and the rule set requires
-/// <c>gating: false</c> on four of the six. A forgotten override is invisible:
-/// it compiles, the rule behaves identically on its own, and the only symptom
-/// is that a failure now skips rules it should not have — which reads as the
-/// graph being wrong rather than as one missing line.
-/// </para>
-/// <para>
-/// The graph shape is asserted separately because the table and the drawing are
-/// two statements of one fact, and either can be edited without the other.
-/// </para>
+/// <c>DefaultGating</c> to <see langword="true"/>, and most of the built-in
+/// rules are leaves that need <c>gating: false</c>. A forgotten override is
+/// invisible: it compiles, the rule behaves identically on its own, and the
+/// only symptom is that a failure now skips rules it should not have — which
+/// reads as the graph being wrong rather than as one missing line in one
+/// descriptor.
 /// </remarks>
 public sealed class BuiltInRuleDescriptorsTests
 {
@@ -30,8 +25,10 @@ public sealed class BuiltInRuleDescriptorsTests
     /// </summary>
     /// <remarks>
     /// By reflection over the assembly rather than a hand-written list, so a
-    /// seventh rule added without a row in the table fails the count below
-    /// instead of quietly joining the set.
+    /// rule added without a row in the table below fails the count instead of
+    /// quietly joining the set. A hand-written list would have to be edited to
+    /// notice the new rule, which is exactly the edit whoever forgot the row
+    /// also forgot.
     /// </remarks>
     public static IReadOnlyList<IValidationRule> Discovered() =>
     [
@@ -46,7 +43,7 @@ public sealed class BuiltInRuleDescriptorsTests
         Discovered().Single(rule => rule.Descriptor.Id == id).Descriptor;
 
     [Fact]
-    public void Discovery_FindsExactlyTheSixRulesOfSectionNine()
+    public void Discovery_FindsExactlyTheBuiltInRuleSet()
     {
         Discovered().Select(rule => rule.Descriptor.Id.Value).ShouldBe([
             "core.build.compile-probe",
@@ -59,13 +56,12 @@ public sealed class BuiltInRuleDescriptorsTests
     }
 
     /// <summary>
-    /// The table, row by row.
+    /// Stage, dependency, blocking and gating, rule by rule.
     /// </summary>
     /// <remarks>
-    /// <c>gating</c> is <c>false</c> on the leaves, and stating it explicitly
-    /// stops anyone reading <c>true</c> as meaning something. The same
-    /// reasoning applies to asserting it: a row that is merely inherited is a
-    /// row nobody decided.
+    /// Gating is asserted on every rule, including the leaves where it changes
+    /// nothing. A value that is merely inherited is a value nobody decided, and
+    /// the next person to add a rule copies whichever one they read first.
     /// </remarks>
     [Theory]
     [InlineData("core.workspace.toolchain", ValidationStage.Workspace, "", true, true)]
@@ -74,7 +70,7 @@ public sealed class BuiltInRuleDescriptorsTests
     [InlineData("core.presubmit.large-file", ValidationStage.PreSubmit, "", true, false)]
     [InlineData("core.build.configuration", ValidationStage.BuildReadiness, "core.workspace.toolchain", true, true)]
     [InlineData("core.build.compile-probe", ValidationStage.BuildReadiness, "core.build.configuration", true, false)]
-    public void Descriptor_MatchesTheDocumentedTable(
+    public void Descriptor_DeclaresItsStageDependencyBlockingAndGating(
         string id,
         ValidationStage stage,
         string dependsOn,
@@ -98,15 +94,17 @@ public sealed class BuiltInRuleDescriptorsTests
     }
 
     /// <summary>
-    /// The documented graph.
+    /// The shape the descriptors add up to.
     /// </summary>
     /// <remarks>
     /// Two independent roots at pre-submit, and a chain three deep ending at
-    /// the expensive rule. That chain is the argument for the whole graph:
-    /// <c>compile-probe</c> runs only if the two cheap rules before it passed.
+    /// the expensive rule. Asserted separately from the table above because the
+    /// two are one fact stated twice, and either can be edited without the
+    /// other: a dependency moved one row up still produces a table that reads
+    /// fine and a graph that no longer defers the compile.
     /// </remarks>
     [Fact]
-    public void Descriptors_ProduceTheDocumentedGraph()
+    public void Descriptors_ProduceTwoPreSubmitRootsAndAChainEndingAtTheProbe()
     {
         var descriptors = Discovered().Select(rule => rule.Descriptor).ToArray();
 
@@ -131,8 +129,9 @@ public sealed class BuiltInRuleDescriptorsTests
     /// <remarks>
     /// A typo in a <c>DependsOn</c> id is not a compile error. It surfaces at
     /// graph-build time as "no rule with that id", which is hard to tell apart
-    /// indistinguishable from a rule the policy disabled — so the wrong report
-    /// is produced for the wrong reason and nobody looks at the descriptor.
+    /// from a rule the policy disabled — so the reader goes looking at the
+    /// policy, finds nothing wrong with it, and never opens the descriptor
+    /// where the typo actually is.
     /// </remarks>
     [Fact]
     public void Descriptors_DependOnlyOnRulesThatExist()

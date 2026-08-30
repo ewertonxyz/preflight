@@ -1,6 +1,6 @@
 # Preflight
 
-**A deterministic build-readiness validation engine for game development pipelines.**
+**A deterministic build-readiness validation tool for game development pipelines.**
 
 Preflight runs a project's pre-build checks in dependency order, reports the root cause
 instead of the ten symptoms that follow from it, and keeps the *rule* separate from the
@@ -44,8 +44,8 @@ not write rules or edit the project's policy. Their one escape hatch is an unver
 local overlay for their own machine, suppressed automatically inside CI so nobody's
 override can make a build agent pass.
 
-A studio baseline can **seal** a key so no downstream layer may loosen it. Seals are
-unioned along the inheritance chain, so a project cannot quietly drop the studio's.
+A company baseline can **seal** a key so no downstream layer may loosen it. Seals are
+unioned along the inheritance chain, so a project cannot quietly drop the company.
 
 ---
 
@@ -99,7 +99,7 @@ dotnet publish src/Preflight.Cli/Preflight.Cli.csproj -c Release -o ./dist
 **Set the repository up — once, by whoever owns it:**
 
 ```bash
-preflight pipeline install \\studio\tools\preflight\projecta-1.4.0.zip
+preflight pipeline install \\my-server\tools\preflight\projecta-1.4.0.zip
 preflight pipeline declare projecta
 ```
 
@@ -109,7 +109,7 @@ version range this checkout accepts. Commit it.
 **Everybody else joining ProjectA — day one, complete:**
 
 ```bash
-preflight pipeline install \\studio\tools\preflight\projecta-1.4.0.zip
+preflight pipeline install \\my-server\tools\preflight\projecta-1.4.0.zip
 ```
 
 No pin needed: a run takes the newest installed version the checkout's range allows, and
@@ -170,7 +170,7 @@ CI runs all three; a person usually runs one.
 
 ## Root cause, not symptoms
 
-Rules declare dependencies. The engine runs them in topological order, in parallel within
+Rules declare dependencies. The tool runs them in topological order, in parallel within
 each level. The 15-second compile probe depends on the toolchain check, so a missing SDK
 means the probe never starts.
 
@@ -208,7 +208,7 @@ preflight explain core.presubmit.large-file --platform win64
 ```text
 Effective policy
   key                  value       origin
-  enabled              true        engine default
+  enabled              true        tool default
   blocking             true        RuleDescriptor default
   severity             error       RuleDescriptor default
   settings.maxBytes    2621440     projecta@1.4.0/projecta.json:9   (target win64)
@@ -266,7 +266,7 @@ without anybody approving them.
 ## Extending it
 
 A project writes rules against a small contract assembly, compiles, and drops the DLL
-where the tool looks. No fork, no recompile of the engine, no registration step.
+where the tool looks. No fork, no recompile of the tool, no registration step.
 
 ```csharp
 public sealed class TextureDimensionRule : IValidationRule
@@ -321,24 +321,24 @@ unchanged:
 
 | Channel | How |
 |---|---|
-| **Studio toolchain** | The mechanism that updates the engine drops the package; CI installs it |
+| **Company toolchain** | The mechanism that updates the environment code drops the package; CI installs it |
 | **Internal artifact feed / NuGet** | Publish the archive; a one-line install step fetches it |
 | **GitHub / GitLab releases** | Attach the archive to a tag; CI downloads and installs |
-| **A network share** | `preflight pipeline install \\studio\tools\...` |
+| **A network share** | `preflight pipeline install \\my-server\tools\...` |
 
 ---
 
 ## Where it can go
 
-The engine is a library. The command line is one host over it, built first because it is
-the host that proves the engine works.
+The tool is a library. The command line is one host over it, built first because it is
+the host that proves the tool works.
 
 | Surface | What it would take |
 |---|---|
 | **A button in Visual Studio or Rider** | An extension running the same executable and rendering the JSON. The report is computed as data and rendered separately, so a second renderer is a renderer — not a scrape of a screen |
 | **A local web UI** | A page that detects whether Preflight is installed on the machine, runs it, and shows the graph and findings live |
 | **Code review integration** | Already there: `run --format sarif` emits SARIF 2.1.0, which review pipelines read with no integration work |
-| **A build-farm service** | The engine is hostable in-process. A test enforces that it never reaches back into the command line, which is what keeps that path open |
+| **A build-farm service** | The tool is hostable in-process. A test enforces that it never reaches back into the command line, which is what keeps that path open |
 
 ---
 
@@ -420,8 +420,8 @@ test enforces the boundary. The built-in rules see exactly what an external plug
 | `core.build.compile-probe` | build-readiness | configuration |
 
 Six is deliberate: a rule ships only if it came from a real incident. The set demonstrates
-the model rather than trying to be exhaustive — the interesting rules for any studio are
-the ones that studio writes.
+the model rather than trying to be exhaustive — the interesting rules for any company are
+the ones that company writes.
 
 ---
 

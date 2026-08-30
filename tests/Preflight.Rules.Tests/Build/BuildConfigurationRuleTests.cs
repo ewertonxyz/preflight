@@ -8,14 +8,15 @@ using Preflight.Rules;
 using static Preflight.Rules.Tests.RuleFixture;
 
 /// <summary>
-/// Fixes <see cref="BuildConfigurationRule"/>, the rule the console draws its
-/// example report around.
+/// Fixes <see cref="BuildConfigurationRule"/>, whose finding the console
+/// reporter uses as its worked example.
 /// </summary>
 /// <remarks>
-/// One test here is load-bearing for a golden file in another project: the console report
-/// 's documented report is this rule missing <c>contentRoot</c>, and the
-/// console reporter's golden reproduces that finding word for word. If the
-/// wording drifts, the two stop describing the same tool.
+/// One test below pins strings that a golden file in another project also
+/// pins. The example report the console reporter renders is this rule missing
+/// <c>contentRoot</c>, word for word — so if the wording drifts here and the
+/// golden is not updated with it, the example describes a tool that no longer
+/// says that. Both are meant to fail, and this is the one that says why.
 /// </remarks>
 public sealed class BuildConfigurationRuleTests
 {
@@ -70,15 +71,18 @@ public sealed class BuildConfigurationRuleTests
     }
 
     /// <summary>
-    /// The documented finding, word for word.
+    /// The finding the console reporter's golden file reproduces, word for
+    /// word.
     /// </summary>
     /// <remarks>
-    /// The console reporter's golden file reproduces this text. Asserting the
-    /// exact strings here rather than "it failed" is what keeps the documented
-    /// example and the tool describing the same thing.
+    /// Asserting the four exact strings rather than "it failed" is the whole
+    /// point of this test. A looser assertion would stay green through a
+    /// reworded remediation, and the golden two projects away would be the only
+    /// thing left objecting — where it reads as a reporter defect rather than
+    /// as this rule having changed what it says.
     /// </remarks>
     [Fact]
-    public async Task ExecuteAsync_WithoutContentRoot_ReproducesTheDocumentedFinding()
+    public async Task ExecuteAsync_WithoutContentRoot_ReportsTheFindingTheConsoleGoldenPins()
     {
         var outcome = await Run(WorkspaceWith("""{ "platform": "win64" }"""));
 

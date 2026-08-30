@@ -1,0 +1,57 @@
+name: Build
+
+# The cheapest of the three, and the first place to look when something is red:
+# it answers "does this compile clean and is it formatted", and nothing else.
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build (Windows, Release)
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # global-json-file, not dotnet-version. global.json pins 10.0.400 with
+      # rollForward: latestFeature, which accepts 10.0.4xx and above only. A
+      # version input here could install a band that pin refuses, and the
+      # resulting "SDK not found" reads as a broken runner rather than a
+      # misconfigured workflow.
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', 'global.json', '.config/dotnet-tools.json', '**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore
+        run: dotnet restore
+
+      # .editorconfig is enforced at build time through EnforceCodeStyleInBuild,
+      # but whitespace and using-ordering are not compiler diagnostics.
+      - name: Verify formatting
+        run: dotnet format --verify-no-changes --no-restore
+
+      # TreatWarningsAsErrors is set in Directory.Build.props; there is no
+      # separate warning gate here.
+      - name: Build
+        run: dotnet build --configuration Release --no-restore

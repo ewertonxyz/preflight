@@ -119,12 +119,11 @@ public sealed class BuiltInRulesIntegrationTests
     /// The compile probe leaves the workspace exactly as it found it.
     /// </summary>
     /// <remarks>
-    /// Never writing to the workspace is a non-goal of the tool, and this is
-    /// the only rule that can break it: the read-only
-    /// <see cref="IFileSystem"/> constrains the rule, not the child process it
-    /// starts. A compiler told nothing writes its intermediates next to the
-    /// sources, and the first sign would be a fixture that stops matching its
-    /// own golden.
+    /// The tool never writes to the workspace, and this is the only rule that
+    /// can break that: the read-only <see cref="IFileSystem"/> constrains the
+    /// rule, not the child process it starts. A compiler told nothing writes
+    /// its intermediates next to the sources, and in a real checkout the first
+    /// sign would be a diff nobody made.
     /// </remarks>
     [Fact]
     public async Task CompileProbe_LeavesTheFixtureUnchanged()

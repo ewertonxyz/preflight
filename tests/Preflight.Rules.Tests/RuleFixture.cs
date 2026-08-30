@@ -15,10 +15,11 @@ using Preflight.Abstractions.Services;
 /// arrange in which the line that matters is invisible.
 /// </para>
 /// <para>
-/// The services are substituted and left unconfigured on purpose. The unit
-/// layer says the unit layer touches no disk and starts no process; a rule that
-/// reached for one it was not given fails loudly here rather than passing
-/// against the machine it happened to run on.
+/// The services are substituted and left unconfigured on purpose. A rule that
+/// reached past them for the real disk or a real process would pass or fail
+/// according to the machine it happened to run on; left unconfigured, the
+/// substitutes answer with nothing and the rule that depended on them says so
+/// loudly, here, instead of on somebody else's laptop.
 /// </para>
 /// </remarks>
 internal static class RuleFixture

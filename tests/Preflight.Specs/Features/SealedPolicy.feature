@@ -1,13 +1,13 @@
-Feature: Travas que um projeto não pode afrouxar
-    Um estúdio com três jogos precisa de regras que valem para todos. Sem trava,
-    nada impedia um projeto de escrever `"blocking": false` numa regra exigida
-    pelo estúdio: a run ficava verde tendo verificado menos do que a política
-    pedia, e ninguém era avisado.
+Feature: What a project may not loosen
+    A studio with three games needs rules that hold for all of them. Without a
+    seal, nothing stopped a project writing `"blocking": false` on a rule the
+    studio requires: the run went green having checked less than the policy
+    asked for, and nobody was told.
 
-    O selo fecha isso. E fecha só o que foi nomeado — desabilitar uma regra que
-    ninguém selou continua sendo uso previsto.
+    The seal closes that. And it closes only what was named — disabling a rule
+    nobody sealed goes on being intended use.
 
-    Scenario: Um selo do baseline recusa o afrouxamento local
+    Scenario: A seal in the baseline refuses the local loosening
         Given a workspace
         And the workspace needs nothing
         And the file "preflight.studio.json" contains
@@ -31,7 +31,7 @@ Feature: Travas que um projeto não pode afrouxar
         And the error output says "core.workspace.toolchain:blocking"
         And the error output says "preflight.studio.json"
 
-    Scenario: O selo vale para a linha de comando
+    Scenario: The seal holds against the command line
         Given a workspace
         And the workspace needs nothing
         And the file "preflight.studio.json" contains
@@ -50,7 +50,7 @@ Feature: Travas que um projeto não pode afrouxar
         Then it exits with code 2
         And the error output says "--set"
 
-    Scenario: Desabilitar uma regra não selada continua sendo uso previsto
+    Scenario: Disabling an unsealed rule goes on being intended use
         Given a workspace
         And the workspace needs nothing
         And the file "preflight.studio.json" contains

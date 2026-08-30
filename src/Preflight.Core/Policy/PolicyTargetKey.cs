@@ -1,50 +1,16 @@
 namespace Preflight.Core.Policy;
 
-using Preflight.Abstractions.Model;
-
-/// <summary>
-/// The target of a run, separating what the user said from what defaulted.
-/// </summary>
-/// <remarks>
-/// <para>
-/// <see cref="BuildTarget"/> is still the effective target and is not
-/// duplicated here. What it cannot answer is the question this layer depends
-/// on: <c>--platform</c> falls back to <c>any</c> and <c>--configuration</c> to
-/// <c>Development</c>, so a <c>targets</c> block matching those defaults would
-/// apply one platform's thresholds to every run that forgot the flag.
-/// </para>
-/// <para>
-/// ADR-015 says refuse rather than assume, and a default that predates the
-/// feature and quietly starts selecting policy is assuming. See ADR-030.
-/// </para>
-/// </remarks>
-/// <param name="Effective">The target the rules receive.</param>
-/// <param name="PlatformStated">Whether <c>--platform</c> was given.</param>
-/// <param name="ConfigurationStated">Whether <c>--configuration</c> was given.</param>
-public sealed record StatedBuildTarget(
-    BuildTarget Effective,
-    bool PlatformStated,
-    bool ConfigurationStated)
-{
-    /// <summary>A run that stated neither axis.</summary>
-    /// <remarks>
-    /// The default for every caller that does not care — a policy read for a
-    /// command that names no target still has to build one, and this says
-    /// plainly that no <c>targets</c> block can match it.
-    /// </remarks>
-    public static StatedBuildTarget Unstated { get; } =
-        new(new BuildTarget("any", "Development"), PlatformStated: false, ConfigurationStated: false);
-}
-
 /// <summary>
 /// The key of one entry in a policy's <c>targets</c> block.
 /// </summary>
 /// <remarks>
-/// <c>plataforma</c> or <c>plataforma|configuração</c>, and nothing else. There
-/// is no glob, for the reason <c>compileProbe.inputs</c> has none and version
-/// ranges have no grammar (ADR-023): a pattern language is a parser to write
-/// and test before two strings can be compared. See <c>Docs/design.md 6.2</c>
-/// and ADR-030.
+/// <c>platform</c> or <c>platform|configuration</c>, and nothing else. There
+/// is no glob here, and there is none anywhere else this tool compares two
+/// strings: a version range is two explicit bounds, and <c>compileProbe.inputs</c>
+/// is a list of paths. A pattern language is a grammar, a parser and a set of
+/// edge cases, all of which have to be written and tested before two strings
+/// can be compared — and two keys spelled out cost nothing and cannot be read
+/// two ways.
 /// </remarks>
 public readonly record struct PolicyTargetKey(string Platform, string? Configuration)
 {
@@ -111,11 +77,10 @@ public readonly record struct PolicyTargetKey(string Platform, string? Configura
     /// </summary>
     /// <remarks>
     /// An axis the user did not state never matches, whatever it defaulted to.
-    /// That is the whole of the rule: <c>--configuration</c> falls back to
-    /// <c>Development</c>, so a <c>win64|Development</c> block would otherwise
-    /// fire on a run that said only <c>--platform win64</c>, handing somebody
-    /// one configuration's thresholds because they omitted a flag — and calling
-    /// it a pass.
+    /// <c>--configuration</c> falls back to <c>Development</c>, so a
+    /// <c>win64|Development</c> block would otherwise fire on a run that said
+    /// only <c>--platform win64</c>, handing somebody one configuration's
+    /// thresholds because they omitted a flag — and calling it a pass.
     /// </remarks>
     public bool Matches(StatedBuildTarget target)
     {

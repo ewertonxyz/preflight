@@ -3,7 +3,6 @@ namespace Preflight.Rules;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
@@ -14,38 +13,67 @@ using Preflight.Abstractions.Services;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The expensive rule of the six, and the one that justifies everything else:
-/// it runs only if the two before it passed. That is the argument for a
-/// dependency graph, in the form of a rule.
+/// The expensive rule, and the one that justifies the dependency graph: it
+/// costs minutes where the others cost milliseconds, and it runs only if the
+/// toolchain and the build configuration before it passed. Without the graph,
+/// every run would pay for a compile to rediscover that the compiler is not
+/// installed.
 /// </para>
 /// <para>
-/// It is the reason <see cref="IProcessRunner"/> exists — the rule that most
-/// needs to be testable without invoking a real compiler. Every unit test here
-/// does exactly that.
+/// It is also the rule that most needs to be exercisable without a real
+/// compiler, which is why it reaches one through
+/// <see cref="IProcessRunner"/> rather than starting a process itself. Every
+/// unit test of it hands the rule a substitute and asserts on what it did with
+/// the output.
 /// </para>
 /// </remarks>
-public sealed class CompileProbeRule : IValidationRule, ICacheableRule
+public sealed partial class CompileProbeRule : IValidationRule, ICacheableRule
 {
     /// <summary>
     /// The token a manifest puts where the probe should write.
     /// </summary>
     public const string OutputToken = "{probeOutput}";
 
+    /// <summary>
+    /// A diagnostic as MSBuild and the C# compiler write it:
+    /// <c>path(line,col): error CS1002: text</c>.
+    /// </summary>
     /// <remarks>
-    /// Two forms, because the compilers a production actually uses do not
-    /// agree. MSBuild and the C# compiler write
-    /// <c>path(line,col): error CS1002: text</c>; clang, gcc and most of the
-    /// Unix world write <c>path:line:col: error: text</c>. Supporting one would
-    /// mean the findings of half the world's compilers arriving as a single
-    /// blob of text with no location on it.
+    /// Two forms are recognised because the compilers a production actually
+    /// uses do not agree on one. Supporting only this one would mean every
+    /// diagnostic from clang, gcc and the rest of the Unix world arriving as a
+    /// single blob of text with no file and no line on it.
+    ///
+    /// Generated at compile time rather than built with
+    /// <see cref="RegexOptions.Compiled"/>, which emits IL on the first match.
+    /// A probe that fails typically prints a handful of diagnostics into a
+    /// process that lives for seconds, so that cost is paid and never
+    /// recovered; the generator pays it at build time instead.
     /// </remarks>
-    private static readonly Regex MsBuildDiagnostic = new(
+    [GeneratedRegex(
         @"^(?<path>[^(\r\n]+)\((?<line>\d+)(,(?<column>\d+))?\)\s*:\s*(error|fatal error)\s*(?<code>[^:]*):\s*(?<message>.+)$",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+        RegexOptions.CultureInvariant | RegexOptions.IgnoreCase)]
+    private static partial Regex MsBuildDiagnostic { get; }
 
-    private static readonly Regex UnixDiagnostic = new(
+    /// <summary>
+    /// A diagnostic as clang, gcc and most of the Unix world write it:
+    /// <c>path:line:col: error: text</c>.
+    /// </summary>
+    /// <remarks>
+    /// It carries no error code, which is why <see cref="Describe"/> treats the
+    /// code as optional rather than as something every diagnostic has.
+    /// </remarks>
+    [GeneratedRegex(
         @"^(?<path>[^:\r\n]+):(?<line>\d+):((?<column>\d+):)?\s*(error|fatal error)\s*:\s*(?<message>.+)$",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+        RegexOptions.CultureInvariant | RegexOptions.IgnoreCase)]
+    private static partial Regex UnixDiagnostic { get; }
+
+    /// <remarks>
+    /// Longer than the toolchain rule's cap on the same kind of text, because
+    /// what lands here is a build log rather than a version banner, and the
+    /// first useful line of one is often not the first line printed.
+    /// </remarks>
+    private const int BuildLogLimit = 500;
 
     public RuleDescriptor Descriptor { get; } = new()
     {
@@ -55,8 +83,11 @@ public sealed class CompileProbeRule : IValidationRule, ICacheableRule
         DependsOn = [BuiltInRuleIds.BuildConfiguration],
         DefaultBlocking = true,
 
-        // False on a leaf. Nothing depends on this rule — it is the
-        // end of the chain, which is the whole point of it being last.
+        // Nothing depends on this rule — it is the end of the chain, which is
+        // the point of the expensive rule being last. Gating would therefore
+        // change nothing whatever it said, and it is written out because the
+        // descriptor's own default is true and a reader finding it inherited
+        // cannot tell a decision from an omission.
         DefaultGating = false,
     };
 
@@ -64,34 +95,20 @@ public sealed class CompileProbeRule : IValidationRule, ICacheableRule
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var manifestPath = Path.Combine(
-            context.WorkspaceRoot.FullName,
-            context.Policy.GetValue("manifestPath", WorkspaceManifest.DefaultFileName));
+        var read = await WorkspaceManifestRead.ReadAsync(context, cancellationToken);
 
-        WorkspaceManifest? manifest;
-
-        try
+        if (read.Malformed is { } malformed)
         {
-            manifest = await WorkspaceManifest.LoadAsync(context.FileSystem, manifestPath, cancellationToken);
-        }
-        catch (JsonException exception)
-        {
-            return RuleOutcome.Failed(new Finding
-            {
-                Message = "The workspace manifest is not valid JSON.",
-                Location = new FindingLocation(manifestPath),
-                Actual = exception.Message,
-                Remediation =
-                    "Fix the syntax, or ask the pipeline's author to point 'manifestPath' " +
-                    "at the right file.",
-            });
+            return RuleOutcome.Failed(malformed);
         }
 
         // No manifest, or no probe declared in it, means nobody told this rule
-        // how to compile the workspace. The NotApplicable reasoning
-        // applies unchanged: it examined nothing, and core.workspace.toolchain
-        // already fails loudly on a manifest that should be there and is not.
-        if (manifest?.CompileProbe is not { } probe)
+        // how to compile the workspace, so it examined nothing and says so.
+        // A missing manifest is not reported here because
+        // core.workspace.toolchain already fails loudly on it, and one problem
+        // on two lines makes the summary count disagree with the number of
+        // things to fix.
+        if (read.Manifest?.CompileProbe is not { } probe)
         {
             return RuleOutcome.NotApplicable();
         }
@@ -105,9 +122,11 @@ public sealed class CompileProbeRule : IValidationRule, ICacheableRule
 
                 // The token is substituted, never appended. A rule that added
                 // an output argument of its own would be guessing at the
-                // compiler's flag syntax, and guessing wrong turns a probe into
-                // a build that writes into the workspace — the non-objective
-                // this token exists to serve.
+                // compiler's flag syntax, and guessing wrong turns the probe
+                // into a full build writing its intermediates next to the
+                // sources — which is the one thing this token exists to
+                // prevent, because the tool must leave the workspace exactly as
+                // it found it.
                 Arguments = [.. probe.Arguments.Select(argument =>
                     argument.Replace(OutputToken, output, StringComparison.Ordinal))],
                 WorkingDirectory = probe.WorkingDirectory is { } relative
@@ -131,13 +150,14 @@ public sealed class CompileProbeRule : IValidationRule, ICacheableRule
     /// </summary>
     /// <remarks>
     /// <para>
-    /// This rule is the reason the cache exists: fifteen seconds, re-run over
-    /// sources that did not change. It is also the rule that cannot work out
-    /// its own inputs, because what it reads is whatever the compiler reads,
-    /// and the compiler is a child process this rule never looks inside. So it
-    /// reads the declaration in the manifest, and returns
-    /// <see langword="null"/> when there is none — which is the default, and the
-    /// safe one.
+    /// This rule is the reason the cache exists: minutes of compiling, repeated
+    /// over sources that did not change. It is also the rule that cannot work
+    /// out its own inputs, because what it reads is whatever the compiler
+    /// reads, and the compiler is a child process this rule never looks inside.
+    /// So it reads the declaration in the manifest and returns
+    /// <see langword="null"/> when there is none — which is both the default
+    /// and the safe answer, since no fingerprint means no caching rather than a
+    /// wrong one.
     /// </para>
     /// <para>
     /// Content, never a timestamp. An mtime-based fingerprint is the classic
@@ -159,26 +179,14 @@ public sealed class CompileProbeRule : IValidationRule, ICacheableRule
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var manifestPath = Path.Combine(
-            context.WorkspaceRoot.FullName,
-            context.Policy.GetValue("manifestPath", WorkspaceManifest.DefaultFileName));
+        var read = await WorkspaceManifestRead.ReadAsync(context, cancellationToken);
 
-        WorkspaceManifest? manifest;
-
-        try
-        {
-            manifest = await WorkspaceManifest.LoadAsync(context.FileSystem, manifestPath, cancellationToken);
-        }
-        catch (JsonException)
-        {
-            // A manifest that will not parse is a Failed outcome the rule itself
-            // reports. Declining to describe inputs is the honest answer here:
-            // there is nothing to describe, and the failure is not cacheable
-            // anyway once the file is fixed.
-            return null;
-        }
-
-        if (manifest?.CompileProbe is not { Inputs: { Count: > 0 } inputs } probe)
+        // A manifest that will not parse arrives here with no manifest at all,
+        // and describing no inputs is the honest answer: there is nothing to
+        // describe, and ExecuteAsync is already reporting the syntax error as a
+        // Failed outcome. Throwing instead would turn a syntax error in a JSON
+        // file into what looks like a defect in the cache.
+        if (read.Manifest?.CompileProbe is not { Inputs: { Count: > 0 } inputs } probe)
         {
             return null;
         }
@@ -294,7 +302,9 @@ public sealed class CompileProbeRule : IValidationRule, ICacheableRule
             findings.Add(new Finding
             {
                 Message = "The compile probe failed.",
-                Actual = Summarise(result.StandardError.Length > 0 ? result.StandardError : result.StandardOutput),
+                Actual = FindingText.Truncate(
+                    result.StandardError.Length > 0 ? result.StandardError : result.StandardOutput,
+                    BuildLogLimit),
                 Remediation = "Run the probe command by hand to see the full output.",
             });
         }
@@ -338,17 +348,5 @@ public sealed class CompileProbeRule : IValidationRule, ICacheableRule
                     : null),
             Remediation = "Fix the compile error.",
         };
-    }
-
-    /// <remarks>
-    /// Capped for the reason a history record is capped at 64 KB: a compiler
-    /// that prints its whole help on a bad argument would otherwise put all of
-    /// it in the console report and in every stored line.
-    /// </remarks>
-    private static string Summarise(string text)
-    {
-        var trimmed = text.Trim();
-
-        return trimmed.Length <= 500 ? trimmed : trimmed[..500] + "…";
     }
 }

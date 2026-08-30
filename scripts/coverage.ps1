@@ -114,14 +114,27 @@ foreach ($project in $testProjects) {
     $collected++
 }
 
-if ($collected -eq 0) {
-    Write-Error 'No test assemblies were measured. A coverage run that measures nothing must fail loudly rather than report success.'
+# Zero was the wrong bar. The skip above is silent by design - an assembly that
+# is not on disk prints one line and the loop moves on - so three test projects
+# out of four used to arrive here with $collected non-zero, publish a plausible
+# percentage, and hide the missing one in a log nobody reads. The count of test
+# projects actually found is the honest expectation, and it adjusts itself on
+# the day a fifth project arrives.
+if ($collected -ne $testProjects.Count) {
+    Write-Error "Measured $collected of $($testProjects.Count) test projects. A coverage run that silently leaves one out must fail loudly rather than report a number for the rest."
 }
 
+# Cobertura is absent from this list because the merged file it produced has no
+# consumer left, not because of what it is called. CI uploads the four raw
+# per-project reports instead: the merged one records absolute Windows paths,
+# which match nothing in a repository tree once they leave this machine. Html is
+# the artifact, TextSummary feeds the guard below, MarkdownSummaryGithub feeds
+# the CI job summary. Generating a fourth for nobody is what this file already
+# refuses elsewhere.
 dotnet reportgenerator `
     "-reports:$rawDir\*.cobertura.xml" `
     "-targetdir:$reportDir" `
-    '-reporttypes:Html;TextSummary;MarkdownSummaryGithub;Cobertura'
+    '-reporttypes:Html;TextSummary;MarkdownSummaryGithub'
 Assert-LastExitCode 'reportgenerator'
 
 $summaryPath = Join-Path $reportDir 'Summary.txt'

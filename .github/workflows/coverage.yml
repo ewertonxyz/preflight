@@ -1,0 +1,150 @@
+name: Coverage
+
+# The coverage run, on a fresh clone. What it guards is that every test project
+# was measured and that the number is reproducible somewhere other than the
+# machine that wrote the code.
+#
+# The upload to Codecov is the last step and the only optional one: it runs when
+# CODECOV_TOKEN is present, and says out loud that it was skipped when it is
+# not. A coverage job that uploaded nothing without saying so would report
+# success for a step that never ran, which is the outcome this project refuses
+# everywhere else.
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  coverage:
+    name: Coverage (Windows, Release)
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    # ContinuousIntegrationBuild is deliberately NOT set here, and this is the
+    # one line of this file most likely to be "helpfully" added later. It
+    # normalises PDB source paths to /_/, coverlet then cannot map IL back to
+    # source, and the run measures nothing. That is the failure the guard in
+    # scripts/coverage.ps1 exists to catch.
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # global-json-file, not dotnet-version. global.json pins 10.0.400 with
+      # rollForward: latestFeature, which accepts 10.0.4xx and above only.
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', 'global.json', '.config/dotnet-tools.json', '**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      # The script, not a reimplementation of it in YAML. It carries the exclude
+      # list, the .Tests/.Specs discriminator, and the guard that fails a run
+      # which did not measure every test project - a guard that has already
+      # caught a real silent failure. A second copy of that in YAML is a copy
+      # that goes stale without saying so.
+      #
+      # It restores tools and builds on its own, so there is no separate restore
+      # or build step above it.
+      #
+      # The explicit LASTEXITCODE check is belt and braces: the script's fatal
+      # paths use both `exit` and Write-Error, and a coverage step that exits 0
+      # after failing would report success for the one measurement whose job is
+      # to notice a run that measured nothing.
+      - name: Collect coverage
+        shell: pwsh
+        run: |
+          & .\scripts\coverage.ps1 -Configuration Release
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      # ReportGenerator already writes this file; not using it would mean
+      # generating a report for nobody.
+      - name: Publish the summary
+        if: always()
+        shell: pwsh
+        run: |
+          $summary = 'artifacts/coverage/report/SummaryGithub.md'
+          if (Test-Path -LiteralPath $summary) {
+            Get-Content -LiteralPath $summary -Raw |
+              Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          }
+
+      # The HTML is the only coverage output that does not fit in a log, and it
+      # is what gets opened on the day the number drops.
+      - name: Upload the HTML report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: artifacts/coverage/report/
+          retention-days: 14
+
+      # Two situations produce no token, and neither is a defect: a repository
+      # not yet connected to Codecov has none to give, and a pull request from a
+      # fork never receives secrets. Skipping is the right answer to both.
+      # Failing would make the job permanently red for a reason nobody in the
+      # repository can fix, and a badge that is always red stops being read.
+      #
+      # What is not acceptable is skipping quietly, so this step writes the
+      # reason into the job summary either way.
+      - name: Check for the Codecov token
+        id: codecov_token
+        shell: pwsh
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        run: |
+          $present = -not [string]::IsNullOrWhiteSpace($env:CODECOV_TOKEN)
+          "present=$($present.ToString().ToLowerInvariant())" |
+            Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+          if ($present) {
+            $note = "Codecov: token present, uploading."
+          }
+          else {
+            $note = "Codecov: **skipped, no CODECOV_TOKEN**. Expected on pull requests from forks, and until the repository is connected to Codecov. The coverage above was measured and is real; it was simply not published."
+          }
+
+          Write-Host $note
+          $note | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+
+      # The four raw per-project reports, and this is measured rather than
+      # assumed. ReportGenerator's merged output records
+      # filename="D:\Dev\preflight\src\..." - the absolute path of the machine
+      # that measured, with backslashes - and Codecov matches what it receives
+      # against the repository tree, so every file would land unmatched: a green
+      # badge over no data. That is why the merged report is no longer generated
+      # at all. The raw reports record
+      # filename="Preflight.Core/Changes/GitChangeSource.cs", relative and with
+      # forward slashes; .github/codecov.yml puts back the src/ prefix that
+      # <source> consumed. Codecov merges multiple uploads by taking the maximum
+      # hits per line, so nothing is counted twice.
+      #
+      # disable_search plus an explicit list, so a report added to the artifacts
+      # tree later never joins this upload by accident.
+      - name: Upload to Codecov
+        if: steps.codecov_token.outputs.present == 'true'
+        uses: codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: >-
+            artifacts/coverage/raw/Preflight.Cli.Tests.cobertura.xml,
+            artifacts/coverage/raw/Preflight.Core.Tests.cobertura.xml,
+            artifacts/coverage/raw/Preflight.Rules.Tests.cobertura.xml,
+            artifacts/coverage/raw/Preflight.Specs.cobertura.xml
+          disable_search: true
+          fail_ci_if_error: true

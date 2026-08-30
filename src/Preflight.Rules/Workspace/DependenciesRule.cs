@@ -1,6 +1,5 @@
 namespace Preflight.Rules;
 
-using System.Text.Json;
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
 
@@ -10,11 +9,11 @@ using Preflight.Abstractions.Rules;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The one rule of the six that distinguishes two degrees of problem, and the
-/// distinction is why <c>RuleStatus.Warning</c> exists in the product rather
-/// than only in the enum: "run a restore" and "this version cannot be had" are
-/// different sentences for whoever reads the report, and only the first is
-/// fixed by a command.
+/// The rule that distinguishes two degrees of problem, and the distinction is
+/// why <c>RuleStatus.Warning</c> is a status the tool actually produces rather
+/// than a value only the enum has: "run a restore" and "this version cannot be
+/// had" are different sentences for whoever reads the report, and only the
+/// first is fixed by a command nobody has to think about.
 /// </para>
 /// <para>
 /// Both checks are offline. The tool never fetches anything, so "resolvable"
@@ -35,7 +34,10 @@ public sealed class DependenciesRule : IValidationRule
         DependsOn = [BuiltInRuleIds.Toolchain],
         DefaultBlocking = true,
 
-        // False on a leaf. Nothing depends on this rule.
+        // Nothing depends on this rule, so gating would change nothing whatever
+        // it said. Written out anyway, because the descriptor's own default is
+        // true and a reader finding it inherited cannot tell a decision from an
+        // omission.
         DefaultGating = false,
     };
 
@@ -43,30 +45,14 @@ public sealed class DependenciesRule : IValidationRule
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var manifestPath = Path.Combine(
-            context.WorkspaceRoot.FullName,
-            context.Policy.GetValue("manifestPath", WorkspaceManifest.DefaultFileName));
+        var read = await WorkspaceManifestRead.ReadAsync(context, cancellationToken);
 
-        WorkspaceManifest? manifest;
-
-        try
+        if (read.Malformed is { } malformed)
         {
-            manifest = await WorkspaceManifest.LoadAsync(context.FileSystem, manifestPath, cancellationToken);
-        }
-        catch (JsonException exception)
-        {
-            return RuleOutcome.Failed(new Finding
-            {
-                Message = "The workspace manifest is not valid JSON.",
-                Location = new FindingLocation(manifestPath),
-                Actual = exception.Message,
-                Remediation =
-                    "Fix the syntax, or ask the pipeline's author to point 'manifestPath' " +
-                    "at the right file.",
-            });
+            return RuleOutcome.Failed(malformed);
         }
 
-        if (manifest is null || manifest.Dependencies.Count == 0)
+        if (read.Manifest is not { Dependencies.Count: > 0 } manifest)
         {
             // Unlike the toolchain rule, a missing manifest here is not a
             // trapdoor: this rule does not run alone. It depends on

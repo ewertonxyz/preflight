@@ -44,9 +44,9 @@ public sealed class LargeFileRuleTests
             CancellationToken.None);
 
     /// <remarks>
-    /// The documented example: a commit touching only <c>.md</c> files makes
-    /// this report <c>n/a</c>, not a tick, because it checked nothing and
-    /// saying it passed would claim more than is known.
+    /// A commit touching only <c>.md</c> files makes this report <c>n/a</c>
+    /// rather than a tick, because it measured nothing and a tick would claim
+    /// more than is known.
     /// </remarks>
     [Fact]
     public async Task ExecuteAsync_WithNoChangedFiles_IsNotApplicable()
@@ -111,10 +111,12 @@ public sealed class LargeFileRuleTests
     }
 
     /// <remarks>
-    /// A rule that fails without saying how to fix it delivers half the work,
-    /// and the admission criterion for a built-in rule makes the same point
-    /// about the whole set. Asserted per rule and again as a cross-rule
-    /// invariant.
+    /// A rule that fails without saying how to fix it delivers half the work:
+    /// the reader now knows something is wrong and still has to work out what
+    /// to do about it. Asserted here per rule, and again across every rule and
+    /// every broken fixture in the integration layer, because the way it
+    /// regresses is a finding added to an existing rule rather than a new rule
+    /// arriving without one.
     /// </remarks>
     [Fact]
     public async Task ExecuteAsync_WhenItFails_ReportsExpectedActualAndARemedy()
@@ -162,10 +164,12 @@ public sealed class LargeFileRuleTests
     }
 
     /// <remarks>
-    /// The worked example moves this to 52 428 800, which fits in an
-    /// <see cref="int"/> and therefore hides the choice. A limit above
-    /// <see cref="int.MaxValue"/> is where reading it as an int overflows, mid
-    /// run, as <c>Errored</c>.
+    /// A production shipping large assets raises the limit, and the usual
+    /// raise — 50 MB, or 52 428 800 bytes — still fits in an
+    /// <see cref="int"/>, so it would pass even if the limit were read as one.
+    /// This test uses a limit above <see cref="int.MaxValue"/>, which is where
+    /// reading it as an <see cref="int"/> overflows and the rule turns
+    /// <c>Errored</c> in the middle of a run.
     /// </remarks>
     [Fact]
     public async Task ExecuteAsync_WithALimitAboveIntMaxValue_StillCompares()
@@ -177,7 +181,7 @@ public sealed class LargeFileRuleTests
     }
 
     [Fact]
-    public async Task ExecuteAsync_WithNoPolicy_UsesTheDocumentedDefault()
+    public async Task ExecuteAsync_WithNoPolicy_UsesTheDefaultLimit()
     {
         var fileSystem = FileSystemSizing(("asset.bin", LargeFileRule.DefaultMaxBytes + 1));
 
@@ -202,10 +206,11 @@ public sealed class LargeFileRuleTests
     }
 
     /// <remarks>
-    /// The token is the rule author's contract, not a style point. A pre-submit
-    /// rule can receive tens of thousands of entries, and one that never checks
-    /// cannot be stopped — the timeout would fire and the process would keep
-    /// working.
+    /// Checking the token inside the loop is what a rule author owes the
+    /// engine. A pre-submit rule can receive tens of thousands of entries, and
+    /// one that never checks cannot be stopped: the timeout fires, the engine
+    /// records the run as over, and the thread keeps measuring files nobody is
+    /// waiting for.
     /// </remarks>
     [Fact]
     public async Task ExecuteAsync_WithACancelledToken_StopsRatherThanFinishing()

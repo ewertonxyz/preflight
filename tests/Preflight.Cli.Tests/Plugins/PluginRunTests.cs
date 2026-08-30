@@ -11,17 +11,17 @@ using Preflight.TestSupport;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The assertion the whole phase exists for, and the one every other test in it
-/// stops short of. A loader that opens an assembly, discovers a rule, lists it
-/// in <c>preflight rules</c> and never runs it would leave all of them green —
-/// and would be a plugin model that does nothing.
+/// The assertion every other test around it stops short of. A loader that opens
+/// an assembly, discovers a rule, lists it in <c>preflight rules</c> and never
+/// runs it would leave all of them green — and would be a plugin model that
+/// does nothing.
 /// </para>
 /// <para>
 /// It needs a real repository because the sample is a pre-submit rule, and a
 /// pre-submit run reads its changed files from git. The parser already refuses
 /// <c>--stage pre-submit</c> without a ref, so there is no shortcut: this test
-/// pays for the one thing that cannot be faked without also faking the thing
-/// being proved. It follows the precedent of
+/// pays for a real repository, because faking it would mean faking the very
+/// thing it is meant to prove. It follows the precedent of
 /// <c>GitChangeSourceIntegrationTests</c>, including its cleanup, because git
 /// marks objects read-only and <c>Directory.Delete</c> refuses those.
 /// </para>
@@ -120,14 +120,22 @@ public sealed class PluginRunTests : IDisposable
     /// Staged rather than committed, so the diff against <c>HEAD</c> reports it.
     /// An untracked file appears in no <c>git diff</c> at all, which would make
     /// every rule here report <c>NotApplicable</c> and the run go green having
-    /// examined nothing — the false green these tests are meant to catch, dressed
+    /// examined nothing — success reported over a check that never ran, dressed
     /// as a passing test.
     /// </remarks>
     private async Task GivenARepositoryStaging(string relativePath, byte[] content)
     {
-        await Git("init");
+        // Every one of these four is pinned rather than inherited, and the
+        // machine that would otherwise supply them is the one nobody can
+        // inspect. A CI agent has no global identity, no init.defaultBranch and
+        // no signing key; a developer machine may have all three, and one of
+        // them configured differently is a failure that reads as "it works on
+        // mine". GitChangeSourceIntegrationTests initialises its repository
+        // under exactly this contract, and the two are meant to stay identical.
+        await Git("init", "-b", "main");
         await Git("config", "user.email", "preflight@example.invalid");
         await Git("config", "user.name", "Preflight Tests");
+        await Git("config", "commit.gpgsign", "false");
 
         File.WriteAllText(Path.Combine(_workspace.FullName, "README.md"), "fixture");
 

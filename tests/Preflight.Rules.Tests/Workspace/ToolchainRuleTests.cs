@@ -11,10 +11,11 @@ using static Preflight.Rules.Tests.RuleFixture;
 /// Fixes <see cref="ToolchainRule"/>.
 /// </summary>
 /// <remarks>
-/// No compiler is installed for these and none is invoked. The seam exists so
-/// <see cref="IProcessRunner"/> exists so the rules that shell out are testable
-/// without the thing they shell out to, and the toolchain rule is the first of
-/// the two that does.
+/// No tool is installed for these and none is invoked. The rule reaches every
+/// executable through <see cref="IProcessRunner"/>, so a substitute can hand it
+/// the exact banner a preview SDK or a Windows build of git prints — output
+/// this suite could not otherwise produce on the one machine it runs on, and
+/// output that is precisely where the version parsing goes wrong.
 /// </remarks>
 public sealed class ToolchainRuleTests
 {
@@ -233,9 +234,9 @@ public sealed class ToolchainRuleTests
     [InlineData("10.0.100-preview.3.25")]
     [InlineData("10.0.100\n")]
     [InlineData("dotnet 10.0.100")]
-    // git on Windows: five components, the last two not numbers. Found by a
-    // fixture rather than by inspection, and the reason ParseVersion takes the
-    // leading numeric run instead of the whole token.
+    // git on Windows prints five components, the last two of which are not
+    // numbers. This is the case that forces ParseVersion to take the leading
+    // numeric run rather than the whole token.
     [InlineData("git version 10.0.100.windows.1")]
     [InlineData("10.0.100.5")]
     public async Task ExecuteAsync_ReadsTheVersionOutOfRealToolOutput(string output)
@@ -259,10 +260,11 @@ public sealed class ToolchainRuleTests
     /// A token with more than four components keeps the first four.
     /// </summary>
     /// <remarks>
-    /// <see cref="Version"/> holds four, and this is what makes
-    /// <c>2.51.0.windows.5</c> readable. The alternative — refusing anything
-    /// that is not exactly a version — reports a machine that has git as having
-    /// none, which is how this was found: by a fixture, not by inspection.
+    /// <see cref="Version"/> holds four, and keeping the leading four is what
+    /// makes <c>2.51.0.windows.5</c> readable at all. The alternative —
+    /// refusing anything that is not exactly a version — reports a machine that
+    /// has git installed as having none, and the developer it happens to has no
+    /// way to tell that from the tool genuinely being absent.
     /// </remarks>
     [Fact]
     public void ParseVersion_WithMoreComponentsThanVersionHolds_KeepsTheLeadingFour()
@@ -305,9 +307,11 @@ public sealed class ToolchainRuleTests
     }
 
     /// <remarks>
-    /// This text reaches the console report and, from the history, the NDJSON
-    /// history, where a record is capped at 64 KB. A compiler that prints its
-    /// whole help on a bad argument would otherwise put all of it in both.
+    /// This text is whatever the tool chose to print, and it is rendered in the
+    /// console report and stored in the run's history, where one record is
+    /// capped at 64 KB. A tool that answers a bad argument with its entire help
+    /// would fill the terminal and cost the history record the fields that come
+    /// after this one.
     /// </remarks>
     [Fact]
     public async Task ExecuteAsync_WithVeryLongToolOutput_TruncatesItInTheFinding()

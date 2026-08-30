@@ -8,11 +8,11 @@ using Preflight.Abstractions.Rules;
 /// Checks that the build configuration for the target is complete and coherent.
 /// </summary>
 /// <remarks>
-/// One of the six built-in rules, and the one the console reporter draws its
-/// example report around. Complete means every key the production requires is
-/// present; coherent means a key that names a directory names one that is
-/// there. The second is what stops a configuration from being formally valid
-/// and still unbuildable.
+/// Complete means every key the production requires is present; coherent means
+/// a key that names a directory names one that is there. The second is what
+/// stops a configuration from being formally valid and still unbuildable — a
+/// build that starts, runs for minutes, and then fails on a missing asset
+/// instead of on the wrong path that caused it.
 /// </remarks>
 public sealed class BuildConfigurationRule : IValidationRule
 {
@@ -118,10 +118,12 @@ public sealed class BuildConfigurationRule : IValidationRule
         .Replace("{configuration}", target.Configuration, StringComparison.Ordinal);
 
     /// <remarks>
-    /// The documented finding exactly: the message, the location, and the
-    /// expected/actual pair it prints. The example there is this rule missing
-    /// <c>contentRoot</c>, so the golden file of the console reporter and the
-    /// text produced here have to agree word for word.
+    /// The four strings below are pinned twice: by this project's tests, and
+    /// again by the console reporter's golden file, which renders exactly this
+    /// finding — a configuration missing <c>contentRoot</c> — as its worked
+    /// example of a report. Rewording one of them here without the golden
+    /// leaves that example describing a tool that no longer says it, so the two
+    /// are meant to fail together.
     /// </remarks>
     private static void Complete(
         RuleContext context,
@@ -196,11 +198,17 @@ public sealed class BuildConfigurationRule : IValidationRule
     }
 
     /// <remarks>
-    /// One-based, because that is what every editor shows. Extracted and
-    /// excluded for the reason <c>PolicyLoader</c> gives about the same
-    /// property: <see cref="JsonException.LineNumber"/> is declared nullable
-    /// and is populated for every malformed input this can receive, so the null
-    /// arm is unreachable rather than untested.
+    /// One-based, because that is what every editor shows, and a report
+    /// disagreeing with the editor by one is worse than a report carrying no
+    /// line at all.
+    ///
+    /// Excluded from coverage rather than tested.
+    /// <see cref="JsonException.LineNumber"/> is declared nullable, but the
+    /// parser populates it for every malformed document that can reach here, so
+    /// the null arm is unreachable rather than untested. A test written to
+    /// reach it would have to fabricate an exception the parser never throws,
+    /// which proves nothing about this method and closes the coverage hole with
+    /// an assertion about a fiction.
     /// </remarks>
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     private static int? LineOf(JsonException exception) =>
