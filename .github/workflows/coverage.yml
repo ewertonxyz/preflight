@@ -72,6 +72,28 @@ jobs:
           & .\scripts\coverage.ps1 -Configuration Release
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+      # The uploader treats an input file it cannot find as a warning and
+      # uploads the rest, and fail_ci_if_error does not cover that: a path that
+      # matches nothing costs a quarter of the measurement and still leaves the
+      # job green. The collect step above names these four files, so their
+      # absence here means either it changed or the list below is stale.
+      - name: Check the reports exist
+        shell: pwsh
+        run: |
+          $expected = @(
+            'artifacts/coverage/raw/Preflight.Cli.Tests.cobertura.xml'
+            'artifacts/coverage/raw/Preflight.Core.Tests.cobertura.xml'
+            'artifacts/coverage/raw/Preflight.Rules.Tests.cobertura.xml'
+            'artifacts/coverage/raw/Preflight.Specs.cobertura.xml'
+          )
+
+          $missing = @($expected | Where-Object { -not (Test-Path -LiteralPath $_) })
+
+          if ($missing.Count -gt 0) {
+            Write-Error "Coverage reports missing: $($missing -join ', ')"
+            exit 1
+          }
+
       # ReportGenerator already writes this file; not using it would mean
       # generating a report for nobody.
       - name: Publish the summary
@@ -123,28 +145,34 @@ jobs:
           $note | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
 
       # The four raw per-project reports, and this is measured rather than
-      # assumed. ReportGenerator's merged output records
-      # filename="D:\Dev\preflight\src\..." - the absolute path of the machine
-      # that measured, with backslashes - and Codecov matches what it receives
-      # against the repository tree, so every file would land unmatched: a green
-      # badge over no data. That is why the merged report is no longer generated
-      # at all. The raw reports record
-      # filename="Preflight.Core/Changes/GitChangeSource.cs", relative and with
-      # forward slashes; .github/codecov.yml puts back the src/ prefix that
-      # <source> consumed. Codecov merges multiple uploads by taking the maximum
-      # hits per line, so nothing is counted twice.
+      # assumed. ReportGenerator's merged output records filename as the
+      # absolute path of the machine that measured, backslashes and all, and
+      # Codecov matches what it receives against the repository tree - so every
+      # file would land unmatched and the badge would be green over no data.
+      # That is why the merged report is no longer generated at all. The raw
+      # reports record filename="Preflight.Core/Changes/GitChangeSource.cs",
+      # relative and with forward slashes; .github/codecov.yml puts back the
+      # src/ prefix that <source> consumed. Codecov merges multiple uploads by
+      # taking the maximum hits per line, so nothing is counted twice.
       #
       # disable_search plus an explicit list, so a report added to the artifacts
       # tree later never joins this upload by accident.
+      #
+      # A block scalar, one path per line, and not a folded `>-` list of
+      # comma-separated paths. Folding replaces each newline with a space, the
+      # uploader splits the value on the comma without trimming, and every path
+      # after the first arrives with a leading space and matches no file. Three
+      # of these four went missing that way, and the badge reported one test
+      # project as though it were the whole suite.
       - name: Upload to Codecov
         if: steps.codecov_token.outputs.present == 'true'
         uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: >-
-            artifacts/coverage/raw/Preflight.Cli.Tests.cobertura.xml,
-            artifacts/coverage/raw/Preflight.Core.Tests.cobertura.xml,
-            artifacts/coverage/raw/Preflight.Rules.Tests.cobertura.xml,
+          files: |
+            artifacts/coverage/raw/Preflight.Cli.Tests.cobertura.xml
+            artifacts/coverage/raw/Preflight.Core.Tests.cobertura.xml
+            artifacts/coverage/raw/Preflight.Rules.Tests.cobertura.xml
             artifacts/coverage/raw/Preflight.Specs.cobertura.xml
           disable_search: true
           fail_ci_if_error: true

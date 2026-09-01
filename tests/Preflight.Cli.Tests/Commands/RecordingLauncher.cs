@@ -1,5 +1,8 @@
 namespace Preflight.Cli.Tests.Commands;
 
+using Preflight.Cli.Model;
+using Preflight.Cli.Services;
+
 /// <summary>
 /// A child process that never runs, and remembers being asked to.
 /// </summary>

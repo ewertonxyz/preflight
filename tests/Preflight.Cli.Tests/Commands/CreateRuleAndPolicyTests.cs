@@ -4,6 +4,8 @@ using System.Xml.Linq;
 using NSubstitute;
 using Preflight.Abstractions.Rules;
 using Preflight.Cli.Commands;
+using Preflight.Cli.Model;
+using Preflight.Cli.Services;
 using Preflight.Core;
 using Preflight.Core.Policy;
 
@@ -17,7 +19,8 @@ using Preflight.Core.Policy;
 /// 2 rather than letting an <see cref="IOException"/> reach the top as 3. The
 /// refusals are asserted by non-invocation of the writer, because a write that
 /// happened to restore the original bytes would satisfy a comparison and still
-/// be the defect. See ADR-028.
+/// be the defect. There is no <c>--force</c> on either: a command that replaces
+/// a file somebody authored is worse than one that refuses and says why.
 /// </remarks>
 public sealed class CreateRuleAndPolicyTests : IDisposable
 {

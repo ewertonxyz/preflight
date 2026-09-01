@@ -6,6 +6,12 @@ using System.Reflection;
 using Preflight.Abstractions.Model;
 using Preflight.Cli.Commands;
 using Preflight.Cli.Interactive;
+using Preflight.Cli.Model;
+using Preflight.Cli.Parsing;
+using Preflight.Cli.Pipelines;
+using Preflight.Cli.Policy;
+using Preflight.Cli.Reporting;
+using Preflight.Cli.Storage;
 using Preflight.Core;
 using Preflight.Core.Caching;
 using Preflight.Core.History;
@@ -35,10 +41,6 @@ public static class PreflightCommandLine
 {
     private const string RulesAssemblyName = "Preflight.Rules";
 
-    private const string MeasureCommandArgument = "<command>";
-
-    private const string FormatOption = "--format";
-
     /// <summary>
     /// What <c>run --format</c> accepts, in the order the refusal names them.
     /// </summary>
@@ -60,13 +62,6 @@ public static class PreflightCommandLine
     private static readonly string[] ReportFormats = ["console", "json"];
 
     private static readonly string[] GraphFormats = ["text", "dot"];
-
-    /// <summary>
-    /// Every command carries it. See
-    /// <see cref="PluginLoading"/> for why the flag is not confined to
-    /// <c>run</c>.
-    /// </summary>
-    private const string RulesPathOption = "--rules-path";
 
     /// <summary>
     /// Parses <paramref name="args"/> and runs the command it names.
@@ -199,351 +194,8 @@ public static class PreflightCommandLine
         };
     }
 
-    /// <summary>
-    /// Runs the parsed command against <paramref name="environment"/>.
-    /// </summary>
-    public static int Run(ParseResult parse, CommandEnvironment environment)
-    {
-        ArgumentNullException.ThrowIfNull(parse);
-        ArgumentNullException.ThrowIfNull(environment);
-
-        var name = parse.CommandResult.Command.Name;
-
-        // The name is resolved before any option is read, and that ordering is
-        // load-bearing rather than tidy: ParseResult.GetValue throws for a name
-        // no symbol declares, so reading run's options while dispatching an
-        // unknown command replaces this method's own error with the library's.
-        //
-        // Synchronous, on purpose. Main returns an int and the whole tool is one
-        // run; an async entry point here would add a state machine to every
-        // command in exchange for nothing — nothing else is waiting for this
-        // thread.
-
-        // Before the command runs, and before any policy is resolved, so that
-        // a policy naming a plugin's rule can be validated against it. The
-        // load contexts live exactly as
-        // long as the command that executes their rules.
-        using var loader = environment.AssemblyLoader();
-
-        // Before composition, because the package contributes rules, and before
-        // policy resolution, because it contributes the policy. One answer,
-        // handed to both — including to graph, which resolves no policy and
-        // still has to draw every rule the run would execute.
-        //
-        // The pipeline subcommands are excluded: install writes the very thing
-        // this would read, and declare exists precisely because the checkout
-        // does not yet say which pipeline it is.
-        environment = environment with
-        {
-            ResolvedPackage = ManagesPackages(name)
-                ? null
-                : PackageResolution.For(environment, PipelineOf(parse), CancellationToken.None),
-        };
-
-        environment = environment with
-        {
-            Rules = PluginLoading.Compose(environment, loader, RulesPathsOf(parse)),
-        };
-
-        return name switch
-        {
-            "run" => RunCommandHandler
-                .ExecuteAsync(environment, RunOptionsFrom(parse), CancellationToken.None)
-                .GetAwaiter()
-                .GetResult(),
-            "rules" => InspectionCommandHandlers
-                .RulesAsync(environment, PolicyOptionsFrom(parse), CancellationToken.None)
-                .GetAwaiter()
-                .GetResult(),
-            "graph" => InspectionCommandHandlers.Graph(
-                environment,
-                GraphFormatFrom(parse),
-                CancellationToken.None),
-            // The subcommand's own name, as 'clear' is for cache.
-            "workspace" => CreateCommandHandler
-                .WorkspaceAsync(environment, CancellationToken.None)
-                .GetAwaiter()
-                .GetResult(),
-            "rule" => CreateCommandHandler
-                .RuleAsync(environment, parse.GetValue<string>("id")!, CancellationToken.None)
-                .GetAwaiter()
-                .GetResult(),
-            "policy" => CreateCommandHandler
-                .PolicyAsync(environment, parse.GetValue<string>("name")!, CancellationToken.None)
-                .GetAwaiter()
-                .GetResult(),
-            // The three pipeline subcommands, by their own names, as 'workspace'
-            // and 'clear' already are. 'pipeline' alone is a parse error before
-            // it reaches here.
-            "declare" => PipelineCommandHandler
-                .DeclareAsync(environment, parse.GetValue<string?>("name"), CancellationToken.None)
-                .GetAwaiter()
-                .GetResult(),
-            "use" => PipelineCommandHandler
-                .UseAsync(environment, parse.GetValue<string?>("selector"), CancellationToken.None)
-                .GetAwaiter()
-                .GetResult(),
-            "list" => PipelineCommandHandler
-                .ListAsync(environment, CancellationToken.None)
-                .GetAwaiter()
-                .GetResult(),
-            "pack" => PipelinePackager
-                .PackAsync(
-                    environment,
-                    parse.GetValue<string>("source")!,
-                    parse.GetValue<string>("--output")!,
-                    CancellationToken.None)
-                .GetAwaiter()
-                .GetResult(),
-            "validate" => PipelineValidator
-                .ValidateAsync(environment, parse.GetValue<string>("source")!, CancellationToken.None)
-                .GetAwaiter()
-                .GetResult(),
-            "install" => PipelineInstaller
-                .InstallAsync(
-                    environment,
-                    parse.GetValue<string>("package")!,
-                    parse.GetValue<int?>("--keep"),
-                    parse.GetValue<bool>("--no-gc"),
-                    CancellationToken.None)
-                .GetAwaiter()
-                .GetResult(),
-            "measure" => MeasureCommandHandler
-                .ExecuteAsync(environment, MeasureOptionsFrom(parse), CancellationToken.None)
-                .GetAwaiter()
-                .GetResult(),
-            "report" => ReportCommandHandler
-                .ExecuteAsync(environment, ReportOptionsFrom(parse), CancellationToken.None)
-                .GetAwaiter()
-                .GetResult(),
-
-            // The subcommand's own name, because that is what the parser
-            // resolves to. 'cache' alone is a parse error before it reaches
-            // here, so 'clear' is unambiguous.
-            "clear" => CacheCommandHandler
-                .ClearAsync(environment, PolicyOptionsFrom(parse), CancellationToken.None)
-                .GetAwaiter()
-                .GetResult(),
-            "explain" => InspectionCommandHandlers
-                .ExplainAsync(
-                    environment,
-                    PolicyOptionsFrom(parse),
-                    parse.GetValue<string?>("<rule-id>"),
-                    CancellationToken.None)
-                .GetAwaiter()
-                .GetResult(),
-            _ => NotACommand(name),
-        };
-    }
-
-    /// <summary>
-    /// Every <c>--rules-path</c> the command was given.
-    /// </summary>
-    /// <remarks>
-    /// Guarded rather than read directly, and for the same reason the command
-    /// name is resolved before any option: <see cref="Run"/> is public and
-    /// takes any parse result, and <c>ParseResult.GetValue</c> throws for a
-    /// name no symbol declares. Without the guard, a parse result this file
-    /// does not recognise would fail here with the library's exception instead
-    /// of reaching the arm written to refuse it — which would make that arm
-    /// unreachable and its message a fiction.
-    ///
-    /// Every command the root builds declares the option, so the empty result
-    /// is only ever produced for a command that is about to be refused.
-    /// </remarks>
-    /// <remarks>
-    /// The subcommands of <c>pipeline</c>, which manage packages rather than
-    /// consume one. Resolving a package before <c>install</c> writes it would
-    /// refuse the very command that fixes the refusal, and <c>declare</c> exists
-    /// because the checkout does not yet say which pipeline it is. <c>pack</c>
-    /// and <c>validate</c> work on a source tree named as an argument, so the
-    /// package a surrounding checkout happens to resolve to is not theirs and
-    /// refusing on it would make an author's tooling depend on which directory
-    /// they ran it from.
-    /// </remarks>
-    private static bool ManagesPackages(string command) =>
-        command is "declare" or "use" or "list" or "install" or "pack" or "validate";
-
-    /// <remarks>
-    /// Only the commands that declare the option carry one. Reading it off a
-    /// command that does not — <c>graph</c>, or a pipeline subcommand — throws
-    /// inside the parser rather than returning null.
-    /// </remarks>
-    private static string? PipelineOf(ParseResult parse) =>
-        parse.CommandResult.Command.Options.Any(
-            option => string.Equals(option.Name, "--pipeline", StringComparison.Ordinal))
-            ? PipelineFrom(parse)
-            : null;
-
-    private static string[] RulesPathsOf(ParseResult parse) =>
-        parse.CommandResult.Command.Options.Any(
-            option => string.Equals(option.Name, RulesPathOption, StringComparison.Ordinal))
-            ? MultiValued(parse, RulesPathOption)
-            : [];
-
-    /// <remarks>
-    /// Unreachable, and excluded rather than covered: the parser rejects an
-    /// unknown command before dispatch, so nothing can arrive here that is not
-    /// one of the four above. It stays as a throw rather than a silent zero,
-    /// because a fifth command added to the surface and forgotten here would
-    /// otherwise report success having done nothing.
-    /// </remarks>
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    private static int NotACommand(string name) =>
-        throw new RuleDiscoveryException($"'{name}' is not a command.");
-
-    /// <summary>
-    /// Everything <c>run</c> was given.
-    /// </summary>
-    /// <remarks>
-    /// <c>--stage</c> is required here, so the fallback below is unreachable
-    /// through the parser and exists because <see cref="StageParser.Parse"/>
-    /// returns a nullable rather than throwing. <c>--platform</c> and
-    /// <c>--configuration</c> do have defaults: a workspace-stage run has no
-    /// target to speak of, and refusing one would make the flags mandatory for
-    /// two stages that never read them.
-    /// </remarks>
-    private static RunOptions RunOptionsFrom(ParseResult parse) => new()
-    {
-        Stage = RequiredStage(parse.GetValue<string?>("--stage")),
-        Target = StatedTargetFrom(parse),
-        Pipeline = PipelineFrom(parse),
-        ChangedFrom = parse.GetValue<string?>("--changed-from"),
-        Format = ReportFormatFrom(parse),
-        NoSkip = parse.GetValue<bool>("--no-skip"),
-        FailOnWarning = parse.GetValue<bool>("--fail-on-warning"),
-        NoUnicode = parse.GetValue<bool>("--no-unicode"),
-        NoCache = parse.GetValue<bool>("--no-cache"),
-        NoLocal = parse.GetValue<bool>("--no-local"),
-        AllowLocal = parse.GetValue<bool>("--allow-local"),
-        SetOverrides = MultiValued(parse, "--set"),
-    };
-
-    /// <summary>
-    /// A multi-valued symbol's tokens, never null.
-    /// </summary>
-    /// <remarks>
-    /// The null branch exists only because <c>ParseResult.GetValue</c> is
-    /// annotated as possibly returning one. A multi-valued symbol that was
-    /// never given parses to an empty array in every version this has been run
-    /// against, so the branch is unreachable in practice while remaining
-    /// required by the signature — the same shape as <c>PolicyLoader</c>'s
-    /// handling of <c>JsonException.LineNumber</c>, and excluded for the same
-    /// reason: a fabricated test would assert something about the library
-    /// rather than about this code.
-    ///
-    /// One helper for both <c>--set</c> and <c>measure</c>'s command tokens. A
-    /// second copy of this would be a second exclusion, and an exclusion per
-    /// call site is how a project stops noticing them.
-    /// </remarks>
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    private static string[] MultiValued(ParseResult parse, string name) =>
-        parse.GetValue<string[]?>(name) ?? [];
-
-    /// <summary>
-    /// Everything <c>measure</c> was given.
-    /// </summary>
-    /// <remarks>
-    /// Both null-forgiving operators are guaranteed by the command's validator,
-    /// which has already turned a missing <c>--label</c> and a missing command
-    /// into parse errors — and therefore into exit 2, before this method exists
-    /// to be called. A defensive branch here would be one no input can reach.
-    /// </remarks>
-    private static MeasureOptions MeasureOptionsFrom(ParseResult parse)
-    {
-        var command = MultiValued(parse, MeasureCommandArgument);
-
-        return new MeasureOptions(
-            parse.GetValue<string?>("--label")!,
-            command[0],
-            [.. command.Skip(1)],
-            PolicyOptionsFrom(parse));
-    }
-
-    /// <summary>
-    /// Everything <c>report</c> was given.
-    /// </summary>
-    /// <remarks>
-    /// The window is parsed twice: once by the validator, to refuse a malformed
-    /// one with exit 2, and once here. Threading the first result through would
-    /// mean the parser held state between the two phases, and the whole
-    /// arrangement is that a refusal is a parse error like any other.
-    /// </remarks>
-    private static ReportOptions ReportOptionsFrom(ParseResult parse) => new()
-    {
-        Since = SinceDuration.Parse(parse.GetValue<string?>("--since"))!,
-        NoUnicode = parse.GetValue<bool>("--no-unicode"),
-        Policy = PolicyOptionsFrom(parse),
-        Format = ReportFormatFrom(parse),
-    };
-
-    /// <summary>
-    /// The report format the command was given, or the default.
-    /// </summary>
-    /// <remarks>
-    /// The comparison is ordinal and the parser has already refused every token
-    /// that is not one of the accepted values, so the last arm is reached only
-    /// by the absent option. That is what makes the default a default rather
-    /// than a silent fallback for a misspelling — which is exactly what this
-    /// method used to be.
-    /// </remarks>
-    private static ReportFormat ReportFormatFrom(ParseResult parse) =>
-        parse.GetValue<string?>(FormatOption) switch
-        {
-            "json" => ReportFormat.Json,
-            "sarif" => ReportFormat.Sarif,
-            _ => ReportFormat.Console,
-        };
-
-    /// <summary>
-    /// The graph format the command was given, or the default.
-    /// </summary>
-    /// <remarks>
-    /// <c>text</c> is the default and its output is byte-identical to what the
-    /// command printed before the option existed.
-    /// </remarks>
-    private static GraphFormat GraphFormatFrom(ParseResult parse) =>
-        parse.GetValue<string?>(FormatOption) switch
-        {
-            "dot" => GraphFormat.Dot,
-            _ => GraphFormat.Text,
-        };
-
-    /// <remarks>
-    /// The fallback is unreachable and excluded rather than covered:
-    /// <c>--stage</c> is required and constrained to three values, so the
-    /// parser has already refused anything <see cref="StageParser.Parse"/>
-    /// would return null for. It throws rather than defaulting, because a
-    /// default here would silently run a stage nobody asked for — the one thing
-    /// this file spends option's ergonomics to prevent.
-    /// </remarks>
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    private static ValidationStage RequiredStage(string? value) =>
-        StageParser.Parse(value)
-            ?? throw new RuleDiscoveryException($"'{value}' is not a stage.");
-
-    /// <summary>
-    /// The subset an inspection command was given.
-    /// </summary>
-    /// <remarks>
-    /// Only the four options <c>WithPolicyOptions</c> declares are read,
-    /// because only those exist on these commands and asking for a name no
-    /// symbol declares throws. The stage and the target are filled with values
-    /// nothing downstream looks at: an inspection command resolves a policy and
-    /// prints it, and never executes a rule.
-    /// </remarks>
-    private static RunOptions PolicyOptionsFrom(ParseResult parse) => new()
-    {
-        Stage = ValidationStage.PreSubmit,
-        Target = StatedTargetFrom(parse),
-        Pipeline = PipelineFrom(parse),
-        NoLocal = parse.GetValue<bool>("--no-local"),
-        AllowLocal = parse.GetValue<bool>("--allow-local"),
-        SetOverrides = MultiValued(parse, "--set"),
-    };
-
     private static int Dispatch(ParseResult parse, TextWriter output, TextWriter error) =>
-        Run(parse, RealEnvironment(output, error));
+        CommandDispatcher.Run(parse, RealEnvironment(output, error));
 
     private static string BuildHelpText(RootCommand root)
     {
@@ -631,33 +283,19 @@ public static class PreflightCommandLine
     /// The flag that names which pipeline's policy a command resolves.
     /// </summary>
     /// <remarks>
-    /// <c>Docs/design.md 6.2</c>. Named <c>--pipeline</c> since ADR-027; the
-    /// value is interpolated into a filename and validated as a label by
-    /// <see cref="PolicyResolution"/> before it reaches the disk.
+    /// The name selects one layer of the policy precedence chain: descriptor
+    /// defaults, then the pipeline's own document and whatever it extends, then
+    /// the local overlay, then <c>--set</c>. It is interpolated into a filename
+    /// and so is validated as a label by <see cref="PolicyResolution"/> before
+    /// it reaches the disk — a name carrying a separator would read a file
+    /// outside the workspace.
+    ///
+    /// It was called <c>--production</c>, which named the game being made
+    /// rather than the set of rules and limits that game is checked against.
+    /// The flag selects the second.
     /// </remarks>
-    /// <summary>
-    /// The target of the run, and which halves of it the user actually said.
-    /// </summary>
-    /// <remarks>
-    /// The defaults are unchanged — <c>any</c> and <c>Development</c> are still
-    /// what a rule receives — but whether they were typed is now recorded,
-    /// because a <c>targets</c> block matching a value nobody stated would
-    /// apply one platform's thresholds to every run that forgot the flag. See
-    /// ADR-030.
-    /// </remarks>
-    private static StatedBuildTarget StatedTargetFrom(ParseResult parse)
-    {
-        var platform = parse.GetValue<string?>("--platform");
-        var configuration = parse.GetValue<string?>("--configuration");
-
-        return new StatedBuildTarget(
-            new BuildTarget(platform ?? "any", configuration ?? "Development"),
-            PlatformStated: platform is not null,
-            ConfigurationStated: configuration is not null);
-    }
-
     private static Option<string?> PipelineOption() =>
-        new("--pipeline") { Description = "Named pipeline overlay to apply." };
+        new(CommandLineNames.PipelineOption) { Description = "Named pipeline overlay to apply." };
 
     /// <summary>
     /// The former name of <see cref="PipelineOption"/>, still accepted.
@@ -668,27 +306,25 @@ public static class PreflightCommandLine
     /// failure on the day the tool is upgraded, which is a migration disguised
     /// as a rename. It is hidden from help so that the documented surface has
     /// one name for one thing, and it emits no warning: there is one line of
-    /// stdout per run whose bytes are a contract (<c>Docs/design.md 14</c>) and
-    /// one stderr that ADR-015 records CI does not read, so a deprecation
-    /// notice would either break the contract or reach nobody.
+    /// stdout per run whose bytes are fixed — a golden file holds them, and a
+    /// consumer diffing two runs is entitled to see nothing move — and one
+    /// stderr that continuous integration does not read. A deprecation notice
+    /// would therefore either break that guarantee or reach nobody, once per
+    /// run, on every machine in the fleet.
     /// </para>
     /// <para>
-    /// See ADR-027.
+    /// Passing both spellings is exit 2 naming them, even when they carry the
+    /// same value: accepting the agreeing case would make the rule depend on
+    /// the values rather than on the invocation, and somebody who had fixed
+    /// half of a CI script would be told nothing about the other half.
     /// </para>
     /// </remarks>
     private static Option<string?> DeprecatedProductionOption() =>
-        new("--production") { Description = "Deprecated alias for --pipeline.", Hidden = true };
-
-    /// <summary>
-    /// Reads whichever of the two forms was given.
-    /// </summary>
-    /// <remarks>
-    /// Safe to call only after <see cref="RefuseBothPipelineForms"/> has run,
-    /// which is why the two live next to each other: reading one form when both
-    /// were passed would silently pick a winner.
-    /// </remarks>
-    private static string? PipelineFrom(ParseResult parse) =>
-        parse.GetValue<string?>("--pipeline") ?? parse.GetValue<string?>("--production");
+        new(CommandLineNames.DeprecatedPipelineOption)
+        {
+            Description = "Deprecated alias for --pipeline.",
+            Hidden = true,
+        };
 
     /// <remarks>
     /// The same refusal, and the same reason, as <c>--no-local</c> with
@@ -726,7 +362,7 @@ public static class PreflightCommandLine
             Description = "What to file this measurement under in the history.",
         };
 
-        var child = new Argument<string[]>(MeasureCommandArgument)
+        var child = new Argument<string[]>(CommandLineNames.MeasureCommandArgument)
         {
             Description = "The command to time, after '--'.",
             Arity = ArgumentArity.ZeroOrMore,
@@ -755,15 +391,6 @@ public static class PreflightCommandLine
     }
 
     /// <summary>
-    /// <c>preflight cache clear</c>.
-    /// </summary>
-    /// <remarks>
-    /// A parent command with one subcommand rather than a flat
-    /// <c>cache-clear</c>, because the cache is the kind of thing that grows a
-    /// second verb — <c>cache stats</c> is the obvious one — and a flat name
-    /// would have to be abandoned the first time it did.
-    /// </remarks>
-    /// <summary>
     /// <c>preflight create workspace</c>.
     /// </summary>
     /// <remarks>
@@ -772,10 +399,16 @@ public static class PreflightCommandLine
     /// noun, and a flat <c>create-workspace</c> would have to be abandoned the
     /// first time it did.
     ///
-    /// No <c>--rules-path</c> and no policy options. ADR-025 puts
-    /// <c>--rules-path</c> on every command that discovers rules or resolves a
-    /// policy, and this one does neither: it writes a file and exits. See
-    /// ADR-028.
+    /// No <c>--rules-path</c> and no policy options. The flag belongs to every
+    /// command that discovers a rule or resolves a policy, and this one does
+    /// neither: it writes a file and exits. Offering the flag would promise it
+    /// changed something.
+    ///
+    /// It is also the one command in the tool that writes inside the workspace
+    /// being validated, which it does through a writer of its own that refuses
+    /// to replace an existing file. A rule never repairs what it finds; a
+    /// person typing <c>create</c> is applying the correction themselves, which
+    /// is the other half of the same rule rather than an exception to it.
     /// </remarks>
     private static Command BuildCreateCommand()
     {
@@ -822,12 +455,28 @@ public static class PreflightCommandLine
     /// </para>
     /// <para>
     /// <c>--rules-path</c> goes on exactly one of them, and the asymmetry is
-    /// ADR-025 read literally: the flag belongs to every command that discovers
-    /// rules or resolves a policy. <c>validate</c> does both — it is the command
-    /// whose whole job is to load a tree's assemblies and its policy together —
-    /// and the other five do neither. See also ADR-035.
+    /// the general rule applied literally: the flag belongs to every command
+    /// that discovers a rule or resolves a policy. <c>validate</c> does both —
+    /// it is the command whose whole job is to load a tree's assemblies and its
+    /// policy together and report every error in one pass — and the other five
+    /// do neither.
     /// </para>
     /// </remarks>
+    /// <summary>
+    /// The subcommands of <c>pipeline</c>, by name.
+    /// </summary>
+    /// <remarks>
+    /// Read off the command this file builds rather than written out a second
+    /// time, so the two cannot disagree. <see cref="CommandDispatcher"/> asks
+    /// this to decide which invocations resolve an installed package, and a
+    /// subcommand added below is in the answer without anything else being
+    /// edited.
+    /// </remarks>
+    internal static IReadOnlySet<string> PackageManagingCommands { get; } =
+        BuildPipelineCommand().Subcommands
+            .Select(subcommand => subcommand.Name)
+            .ToHashSet(StringComparer.Ordinal);
+
     private static Command BuildPipelineCommand()
     {
         // Optional, so that omitting it reaches the handler rather than the
@@ -877,7 +526,8 @@ public static class PreflightCommandLine
             new Argument<string>("source") { Description = "The tree to validate." },
         });
 
-        var command = new Command("pipeline", "Author, install and select pipeline packages.")
+        var command = new Command(
+            CommandLineNames.PipelineCommand, "Author, install and select pipeline packages.")
         {
             declare,
             use,
@@ -900,6 +550,15 @@ public static class PreflightCommandLine
         return command;
     }
 
+    /// <summary>
+    /// <c>preflight cache clear</c>.
+    /// </summary>
+    /// <remarks>
+    /// A parent command with one subcommand rather than a flat
+    /// <c>cache-clear</c>, because the cache is the kind of thing that grows a
+    /// second verb — <c>cache stats</c> is the obvious one — and a flat name
+    /// would have to be abandoned the first time it did.
+    /// </remarks>
     private static Command BuildCacheCommand()
     {
         var clear = WithRulesPath(WithPolicyOptions(new Command("clear", "Empty the incremental cache.")));
@@ -1066,7 +725,7 @@ public static class PreflightCommandLine
     /// </remarks>
     private static Command WithFormat(Command command, string[] accepted)
     {
-        var format = new Option<string?>(FormatOption)
+        var format = new Option<string?>(CommandLineNames.FormatOption)
         {
             Description = "Output format: " + string.Join(", ", accepted) + ".",
         };
@@ -1100,7 +759,7 @@ public static class PreflightCommandLine
     /// </remarks>
     private static Command WithRulesPath(Command command)
     {
-        command.Add(new Option<string[]>(RulesPathOption)
+        command.Add(new Option<string[]>(CommandLineNames.RulesPathOption)
         {
             Description = "Directory of plugin assemblies. Repeat for more than one.",
         });

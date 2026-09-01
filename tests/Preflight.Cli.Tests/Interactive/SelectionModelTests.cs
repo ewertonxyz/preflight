@@ -1,16 +1,17 @@
 namespace Preflight.Cli.Tests.Interactive;
 
 using Preflight.Cli.Interactive;
+using Preflight.Cli.Pipelines;
 
 /// <summary>
 /// Fixes what a picker is given, without a terminal anywhere near it.
 /// </summary>
 /// <remarks>
-/// The model is the whole of what is asserted about this feature. Rendering
-/// belongs to Spectre.Console and is deliberately untested — a test over it
-/// would be a test of the library — so everything that could be wrong about a
-/// menu has to be visible here: the order, the labels, which row is current and
-/// which row would produce a workable state. See ADR-035.
+/// The model carries everything asserted about this feature. Rendering belongs
+/// to Spectre.Console and is deliberately untested — asserting on the escape
+/// sequences it emits would be asserting about Spectre.Console — so everything
+/// that could be wrong about a menu has to be visible here: the order, the
+/// labels, which row is current and which row would produce a workable state.
 /// </remarks>
 public sealed class SelectionModelTests
 {

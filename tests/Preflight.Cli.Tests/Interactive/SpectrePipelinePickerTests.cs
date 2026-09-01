@@ -10,10 +10,10 @@ using Spectre.Console.Testing;
 /// </summary>
 /// <remarks>
 /// <para>
-/// ADR-035 nº16 says the selection model is tested and the rendering is not,
-/// and the line it was drawing is the right one: asserting on the escape
-/// sequences Spectre.Console emits would be asserting about Spectre.Console.
-/// What sat on the wrong side of that line was everything this type does with
+/// The selection model is tested and the rendering is not, and that line is the
+/// right one: asserting on the escape sequences Spectre.Console emits would be
+/// asserting about Spectre.Console.
+/// What sat on the wrong side of it was everything this type does with
 /// the model before handing it over — building the label list, marking the row
 /// the machine is on, and mapping the chosen label back to the value the caller
 /// asked for. None of that is the library's code, and none of it was reached by
@@ -23,10 +23,10 @@ using Spectre.Console.Testing;
 /// So the assertions here are about the answer and the rows, never about the
 /// bytes. A <see cref="TestConsole"/> in interactive mode with keys pushed into
 /// it is the smallest arrangement that runs the real prompt, and the reverse
-/// mapping is the part worth being sure about: it is a dictionary lookup keyed
-/// by a string this type built itself, so a change to how a label is composed
-/// that forgot the lookup would throw <see cref="KeyNotFoundException"/> in
-/// front of somebody choosing a version.
+/// mapping is the part that fails hardest: it is a dictionary lookup keyed by a
+/// string this type built itself, so a change to how a label is composed that
+/// forgot the lookup would throw <see cref="KeyNotFoundException"/> in front of
+/// somebody choosing a version.
 /// </para>
 /// </remarks>
 public sealed class SpectrePipelinePickerTests

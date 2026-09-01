@@ -1,6 +1,7 @@
 namespace Preflight.Cli.Reporting;
 
 using System.Text.Json;
+using Preflight.Cli.Parsing;
 using Preflight.Core.History;
 
 /// <summary>
