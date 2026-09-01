@@ -217,13 +217,8 @@ public sealed class CacheCommandTests : IDisposable
 
     private string CacheDirectory() => Path.Combine(_workspace.FullName, ".preflight", "cache");
 
-    private void Write(string relativePath, string content)
-    {
-        var path = Path.Combine(_workspace.FullName, relativePath);
-
-        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        File.WriteAllText(path, content);
-    }
+    private void Write(string relativePath, string content) =>
+        WorkspaceFiles.Write(_workspace, relativePath, content);
 
     private int Invoke(params string[] args) => Invoke(null, args);
 
@@ -231,7 +226,7 @@ public sealed class CacheCommandTests : IDisposable
         args,
         _output,
         _error,
-        parse => PreflightCommandLine.Run(
+        parse => CommandDispatcher.Run(
             parse,
             CommandEnvironments.For(_workspace, _output, _error, _clock, cache: cache)));
 }

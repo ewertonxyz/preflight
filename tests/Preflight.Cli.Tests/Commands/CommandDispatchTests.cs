@@ -1,11 +1,13 @@
 namespace Preflight.Cli.Tests.Commands;
 
-using System.Text;
 using Preflight.Cli.Commands;
+using Preflight.Cli.Pipelines;
+using Preflight.Cli.Policy;
+using Preflight.Cli.Storage;
 using Preflight.TestSupport;
 
 /// <summary>
-/// Drives every subcommand phase 10 added through the real parser and the real
+/// Drives every <c>pipeline</c> subcommand through the real parser and the real
 /// dispatch, rather than by calling its handler directly.
 /// </summary>
 /// <remarks>
@@ -77,7 +79,7 @@ public sealed class CommandDispatchTests : IDisposable
         args,
         _output,
         _error,
-        parse => PreflightCommandLine.Run(parse, Environment()));
+        parse => CommandDispatcher.Run(parse, Environment()));
 
     private CommandEnvironment Environment() => CommandEnvironments.For(
         _workspace,
@@ -91,7 +93,7 @@ public sealed class CommandDispatchTests : IDisposable
     {
         var tree = _root.CreateSubdirectory($"{name}-src");
 
-        Write(tree, PackageManifest.FileName, $$"""
+        WorkspaceFiles.Write(tree, PackageManifest.FileName, $$"""
             {
               "schemaVersion": 1,
               "name": "{{name}}",
@@ -102,7 +104,7 @@ public sealed class CommandDispatchTests : IDisposable
             }
             """);
 
-        Write(tree, $"preflight.{name}.json", """{ "schemaVersion": 1 }""");
+        WorkspaceFiles.Write(tree, $"preflight.{name}.json", """{ "schemaVersion": 1 }""");
 
         return tree;
     }
@@ -119,13 +121,6 @@ public sealed class CommandDispatchTests : IDisposable
         return package;
     }
 
-    private static void Write(DirectoryInfo directory, string relativePath, string content)
-    {
-        var path = Path.Combine(directory.FullName, relativePath);
-
-        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        File.WriteAllText(path, content, Encoding.UTF8);
-    }
 
     [Fact]
     public void CreateRule_ReachesTheHandlerWithTheIdItWasGiven()
@@ -259,9 +254,10 @@ public sealed class CommandDispatchTests : IDisposable
     }
 
     /// <remarks>
-    /// ADR-025 puts the flag on this subcommand and on no other one of
-    /// <c>pipeline</c>. Passing it here has to reach the handler rather than the
-    /// parser's "unrecognised option" path.
+    /// <c>validate</c> is the one subcommand of <c>pipeline</c> that both
+    /// discovers rules and resolves a policy, so it is the one that carries the
+    /// flag. Passing it here has to reach the handler rather than the parser's
+    /// "unrecognised option" path.
     /// </remarks>
     [Fact]
     public void PipelineValidate_WithRulesPath_ReachesTheHandler()
@@ -307,7 +303,8 @@ public sealed class CommandDispatchTests : IDisposable
     }
 
     /// <summary>
-    /// Every phase 10 subcommand, in one place, refusing what it should refuse.
+    /// Every <c>pipeline</c> subcommand, in one place, refusing what it should
+    /// refuse.
     /// </summary>
     /// <remarks>
     /// The complement of the cases above. Each of those proves an arm is reached

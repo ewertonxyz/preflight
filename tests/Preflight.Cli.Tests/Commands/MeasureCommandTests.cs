@@ -3,6 +3,7 @@ namespace Preflight.Cli.Tests.Commands;
 using System.Text;
 using System.Text.Json;
 using Preflight.Cli.Commands;
+using Preflight.Cli.Model;
 using Preflight.Core;
 using Preflight.Core.History;
 using Preflight.TestSupport;
@@ -223,7 +224,7 @@ public sealed class MeasureCommandTests : IDisposable
             args,
             _output,
             _error,
-            parse => PreflightCommandLine.Run(parse, CommandEnvironments.For(
+            parse => CommandDispatcher.Run(parse, CommandEnvironments.For(
                 _workspace,
                 _output,
                 _error,

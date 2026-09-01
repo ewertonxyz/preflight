@@ -4,6 +4,8 @@ using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Preflight.Cli.Pipelines;
+using Preflight.Cli.Storage;
 using Preflight.TestSupport;
 
 /// <summary>
@@ -13,8 +15,9 @@ using Preflight.TestSupport;
 /// Real archives rather than a substituted one, because what
 /// <c>PipelineInstaller</c> does is decide whether an archive may be trusted,
 /// and a substitute that always agreed with the manifest would leave every
-/// refusal untested. The seam exists for the cases that cannot be built here —
-/// an entry name a zip writer will not produce — not for these.
+/// refusal untested. <c>IPackageArchive</c> is injected for the cases that
+/// cannot be built here — an entry name a zip writer will not produce — not for
+/// these.
 /// </remarks>
 public static class PackageFixtures
 {

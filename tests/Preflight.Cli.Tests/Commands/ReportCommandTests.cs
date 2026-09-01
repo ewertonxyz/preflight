@@ -70,8 +70,9 @@ public sealed class ReportCommandTests : IDisposable
     }
 
     /// <remarks>
-    /// publishing percentiles over an unknown fraction of the sample is
-    /// principle 7 pointed at the instrumentation, so the count is printed.
+    /// Publishing percentiles over an unknown fraction of the sample is the
+    /// tool's own reporting claiming more than it measured, so the count of
+    /// skipped lines is printed beside the <c>n</c>.
     /// </remarks>
     [Fact]
     public void Report_OverAHistoryWithADamagedLine_SaysHowManyItSkipped()
@@ -214,7 +215,7 @@ public sealed class ReportCommandTests : IDisposable
         args,
         _output,
         _error,
-        parse => PreflightCommandLine.Run(
+        parse => CommandDispatcher.Run(
             parse,
             CommandEnvironments.For(_workspace, _output, _error, _clock)));
 }

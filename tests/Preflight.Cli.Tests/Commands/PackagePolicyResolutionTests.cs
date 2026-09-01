@@ -1,7 +1,8 @@
 namespace Preflight.Cli.Tests.Commands;
 
-using System.Text;
 using Preflight.Cli.Commands;
+using Preflight.Cli.Pipelines;
+using Preflight.Cli.Policy;
 using Preflight.TestSupport;
 
 /// <summary>
@@ -10,9 +11,9 @@ using Preflight.TestSupport;
 /// </summary>
 /// <remarks>
 /// <para>
-/// This is the half of phase 10 that changes what a run is configured by, and
-/// until now nothing exercised it: every policy test in the suite writes its
-/// files into the workspace, so the package arm of the chain — the qualified
+/// This is the half of the package feature that changes what a run is
+/// configured by, and nothing else exercises it: every other policy test writes
+/// its files into the workspace, so the package arm of the chain — the qualified
 /// provenance, the package's own <c>extends</c>, the seals it declares — was
 /// reached by no test at all. The failure that hides there is the expensive one:
 /// a package whose policy silently did not apply is a run reporting success
@@ -60,7 +61,7 @@ public sealed class PackagePolicyResolutionTests : IDisposable
         args,
         _output,
         _error,
-        parse => PreflightCommandLine.Run(parse, Environment()));
+        parse => CommandDispatcher.Run(parse, Environment()));
 
     private CommandEnvironment Environment() => CommandEnvironments.For(
         _workspace,
@@ -69,13 +70,6 @@ public sealed class PackagePolicyResolutionTests : IDisposable
         TimeProvider.System,
         installRoot: new PipelineInstallRoot(_installRoot));
 
-    private static void Write(DirectoryInfo directory, string relativePath, string content)
-    {
-        var path = Path.Combine(directory.FullName, relativePath.Replace('/', Path.DirectorySeparatorChar));
-
-        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        File.WriteAllText(path, content, Encoding.UTF8);
-    }
 
     /// <summary>
     /// Packs and installs a package carrying <paramref name="policy"/>, and
@@ -93,7 +87,7 @@ public sealed class PackagePolicyResolutionTests : IDisposable
     {
         var tree = _root.CreateSubdirectory("projecta-src");
 
-        Write(tree, PackageManifest.FileName, $$"""
+        WorkspaceFiles.Write(tree, PackageManifest.FileName, $$"""
             {
               "schemaVersion": 1,
               "name": "projecta",
@@ -104,11 +98,11 @@ public sealed class PackagePolicyResolutionTests : IDisposable
             }
             """);
 
-        Write(tree, "preflight.projecta.json", policy);
+        WorkspaceFiles.Write(tree, "preflight.projecta.json", policy);
 
         foreach (var (relative, content) in extraFiles ?? new Dictionary<string, string>())
         {
-            Write(tree, relative, content);
+            WorkspaceFiles.Write(tree, relative, content);
         }
 
         var package = Path.Combine(_root.FullName, "projecta-1.4.0.zip");
@@ -116,7 +110,7 @@ public sealed class PackagePolicyResolutionTests : IDisposable
         Invoke("pipeline", "pack", tree.FullName, "-o", package).ShouldBe(0);
         Invoke("pipeline", "install", package).ShouldBe(0);
 
-        Write(_workspace, PolicyResolution.BaseFileName, """
+        WorkspaceFiles.Write(_workspace, PolicyResolution.BaseFileName, """
             {
               "schemaVersion": 1,
               "pipeline": "projecta",
@@ -164,8 +158,9 @@ public sealed class PackagePolicyResolutionTests : IDisposable
     /// <remarks>
     /// The provenance, qualified. Without the package in front of it the reader
     /// goes looking in the checkout for a file that is not there — and two runs
-    /// of one commit against two packages print the same bytes, which is
-    /// principle nº1 failing with nothing on screen saying so. See ADR-034.
+    /// of one commit against two packages print the same bytes, so the report
+    /// stops being able to say which policy produced it, with nothing on screen
+    /// admitting that.
     /// </remarks>
     [Fact]
     public void Explain_WithAPackage_NamesTheOriginQualifiedByPackageAndVersion()
@@ -200,9 +195,11 @@ public sealed class PackagePolicyResolutionTests : IDisposable
 
     /// <remarks>
     /// The overlay is the escape hatch and it still reaches over the package —
-    /// otherwise a dev could not loosen anything on their own machine, which is
-    /// what §6.3 exists to allow. What it must not do is disappear from the
-    /// chain: a run configured by an unversioned file has to say so.
+    /// otherwise a developer could not loosen a rule on their own machine while
+    /// investigating something, which is the reason the overlay exists. What it
+    /// must not do is disappear from the chain: the file is not versioned, so a
+    /// run configured by it has to say so, or the report claims an authority it
+    /// does not have.
     /// </remarks>
     [Fact]
     public void Explain_WithAPackageAndALocalOverlay_ShowsBothInTheChain()
@@ -214,7 +211,7 @@ public sealed class PackagePolicyResolutionTests : IDisposable
             }
             """);
 
-        Write(_workspace, PolicyResolution.LocalFileName, $$"""
+        WorkspaceFiles.Write(_workspace, PolicyResolution.LocalFileName, $$"""
             {
               "schemaVersion": 1,
               "rules": { "{{LargeFile}}": { "settings": { "maxBytes": 4321 } } }
@@ -229,11 +226,12 @@ public sealed class PackagePolicyResolutionTests : IDisposable
     }
 
     /// <remarks>
-    /// The seal is what the previous phase spent an ADR on, and a package is the
-    /// first place a studio can actually put one. The message has to name the
+    /// A seal declares a path no layer below may overwrite, and a package is the
+    /// first place a studio can actually put one — it is how a baseline stops a
+    /// project loosening a rule the studio requires. The message has to name the
     /// qualified path, because the file it points at is not in the checkout and
     /// "preflight.projecta.json:4" sends the reader somewhere that does not
-    /// exist. See ADR-031.
+    /// exist.
     /// </remarks>
     [Fact]
     public void Explain_WithASealInThePackageViolatedByTheOverlay_IsTwoAndNamesTheQualifiedPath()
@@ -246,7 +244,7 @@ public sealed class PackagePolicyResolutionTests : IDisposable
             }
             """);
 
-        Write(_workspace, PolicyResolution.LocalFileName, $$"""
+        WorkspaceFiles.Write(_workspace, PolicyResolution.LocalFileName, $$"""
             {
               "schemaVersion": 1,
               "rules": { "{{LargeFile}}": { "settings": { "maxBytes": 999999 } } }
@@ -259,18 +257,22 @@ public sealed class PackagePolicyResolutionTests : IDisposable
 
         // The seal violation is reported from the declaring document's own path
         // rather than from a policy origin, which is a second door into the
-        // absolute install path ADR-034 nº7 forbids — and it was open until this
-        // test was written. The overlay's own path is a workspace path and
-        // belongs in the message; the package's does not.
+        // absolute install path that must never reach the output — and it was
+        // open until this test was written. Those strings travel into the run
+        // history and into a SARIF published on a merge request, and an install
+        // path carries the account name of whoever ran the tool. The overlay's
+        // own path is a workspace path and belongs in the message; the
+        // package's does not.
         _error.ToString().ShouldNotContain(_installRoot.FullName);
         _error.ToString().ShouldContain(PolicyResolution.LocalFileName);
     }
 
     /// <remarks>
     /// A package that vendors its baseline extends it by a relative path inside
-    /// the version directory, which is the arrangement ADR-033 nº14 chose over a
-    /// dependency between packages. That it works is worth a test; that it works
-    /// with the provenance qualified is the point.
+    /// its own version directory. Vendoring at pack time was chosen over a
+    /// dependency between packages, so that installing one package never means
+    /// resolving another. That it works is worth a test; that it works with the
+    /// provenance qualified is the point.
     /// </remarks>
     [Fact]
     public void Explain_WithAPackagePolicyExtendingAVendoredBaseline_ResolvesInsideTheVersionDirectory()
@@ -299,13 +301,30 @@ public sealed class PackagePolicyResolutionTests : IDisposable
         Output().ShouldContain("projecta@1.4.0/baseline.json");
     }
 
+    /// <summary>
+    /// An <c>extends</c> that climbs out of the version directory stops the run,
+    /// and this pins the reason it stops rather than the fact that it does.
+    /// </summary>
     /// <remarks>
-    /// An <c>extends</c> that climbs out of the version directory is the package
-    /// reaching for a file the install root does not own. Refused, and refused
-    /// before anything executes.
+    /// <para>
+    /// The refusal is "that file is not there", not "a package may not read
+    /// outside the directory it was installed into". Nothing resolves the target
+    /// against the version directory and rejects it for leaving, so a package
+    /// that climbed to a path which happens to exist would be extended from it.
+    /// The assertion below is deliberately the weaker of the two claims,
+    /// because it is the one that holds.
+    /// </para>
+    /// <para>
+    /// It also pins the message naming the entry the author wrote. A refusal
+    /// that only proved something reached stderr would stay green while the
+    /// message changed into one nobody can act on — and this message is already
+    /// carrying an absolute install path, which the qualified-provenance rule
+    /// forbids everywhere else in this file for the reason that such text ends
+    /// up in a published SARIF carrying the account name of whoever ran it.
+    /// </para>
     /// </remarks>
     [Fact]
-    public void Explain_WithAPackagePolicyExtendingOutsideTheVersionDirectory_IsTwo()
+    public void Explain_WithAPackagePolicyExtendingOutsideTheVersionDirectory_IsTwoBecauseTheTargetIsAbsent()
     {
         GivenAnInstalledPipeline("""
             {
@@ -316,7 +335,7 @@ public sealed class PackagePolicyResolutionTests : IDisposable
 
         Invoke("explain", LargeFile).ShouldBe(2);
 
-        _error.ToString().ShouldNotBeEmpty();
+        _error.ToString().ShouldContain("elsewhere.json");
     }
 
     /// <summary>
@@ -324,25 +343,31 @@ public sealed class PackagePolicyResolutionTests : IDisposable
     /// </summary>
     /// <remarks>
     /// Two sources for the entry of the chain, and nothing saying which wins.
-    /// The refusal is the whole of §4.3.1 line 2, and it is the one row of that
-    /// matrix a real workspace reaches by accident — by keeping the file the
-    /// project used before the pipeline was packaged.
+    /// Picking either one silently would configure the run from a file the
+    /// reader is not looking at, so both are named and neither is chosen. This
+    /// is the row a real workspace reaches by accident, by keeping the file the
+    /// project used before the pipeline was packaged — which is why the message
+    /// has to name both files and the key, rather than say that something is
+    /// wrong.
     /// </remarks>
     [Fact]
     public void Run_WithBothAPackageRequirementAndAWorkspacePolicyFile_IsTwo()
     {
         GivenAnInstalledPipeline("""{ "schemaVersion": 1 }""");
 
-        Write(_workspace, "preflight.projecta.json", """{ "schemaVersion": 1 }""");
+        WorkspaceFiles.Write(_workspace, "preflight.projecta.json", """{ "schemaVersion": 1 }""");
 
         Invoke("run", "--stage", "workspace").ShouldBe(2);
 
-        _error.ToString().ShouldNotBeEmpty();
+        _error.ToString().ShouldContain("preflight.projecta.json");
+        _error.ToString().ShouldContain(PipelineRequirement.KeyName);
+        _error.ToString().ShouldContain(PolicyResolution.BaseFileName);
     }
 
     /// <remarks>
-    /// The header is the surface ADR-034 exists for. `projecta` alone would make
-    /// two runs against two packages indistinguishable; `projecta@1.4.0` is what
+    /// The header is the surface the qualification exists for. `projecta` alone
+    /// would make two runs against two packages indistinguishable;
+    /// `projecta@1.4.0` is what
     /// makes them differ, and the reason in parentheses is what makes the
     /// difference explainable.
     /// </remarks>
@@ -378,7 +403,7 @@ public sealed class PackagePolicyResolutionTests : IDisposable
     {
         GivenAnInstalledPipeline("""{ "schemaVersion": 1 }""");
 
-        Write(_workspace, PolicyResolution.BaseFileName, """
+        WorkspaceFiles.Write(_workspace, PolicyResolution.BaseFileName, """
             { "schemaVersion": 1, "pipeline": "projecta" }
             """);
 
@@ -443,7 +468,9 @@ public sealed class PackagePolicyResolutionTests : IDisposable
     /// debugging their own rule against the studio's package actually types. The
     /// two probe paths are combined into one resolution rather than two, so a
     /// rule id colliding across them is the ordinary collision with nobody
-    /// winning — the load-order rule ADR-025 refuses.
+    /// winning. Letting one source take precedence would leave the author of the
+    /// losing rule looking at a rule that is on disk, enabled by the policy, and
+    /// never runs.
     /// </remarks>
     [Fact]
     public void Rules_WithAPackageAndARulesPath_CombinesBothIntoOneProbe()

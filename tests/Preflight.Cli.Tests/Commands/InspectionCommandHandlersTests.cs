@@ -21,7 +21,6 @@ using Preflight.Core.Policy;
 /// answer on the only screen that exists to give the right one. This test is
 /// what pays that cost: it enumerates the hierarchy by reflection, so the
 /// variant after <c>FromTarget</c> fails here rather than lying in production.
-/// See ADR-030.
 /// </para>
 /// </remarks>
 public sealed class InspectionCommandHandlersTests
