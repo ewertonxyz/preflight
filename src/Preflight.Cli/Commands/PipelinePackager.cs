@@ -3,10 +3,18 @@ namespace Preflight.Cli.Commands;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using Preflight.Cli.Model;
-using Preflight.Cli.Pipelines;
-using Preflight.Cli.Storage;
 using Preflight.Core;
+
+/// <summary>
+/// Raised when a source tree cannot be packed, or the output cannot be written.
+/// </summary>
+public sealed class PipelinePackException : ConfigurationLoadException
+{
+    public PipelinePackException(string message)
+        : base(message)
+    {
+    }
+}
 
 /// <summary>
 /// <c>preflight pipeline pack</c>.
@@ -19,10 +27,8 @@ using Preflight.Core;
 /// command fills in the half nobody can write by hand: the digest of every file
 /// it ships. The manifest that comes out is the one <c>pipeline install</c>
 /// reads, and the two are the only ends of the channel this tool has. What
-/// moves the file between them is the toolchain a studio already operates. The
-/// middle is absent on purpose rather than forgotten: a distribution server
-/// would be a second system to run, secure and keep available, in order to move
-/// a file that studio tooling already moves.
+/// moves the file between them is the toolchain a studio already operates; see
+/// ADR-033 for why the middle is deliberately absent rather than forgotten.
 /// </para>
 /// <para>
 /// Every refusal here is exit 2, and each one exists because the alternative
@@ -238,8 +244,7 @@ public static class PipelinePackager
     /// <para>
     /// Public and taking its input as a list, for the reason
     /// <see cref="PipelineInstaller.Collectable"/> gives about the retention
-    /// sweep: it decides a refusal, and a refusal that fires on the wrong tree
-    /// stops an author who did nothing wrong.
+    /// sweep: it decides a refusal, and a refusal is worth being sure about.
     /// Here there is a second reason that is not a preference. The condition
     /// cannot be reached through a real directory on Windows — NTFS refuses two
     /// names differing only in case, and refuses a junction that would produce

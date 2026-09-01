@@ -3,11 +3,6 @@ namespace Preflight.Cli.Tests.Commands;
 using NSubstitute;
 using Preflight.Cli.Commands;
 using Preflight.Cli.Interactive;
-using Preflight.Cli.Model;
-using Preflight.Cli.Pipelines;
-using Preflight.Cli.Policy;
-using Preflight.Cli.Services;
-using Preflight.Cli.Storage;
 
 /// <summary>
 /// Fixes what <c>pipeline declare</c> and <c>pipeline use</c> do when the
@@ -18,7 +13,7 @@ using Preflight.Cli.Storage;
 /// the two paths must produce the same result. That is the assertion that keeps
 /// the interactive path from becoming a second, differently-behaved command —
 /// and it is what makes CI, which can never prompt, a first-class caller rather
-/// than a degraded one.
+/// than a degraded one. See ADR-035.
 /// </remarks>
 public sealed class PipelinePickedCommandTests : IDisposable
 {
@@ -131,9 +126,9 @@ public sealed class PipelinePickedCommandTests : IDisposable
 
     /// <remarks>
     /// The pipeline comes from the checkout and the picker chooses only the
-    /// version. Letting it choose the pipeline too would move that answer onto
-    /// the machine, and a developer and CI would then validate against different
-    /// rules with nothing in the header saying so.
+    /// version. Letting it choose the pipeline would undo ADR-029 and let a
+    /// developer and CI validate against different rules with nothing in the
+    /// header saying so.
     /// </remarks>
     [Fact]
     public async Task UseAsync_WithoutAnArgument_OffersTheCheckoutsPipelineVersions()

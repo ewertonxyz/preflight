@@ -8,9 +8,10 @@ using System.Reflection;
 /// <remarks>
 /// <para>
 /// <c>Preflight.Core</c> does not depend on <c>Preflight.Cli</c> and knows
-/// nothing about output formatting. What that buys is a second deployment: if
-/// invocation volume ever made a process per validation untenable, Core could be
-/// hosted as a library inside another process without a rewrite.
+/// nothing about output formatting. That is not tidiness. It is the reason that,
+/// if invocation
+/// volume ever made a process-per-validation untenable, Core could be hosted as a
+/// library inside another process without a rewrite.
 /// </para>
 /// <para>
 /// The moment Core reaches back into the CLI — for a console width, a colour
@@ -108,10 +109,7 @@ public sealed class HostDependencyTests
 /// <para>
 /// No existing guard sees this. The architecture check above filters by the
 /// <c>Preflight.</c> prefix and would not notice a third-party package arriving
-/// anywhere at all. Confining the library to one namespace and asserting it here
-/// was the condition on taking the dependency at all — the alternative on the
-/// table was writing the picker by hand, and a terminal library that had spread
-/// past the picker would be the thing that made that trade a bad one.
+/// anywhere at all. See ADR-035.
 /// </para>
 /// </remarks>
 public sealed class InteractiveBoundaryTests

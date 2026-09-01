@@ -209,7 +209,7 @@ public sealed class PluginRunTests : IDisposable
         args,
         _output,
         _error,
-        parse => CommandDispatcher.Run(parse, CommandEnvironments.For(
+        parse => PreflightCommandLine.Run(parse, CommandEnvironments.For(
             _workspace,
             _output,
             _error,

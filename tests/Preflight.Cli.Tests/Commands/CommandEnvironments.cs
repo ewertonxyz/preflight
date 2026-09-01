@@ -5,10 +5,6 @@ using NSubstitute;
 using Preflight.Abstractions.Rules;
 using Preflight.Cli.Commands;
 using Preflight.Cli.Interactive;
-using Preflight.Cli.Pipelines;
-using Preflight.Cli.Reporting;
-using Preflight.Cli.Services;
-using Preflight.Cli.Storage;
 using Preflight.Core;
 using Preflight.Core.Caching;
 using Preflight.Core.History;
@@ -88,8 +84,8 @@ public static class CommandEnvironments
         // A root of its own, and never the machine's. Without this every command
         // test would resolve against the real %LOCALAPPDATA%\Preflight, and a
         // developer who had installed a pipeline would get different results
-        // from one who had not — the dependency on the machine that injecting
-        // the root exists to remove, reintroduced through its default.
+        // from one who had not — the dependency on the machine that the seam
+        // exists to remove, reintroduced through its default.
         var root = installRoot ?? new PipelineInstallRoot(EmptyInstallRoot.Value);
         var store = machineStateStore ?? new MachineStateStore();
 
@@ -164,9 +160,8 @@ public static class CommandEnvironments
 /// It throws rather than returning a plausible answer. The real
 /// <c>SpectrePipelinePicker</c> would try to read a terminal that is not there,
 /// and a substitute returning the first choice would let a test pass through an
-/// interactive path it never meant to exercise — a selection nobody made,
-/// reported as a pass, which is exactly what the gate in front of the picker
-/// exists to prevent.
+/// interactive path it never meant to exercise — which is the same false green
+/// the gate in front of it exists to prevent.
 /// </remarks>
 public sealed class RefusingPicker : IPipelinePicker
 {

@@ -2,7 +2,6 @@ namespace Preflight.Cli.Tests.Plugins;
 
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
-using Preflight.Cli.Model;
 using Preflight.Core;
 using Preflight.Core.Plugins;
 using Preflight.TestSupport;
@@ -105,10 +104,7 @@ public sealed class PluginLoadFailureTests
     /// <remarks>
     /// The salvage that looks reasonable and is not: plugin loading refuses a
     /// partial plugin, because a rule set that is silently a subset of what the
-    /// policy declared finishes the run and reports success having checked less
-    /// than the policy asked for. The second error is worse than the first —
-    /// the policy keys for that plugin would then be reported as unknown rule
-    /// ids, about rules the author wrote and can see on disk.
+    /// policy declared is the false green of principle 7.
     /// </remarks>
     [Fact]
     public void Load_WithAForeignContract_ContributesNoRuleFromThatAssembly() =>

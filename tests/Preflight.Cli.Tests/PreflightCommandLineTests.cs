@@ -1,8 +1,6 @@
 namespace Preflight.Cli.Tests;
 
 using Preflight.Abstractions.Model;
-using Preflight.Cli.Model;
-using Preflight.Cli.Parsing;
 using Preflight.Core;
 
 /// <summary>
@@ -202,11 +200,10 @@ public sealed class PreflightCommandLineTests
     /// A <c>--rules-path</c> that is not there is exit 2, naming it.
     /// </summary>
     /// <remarks>
-    /// The sharpest case for refusing rather than guessing. Accepting the path
-    /// and sweeping nothing would finish a run without the rules the pipeline
-    /// declared and report success — the worst outcome this tool has, reached by
-    /// being helpful. An absent implicit <c>rules/</c> directory is a different
-    /// fact and is not an error: a machine with no plugins installed is ordinary.
+    /// The sharpest case for refusing rather than guessing. Accepting the
+    /// path and finding nothing would finish a run without the rules the
+    /// production declared and report success — the false green of principle 7,
+    /// reached by being helpful.
     /// </remarks>
     [Fact]
     public void Execute_WithANonexistentRulesPath_IsTwoAndNamesThePath()
@@ -232,9 +229,9 @@ public sealed class PreflightCommandLineTests
     [InlineData("report")]
     [InlineData("cache", "clear")]
 
-    // The flag belongs to every command that discovers rules or resolves a
-    // policy, and 'pipeline validate' is the one subcommand of 'pipeline' that
-    // does both.
+    // ADR-025 read literally: the flag belongs to every command that discovers
+    // rules or resolves a policy, and 'pipeline validate' is the one subcommand
+    // of 'pipeline' that does both.
     [InlineData("pipeline", "validate")]
     public void Execute_ForEveryCommand_RulesPathIsARecognisedOption(string command, string? subcommand = null)
     {
@@ -329,7 +326,7 @@ public sealed class PreflightCommandLineTests
     /// target. It stopped being harmless the moment one could: without the
     /// flags, <c>explain</c> would print a policy no run uses — the exact thing
     /// the note on <c>WithPolicyOptions</c> says those options exist to
-    /// prevent. The matrix guards the sixth command somebody adds.
+    /// prevent. The matrix guards the sixth command somebody adds. See ADR-030.
     /// </remarks>
     [Theory]
     [InlineData("--platform")]
@@ -407,10 +404,10 @@ public sealed class PreflightCommandLineTests
 
     /// <remarks>
     /// The other five manage or produce a package and neither discover a rule
-    /// nor resolve a policy, so the flag would mean nothing on them. Asserted
-    /// from this side too, because a matrix that only ever checks presence would
-    /// stay green while the flag spread to every command it happened to be
-    /// convenient on.
+    /// nor resolve a policy, so ADR-025 denies them the flag. Asserted from this
+    /// side too, because a matrix that only ever checks presence would stay
+    /// green while the flag spread to every command that happened to be
+    /// convenient.
     /// </remarks>
     [Theory]
     [InlineData("pipeline|declare|projecta")]

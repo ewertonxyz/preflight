@@ -393,32 +393,10 @@ The badge at the top is the number Codecov computes from those same four reports
 
 ```text
 src/
-  Preflight.Abstractions   The plugin contract. BCL only.
-    Rules/                 What a rule author writes, and what the engine hands back: IValidationRule, RuleContext, RuleOutcome.
-    Services/              What the engine implements for a rule: file system, process runner, change source, logger policy reader.
-    Model/                 Pure data the two exchange: the four enums, Finding, ChangedFile, BuildTarget.
+  Preflight.Abstractions   The plugin contract — Rules/, Services/, Model/. BCL only.
   Preflight.Core           Graph, execution, policy, history, cache, plugin loading.
-    Policy/                The precedence chain, targets, seals, validation.
-    History/               The NDJSON record and the report built from it.
-    Execution/             Discovery, ordering, the executor, the run verdict.
-    Plugins/               Load contexts, contract compatibility, load errors.
-    Caching/               The incremental cache and its key.
-    Graph/                 The dependency graph and the execution set.
-    Changes/               The git change source.
-  Preflight.Rules          The six built-in rules, grouped by the stage they run in. Consumes the contract like any plugin.
-    Workspace/             toolchain and dependencies, and the manifest they read.
-    PreSubmit/             forbidden-paths and large-file, over the changed set.
-    Build/                 configuration and compile-probe.
+  Preflight.Rules          The six built-in rules.
   Preflight.Cli            Argument parsing, reporters, exit codes, packaging.
-    Services/              The contracts the host implements.
-    Storage/               Everything that touches disk, an archive or the environment.
-    Model/                 Data the whole CLI shares, and the exit-code table.
-    Parsing/               The three argument grammars: --stage, --since, --set.
-    Policy/                The precedence chain and the local overlay decision.
-    Pipelines/             The package domain, its data and its decisions.
-    Commands/              One handler per command.
-    Reporting/             Console, JSON, SARIF.
-    Interactive/           The only place that reaches for a terminal library.
 tests/                     Core, Rules, Cli, Specs (Gherkin), TestSupport.
 samples/                   A worked plugin: one rule, one project reference.
 fixtures/                  Workspaces, good and broken, the tests run against.

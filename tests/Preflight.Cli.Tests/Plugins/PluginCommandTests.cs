@@ -264,7 +264,7 @@ public sealed class PluginCommandTests : IDisposable
         args,
         _output,
         _error,
-        parse => CommandDispatcher.Run(parse, Injected()));
+        parse => PreflightCommandLine.Run(parse, Injected()));
 
     private CommandEnvironment Injected() => CommandEnvironments.For(
         _workspace,

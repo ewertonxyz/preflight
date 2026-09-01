@@ -2,10 +2,6 @@ namespace Preflight.Cli.Tests.Commands;
 
 using NSubstitute;
 using Preflight.Cli.Commands;
-using Preflight.Cli.Model;
-using Preflight.Cli.Pipelines;
-using Preflight.Cli.Services;
-using Preflight.Cli.Storage;
 using Preflight.Core.Policy;
 
 /// <summary>
@@ -16,9 +12,7 @@ using Preflight.Core.Policy;
 /// existing file, and <c>use</c>, which overwrites every time. They are two
 /// commands because they write to two different places for two different
 /// audiences, and the opposite semantics are asserted here so that a later
-/// harmonisation breaks. Merging them into one command with two modes was
-/// refused for a concrete reason: a developer would open it to change their own
-/// machine's version and leave with a committable change for the whole team.
+/// harmonisation breaks. See ADR-035.
 /// </remarks>
 public sealed class PipelineCommandTests : IDisposable
 {

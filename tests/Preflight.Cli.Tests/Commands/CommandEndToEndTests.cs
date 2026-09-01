@@ -5,8 +5,6 @@ using NSubstitute;
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
 using Preflight.Cli.Commands;
-using Preflight.Cli.Model;
-using Preflight.Cli.Services;
 using Preflight.Core;
 using Preflight.Core.History;
 using Preflight.Core.Policy;
@@ -48,7 +46,7 @@ public sealed class CommandEndToEndTests : IDisposable
         args,
         _output,
         _error,
-        parse => CommandDispatcher.Run(parse, Injected()));
+        parse => PreflightCommandLine.Run(parse, Injected()));
 
     /// <summary>
     /// The real machine, with everything a test needs to see replaced.
@@ -83,8 +81,13 @@ public sealed class CommandEndToEndTests : IDisposable
         return environment;
     }
 
-    private void Write(string relativePath, string content) =>
-        WorkspaceFiles.Write(_workspace, relativePath, content);
+    private void Write(string relativePath, string content)
+    {
+        var path = Path.Combine(_workspace.FullName, relativePath);
+
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.WriteAllText(path, content);
+    }
 
     /// <summary>
     /// A workspace every rule is satisfied by.
@@ -152,7 +155,7 @@ public sealed class CommandEndToEndTests : IDisposable
             ["run", "--stage", "workspace"],
             _output,
             _error,
-            parse => CommandDispatcher.Run(parse, environment))
+            parse => PreflightCommandLine.Run(parse, environment))
             .ShouldBe(2);
 
         _error.ToString().ShouldContain("No rule has stage 'workspace'");
@@ -275,10 +278,9 @@ public sealed class CommandEndToEndTests : IDisposable
     }
 
     /// <remarks>
-    /// A platform no block mentions is the common case, not a mistake. This tool
-    /// refuses what it does not understand, and this is understood perfectly:
-    /// there is nothing to apply. Treating it as an error would make every
-    /// policy that omits a platform invalid.
+    /// A platform no block mentions is the common case, not a mistake. ADR-015
+    /// is about refusing what the tool does not understand, and this is
+    /// understood perfectly: there is nothing to apply.
     /// </remarks>
     [Fact]
     public void Explain_WithAPlatformNoTargetBlockMentions_SaysNothingAboutTargets()
@@ -307,7 +309,7 @@ public sealed class CommandEndToEndTests : IDisposable
     /// the file this one is refusing to replace. The real writer, not a
     /// substitute — what the handler does with a fake is asserted in
     /// <c>CreateCommandTests</c>, and what is left untested by that is exactly
-    /// whether the two halves agree about the path.
+    /// whether the two halves agree about the path. See ADR-028.
     /// </remarks>
     [Fact]
     public void CreateWorkspace_WritesTheManifestOnceAndThenRefuses()
@@ -330,12 +332,10 @@ public sealed class CommandEndToEndTests : IDisposable
     /// </summary>
     /// <remarks>
     /// The lacuna this command exists to close: before it, a project that had
-    /// never seen the tool got <c>Blocked</c> on its first run: the toolchain
-    /// rule fails on a missing manifest rather than reporting <c>n/a</c>,
-    /// because <c>n/a</c> there would leave the rule permanently green against a
-    /// misspelled manifest path. A skeleton declaring no tools is a different
-    /// fact — somebody said in writing there is nothing to check — and both
-    /// workspace rules answer <c>n/a</c>.
+    /// never seen the tool got <c>Blocked</c> on its first run, because the
+    /// toolchain rule fails on a missing manifest by design. A skeleton
+    /// declaring no tools is a different fact — somebody said in writing there
+    /// is nothing to check — and both workspace rules answer <c>n/a</c>.
     /// </remarks>
     [Fact]
     public void CreateWorkspace_ThenRunWorkspace_IsNotApplicableRatherThanBlocked()
@@ -355,10 +355,8 @@ public sealed class CommandEndToEndTests : IDisposable
     /// The alias is only worth keeping if it means the same thing, and the only
     /// way to show that is to make it do the same work: the same overlay, over
     /// the same base, with the same result. Asserting that the flag merely
-    /// parses would pass just as well against an option nothing reads. The old
-    /// spelling is kept and hidden from the help rather than removed, because
-    /// removing it turns every existing CI file into a parse failure on the day
-    /// of the upgrade — a forced migration wearing a rename's clothes.
+    /// parses would pass just as well against an option nothing reads.
+    /// See ADR-027.
     /// </remarks>
     [Fact]
     public void Run_WithTheDeprecatedProductionFlag_ResolvesTheSameOverlayAsPipeline()
@@ -400,8 +398,8 @@ public sealed class CommandEndToEndTests : IDisposable
 
     /// <remarks>
     /// Falling back to the base would run a weaker set of checks than the
-    /// pipeline asked for and call it a success, produced here by a typo in a CI
-    /// argument — which is the cheapest way there is to produce it.
+    /// pipeline asked for and call it a success — the false green of
+    /// principle 7, produced by a typo in a CI argument.
     /// </remarks>
     [Fact]
     public void Run_WithAPipelineThatHasNoFile_IsTwo()
@@ -507,10 +505,9 @@ public sealed class CommandEndToEndTests : IDisposable
     /// <para>
     /// The clock is frozen rather than injected as the system one, because the
     /// per-rule durations of the console report are the only thing that varies
-    /// between two identical console runs. Two runs of one workspace are
-    /// promised to be byte-identical apart from the durations and the run id,
-    /// and the injected <see cref="TimeProvider"/> is what makes the rest of
-    /// that assertable.
+    /// between two identical console runs — the determinism guarantee says
+    /// exactly that, and freezing the clock is the seam it says exists for
+    /// this.
     /// </para>
     /// </remarks>
     [Fact]
@@ -576,7 +573,7 @@ public sealed class CommandEndToEndTests : IDisposable
     /// <remarks>
     /// A frozen clock, so that every duration is nought and the start time does
     /// not move. The byte-identical guarantee is qualified for exactly the
-    /// durations and the run id, and the injected <c>TimeProvider</c> is what
+    /// durations and the run id, and names the <c>TimeProvider</c> seam as what
     /// makes the rest of it assertable.
     /// </remarks>
     private int OnAFrozenClock(params string[] args)
@@ -588,7 +585,7 @@ public sealed class CommandEndToEndTests : IDisposable
             args,
             _output,
             _error,
-            parse => CommandDispatcher.Run(
+            parse => PreflightCommandLine.Run(
                 parse,
                 CommandEnvironments.For(_workspace, _output, _error, clock)));
     }
@@ -883,7 +880,7 @@ public sealed class CommandEndToEndTests : IDisposable
             ["explain", documented.Descriptor.Id.Value],
             _output,
             _error,
-            parse => CommandDispatcher.Run(parse, environment))
+            parse => PreflightCommandLine.Run(parse, environment))
             .ShouldBe(0);
 
         _output.ToString().ShouldContain("https://wiki.invalid/rules/sample");
@@ -1052,7 +1049,7 @@ public sealed class CommandEndToEndTests : IDisposable
             ["explain", "core.presubmit.large-file"],
             _output,
             _error,
-            parse => CommandDispatcher.Run(parse, command))
+            parse => PreflightCommandLine.Run(parse, command))
             .ShouldBe(0);
 
         _output.ToString().ShouldContain("CI detected: TEAMCITY_VERSION");
@@ -1166,7 +1163,7 @@ public sealed class CommandEndToEndTests : IDisposable
 
         var environment = Injected();
 
-        Should.Throw<RuleDiscoveryException>(() => CommandDispatcher.Run(parse, environment))
+        Should.Throw<RuleDiscoveryException>(() => PreflightCommandLine.Run(parse, environment))
             .Message.ShouldContain("nonsense");
     }
 

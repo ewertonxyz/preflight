@@ -1,8 +1,6 @@
 namespace Preflight.Cli.Tests.Commands;
 
 using Preflight.Cli.Commands;
-using Preflight.Cli.Pipelines;
-using Preflight.Cli.Storage;
 
 /// <summary>
 /// Fixes what <c>preflight pipeline install</c> accepts, what it refuses, and
@@ -10,11 +8,9 @@ using Preflight.Cli.Storage;
 /// </summary>
 /// <remarks>
 /// Against real archives and a real install root of its own. The two assertions
-/// worth reading twice are the one that proves the pin did <em>not</em> move —
-/// installing a version is not choosing it, and a machine that silently switched
-/// on install would validate against something nobody selected — and the
-/// retention boundary, because deleting is the only thing here that cannot be
-/// undone.
+/// worth reading twice are the one that proves the pin did <em>not</em> move,
+/// and the retention boundary — deleting is the only thing here that cannot be
+/// undone. See ADR-033.
 /// </remarks>
 public sealed class PipelineInstallerTests : IDisposable
 {

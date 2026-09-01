@@ -7,11 +7,10 @@ using Spectre.Console;
 /// </summary>
 /// <remarks>
 /// <para>
-/// This project's entire use of Spectre.Console, and it lives here rather than
-/// anywhere near <c>Reporting/</c>. Two systems deciding the same ANSI bytes is
-/// how a golden file stops being the truth — the snapshot suite holds the
-/// report's exact output and cannot arbitrate between two writers — and an
-/// architecture test holds that boundary.
+/// The whole of this project's use of Spectre.Console, and it lives here rather
+/// than anywhere near <c>Reporting/</c>. Two systems deciding the same ANSI
+/// bytes is how a golden file stops being the truth, and an architecture test
+/// holds that boundary. See ADR-035.
 /// </para>
 /// <para>
 /// Nothing in here is unit tested, and that is the decision rather than the

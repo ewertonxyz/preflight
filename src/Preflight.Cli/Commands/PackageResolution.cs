@@ -1,8 +1,5 @@
 namespace Preflight.Cli.Commands;
 
-using Preflight.Cli.Pipelines;
-using Preflight.Cli.Policy;
-
 /// <summary>
 /// Resolves the installed package for one invocation, once.
 /// </summary>
@@ -17,10 +14,8 @@ using Preflight.Cli.Policy;
 /// </para>
 /// <para>
 /// So <c>graph</c> does reach the install root, and still takes no policy
-/// options. Those are two different questions. It draws a graph derived from
-/// the rule descriptors rather than from any policy, so a flag that selected a
-/// policy would promise it changed the picture; but the package contributes
-/// rules, and a graph missing them is not the diffable picture of a run.
+/// options. Those are two different questions and only the second is what
+/// <c>Docs/design.md 13</c> denies it. See the phase 10 plan, section 5.0.1.
 /// </para>
 /// </remarks>
 public static class PackageResolution
@@ -29,28 +24,24 @@ public static class PackageResolution
     /// The package this invocation uses, or <see langword="null"/> when none
     /// takes part.
     /// </summary>
-    /// <param name="environment">The machine, the workspace and the selection.</param>
+    /// <param name="environment">The machine and the workspace.</param>
+    /// <param name="explicitPipeline">The <c>--pipeline</c> value, if any.</param>
     /// <param name="cancellationToken">Cancellation.</param>
     public static InstalledPipeline? For(
-        CommandEnvironment environment, CancellationToken cancellationToken)
+        CommandEnvironment environment, string? explicitPipeline, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(environment);
 
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var selection = environment.Selection;
+        var selection = PipelineSelector.Select(
+            environment.WorkspaceRoot, environment.FileSystem, explicitPipeline, cancellationToken);
 
         if (selection.Pipeline is not { } name)
         {
             return null;
         }
 
-        // True whatever the file says, because a pipeline is in play: the flag
-        // names one, or the checkout does. The range still bounds it either way,
-        // and refusing here because the base file happens not to repeat the name
-        // would refuse a run the flag fully specified.
         var requirement = PipelineSelector.RequirementOf(
-            environment.Checkout, pipelineDeclared: true);
+            environment.WorkspaceRoot, environment.FileSystem, pipelineDeclared: true);
 
         var workspacePolicy = Path.Combine(
             environment.WorkspaceRoot.FullName, PolicyResolution.PipelineFileName(name));

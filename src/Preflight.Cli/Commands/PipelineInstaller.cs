@@ -1,10 +1,6 @@
 namespace Preflight.Cli.Commands;
 
 using System.Security.Cryptography;
-using Preflight.Cli.Model;
-using Preflight.Cli.Pipelines;
-using Preflight.Cli.Services;
-using Preflight.Cli.Storage;
 using Preflight.Core.Plugins;
 
 /// <summary>
@@ -28,8 +24,7 @@ using Preflight.Core.Plugins;
 /// <para>
 /// This command never writes a pin. If it did, every delivery through a studio's
 /// toolchain would move every machine's pin together, and the rollback the
-/// retained versions exist for would stop existing. Pinning is the machine's
-/// own decision, and installing is not making it.
+/// retained versions exist for would stop existing. See ADR-032 and ADR-033.
 /// </para>
 /// </remarks>
 public static class PipelineInstaller

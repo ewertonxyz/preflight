@@ -1,8 +1,7 @@
 namespace Preflight.Cli.Tests.Commands;
 
+using System.Text;
 using Preflight.Cli.Commands;
-using Preflight.Cli.Pipelines;
-using Preflight.Cli.Storage;
 using Preflight.TestSupport;
 
 /// <summary>
@@ -15,9 +14,7 @@ using Preflight.TestSupport;
 /// package is worth nothing unless the same tree produces the same archive on
 /// somebody else's machine, and the ways that quietly stops being true —
 /// enumeration order, file timestamps, the unix mode .NET writes into a zip's
-/// external attributes — are all invisible in a diff. So entries are ordered
-/// ordinally, timestamps are fixed at the zip epoch, and external attributes are
-/// zeroed.
+/// external attributes — are all invisible in a diff. See ADR-033.
 /// </remarks>
 public sealed class PipelinePackagerTests : IDisposable
 {
@@ -50,7 +47,7 @@ public sealed class PipelinePackagerTests : IDisposable
     {
         var directory = _root.CreateSubdirectory(name);
 
-        WorkspaceFiles.Write(directory, PackageManifest.FileName, $$"""
+        Write(directory, PackageManifest.FileName, $$"""
             {
               "schemaVersion": 1,
               "name": "{{name}}",
@@ -63,12 +60,19 @@ public sealed class PipelinePackagerTests : IDisposable
 
         foreach (var file in files)
         {
-            WorkspaceFiles.Write(directory, file, $"content of {file}");
+            Write(directory, file, $"content of {file}");
         }
 
         return directory;
     }
 
+    private static void Write(DirectoryInfo directory, string relativePath, string content)
+    {
+        var path = Path.Combine(directory.FullName, relativePath.Replace('/', Path.DirectorySeparatorChar));
+
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.WriteAllText(path, content, Encoding.UTF8);
+    }
 
     private Task<int> Pack(DirectoryInfo tree, string output) =>
         PipelinePackager.PackAsync(
@@ -276,7 +280,7 @@ public sealed class PipelinePackagerTests : IDisposable
     {
         var tree = _root.CreateSubdirectory("no-manifest");
 
-        WorkspaceFiles.Write(tree, "preflight.projecta.json", """{ "schemaVersion": 1 }""");
+        Write(tree, "preflight.projecta.json", """{ "schemaVersion": 1 }""");
 
         (await Should.ThrowAsync<PackageManifestException>(() => Pack(tree, Output("none.zip"))))
             .Message.ShouldContain(PackageManifest.FileName);
@@ -287,7 +291,7 @@ public sealed class PipelinePackagerTests : IDisposable
     {
         var tree = _root.CreateSubdirectory("no-policy");
 
-        WorkspaceFiles.Write(tree, PackageManifest.FileName, $$"""
+        Write(tree, PackageManifest.FileName, $$"""
             {
               "schemaVersion": 1,
               "name": "projecta",
@@ -297,7 +301,7 @@ public sealed class PipelinePackagerTests : IDisposable
               "abstractionsMinimumVersion": "{{ContractVersion.Current}}"
             }
             """);
-        WorkspaceFiles.Write(tree, "rules/acme.dll", "not the policy");
+        Write(tree, "rules/acme.dll", "not the policy");
 
         (await Should.ThrowAsync<PipelinePackException>(() => Pack(tree, Output("no-policy.zip"))))
             .Message.ShouldContain("preflight.projecta.json");

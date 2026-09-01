@@ -1,7 +1,5 @@
 namespace Preflight.Cli.Commands;
 
-using Preflight.Cli.Model;
-using Preflight.Cli.Policy;
 using Preflight.Core.Caching;
 
 /// <summary>
@@ -30,7 +28,6 @@ public static class CacheCommandHandler
             environment.Environment,
             [.. environment.Rules.Select(rule => rule.Descriptor)],
             options,
-            environment.Selection,
             cancellationToken,
             environment.ResolvedPackage);
 

@@ -1,12 +1,26 @@
 namespace Preflight.Cli.Commands;
 
 using Preflight.Abstractions.Rules;
-using Preflight.Cli.Model;
-using Preflight.Cli.Pipelines;
-using Preflight.Cli.Storage;
 using Preflight.Core;
 using Preflight.Core.Plugins;
 using Preflight.Core.Policy;
+
+/// <summary>
+/// Raised when a pipeline source tree does not hold together.
+/// </summary>
+/// <remarks>
+/// Carries every problem, not the first one. A configuration error, so it exits
+/// 2 through the one mapping that decides exit codes: a tree that does not hold
+/// together is the author's file, not a defect in this tool.
+/// </remarks>
+public sealed class PipelineValidationException : ConfigurationLoadException
+{
+    public PipelineValidationException(IReadOnlyList<string> problems)
+        : base(string.Join(Environment.NewLine, problems)) => Problems = problems;
+
+    /// <summary>Everything wrong with the tree, found in one pass.</summary>
+    public IReadOnlyList<string> Problems { get; }
+}
 
 /// <summary>
 /// <c>preflight pipeline validate</c>.
@@ -22,9 +36,9 @@ using Preflight.Core.Policy;
 /// </para>
 /// <para>
 /// Accumulation is the whole feature, and it is the promise policy loading
-/// already makes one layer down: every error across every document, together,
-/// because a tree with four problems should take one edit to fix rather than
-/// four runs to discover.
+/// already makes one layer down (<c>Docs/design.md 6.1</c>): every error across
+/// every document, together, because a tree with four problems should take one
+/// edit to fix rather than four runs to discover.
 /// </para>
 /// <para>
 /// One consequence worth naming rather than hiding: when an assembly fails to
@@ -61,8 +75,7 @@ public static class PipelineValidator
                 [$"There is no directory at {tree.FullName} to validate."]);
         }
 
-        // The only failure that cannot be accumulated with anything else: it
-        // names
+        // The one thing that cannot be accumulated with anything else: it names
         // the policy file and the assemblies, so nothing below it has a subject
         // without it. Its own refusal is already precise, and is re-raised
         // rather than reworded.
@@ -96,8 +109,7 @@ public static class PipelineValidator
     /// The same question <c>install</c> asks, asked at the moment the one
     /// person who can fix it is looking. A package whose assemblies need a
     /// contract this build does not provide installs nowhere, and finding that
-    /// out from a hundred machines at once is what this command exists to
-    /// prevent.
+    /// out from a hundred machines at once is the outcome ADR-033 refuses.
     /// </remarks>
     private static void CheckContract(PackageManifest manifest, List<string> problems)
     {

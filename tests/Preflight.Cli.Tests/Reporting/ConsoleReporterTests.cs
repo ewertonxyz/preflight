@@ -4,8 +4,6 @@ using System.Globalization;
 using System.Text;
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
-using Preflight.Cli.Pipelines;
-using Preflight.Cli.Policy;
 using Preflight.Cli.Reporting;
 using Preflight.Core;
 using Preflight.TestSupport;
@@ -25,8 +23,8 @@ public sealed class ConsoleReporterTests
         new(Applied: false, CiVariable: null, LocalOverlaySuppression.FileAbsent);
 
     /// <summary>
-    /// A pipeline the user asked for by name on the command line, which is what
-    /// every golden here describes unless it says otherwise.
+    /// A pipeline the user asked for by name, which is what every golden
+    /// written before ADR-029 describes.
     /// </summary>
     private static readonly PipelineSelection AskedFor =
         new("atlas", PipelineSource.CommandLine);
@@ -363,12 +361,11 @@ public sealed class ConsoleReporterTests
     /// A pipeline nobody asked for says where it came from.
     /// </summary>
     /// <remarks>
-    /// The same argument the local overlay annotation makes, one layer up: a run
-    /// configured by a file nobody passed must not read the same as one that was
-    /// asked for, because the reader cannot otherwise tell which policy actually
-    /// applied. Only this source is annotated — a flag the user typed needs no
-    /// explanation, and annotating every run would change the bytes of every
-    /// existing report to tell the reader what they just typed.
+    /// The same argument the local overlay makes in <c>Docs/design.md 6.3</c>,
+    /// one layer up: a run configured by a file nobody passed must not read the
+    /// same as one that was asked for. Only this source is annotated — a flag
+    /// the user typed needs no explanation, which is why every other golden
+    /// here is unchanged. See ADR-029.
     /// </remarks>
     [Fact]
     public Task Report_WithAPipelineSelectedFromTheCheckout_SaysWhereItCameFrom() =>
@@ -435,9 +432,8 @@ public sealed class ConsoleReporterTests
     /// </para>
     /// <para>
     /// The <c>InvariantCulture</c> arguments in the reporter are therefore
-    /// redundant today: removing them would change nothing while that setting
-    /// holds. They stay, because the setting is one line in a props file and the
-    /// failure removing it would unmask —
+    /// belt-and-braces rather than load-bearing today. They stay, because the
+    /// setting is one line in a props file and the failure it would unmask —
     /// <c>0,4s</c> on a pt-BR machine, <c>0.4s</c> on CI, the determinism guarantee's
     /// byte-identical guarantee holding on each machine separately and failing
     /// between them — is the kind that reads as someone else's environment

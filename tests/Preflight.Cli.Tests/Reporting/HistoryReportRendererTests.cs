@@ -2,7 +2,6 @@ namespace Preflight.Cli.Tests.Reporting;
 
 using System.Text;
 using Preflight.Abstractions.Rules;
-using Preflight.Cli.Parsing;
 using Preflight.Cli.Reporting;
 using Preflight.Core.History;
 using Preflight.TestSupport;

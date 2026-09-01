@@ -232,7 +232,7 @@ public sealed class RunHistoryTests : IDisposable
         """);
 
     private void Write(string relativePath, string content) =>
-        WorkspaceFiles.Write(_workspace, relativePath, content);
+        File.WriteAllText(Path.Combine(_workspace.FullName, relativePath), content);
 
     private int Invoke(params string[] args) => Invoke(null, args);
 
@@ -241,7 +241,7 @@ public sealed class RunHistoryTests : IDisposable
             args,
             _output,
             _error,
-            parse => CommandDispatcher.Run(
+            parse => PreflightCommandLine.Run(
                 parse,
                 CommandEnvironments.For(_workspace, _output, _error, _clock, history: history)));
 }

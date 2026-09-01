@@ -2,10 +2,6 @@ namespace Preflight.Cli.Commands;
 
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
-using Preflight.Cli.Model;
-using Preflight.Cli.Parsing;
-using Preflight.Cli.Pipelines;
-using Preflight.Cli.Policy;
 using Preflight.Cli.Reporting;
 using Preflight.Core;
 
@@ -40,7 +36,6 @@ public static class RunCommandHandler
             environment.Environment,
             descriptors,
             options,
-            environment.Selection,
             cancellationToken,
             environment.ResolvedPackage);
 
@@ -107,7 +102,7 @@ public static class RunCommandHandler
     /// The descriptors travel with the result because the SARIF document needs
     /// <c>DisplayName</c> and <c>Documentation</c>, and both live on
     /// <c>RuleDescriptor</c> rather than on <c>RuleExecution</c>. The caller
-    /// already has them, so they are passed in rather than looked up again.
+    /// already has them, so this is a seam rather than a refactor.
     /// </remarks>
     private static void Report(
         CommandEnvironment environment,
