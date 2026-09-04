@@ -27,7 +27,7 @@ public static class CachePaths
     public const string SearchPattern = "*" + Extension;
 
     /// <summary>
-    /// The generation of <c>Preflight.Abstractions</c> this engine was built
+    /// The generation of <c>Preflight.Abstractions</c> this tool was built
     /// against.
     /// </summary>
     /// <remarks>

@@ -7,7 +7,7 @@ using Preflight.Core.Policy;
 /// <summary>
 /// Fixes the enumeration <c>preflight explain</c> is built on: every effective
 /// value for one rule, in a fixed order, including the <c>settings</c> keys
-/// whose names nothing in the engine knows in advance.
+/// whose names nothing in the tool knows in advance.
 /// </summary>
 /// <remarks>
 /// the explain command for the output this feeds, the policy schema for why
@@ -36,8 +36,8 @@ public sealed class EffectivePolicyEnumerationTests
     /// The order is the assertion. The explain command prints this table, and
     /// the determinism guarantee makes a printed table diffable — a set that
     /// happens to be right today and reorders when a dictionary rehashes fails
-    /// intermittently, on someone else's machine, which is the worst failure
-    /// mode principle 1 has.
+    /// intermittently, on someone else's machine — the worst way a
+    /// determinism guarantee can break, because it breaks for somebody else.
     /// </remarks>
     [Fact]
     public void RuleEntries_ReturnsTheDeclaredRuleKeys_InSchemaDeclarationOrder()

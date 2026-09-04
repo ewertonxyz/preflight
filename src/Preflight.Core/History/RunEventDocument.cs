@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// The JSON shape of a run, used by both <c>--format json</c> and the NDJSON
@@ -101,7 +102,7 @@ public static class RunEventDocument
     /// are exactly the ones somebody comes back to, and a record that cannot say
     /// which policy produced it is a record about nothing in particular. The
     /// policy chain still goes, because it is a list of paths rather than an
-    /// identity. See ADR-034.
+    /// identity.
     /// </remarks>
     public static object Truncated(RunResult result)
     {

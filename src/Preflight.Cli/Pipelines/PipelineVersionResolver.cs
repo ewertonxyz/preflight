@@ -9,15 +9,15 @@ using Preflight.Core.Policy;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The whole of the phase's decision, in one place, and pure: every fact it
-/// needs arrives as a parameter, so the eight rows of the matrix are testable
-/// without a disk, an environment or a clock.
+/// The whole decision in one place, and pure: every fact it needs arrives as a
+/// parameter, so the eight rows of the matrix are testable without a disk, an
+/// environment or a clock.
 /// </para>
 /// <para>
 /// The matrix, weakest claim first. A workspace policy file wins when the
-/// checkout states no requirement — that is the world every fixture and every
-/// installation from phases 1 to 9 lives in, and taking it away on the day of an
-/// upgrade would be a migration wearing the clothes of a feature. A checkout
+/// checkout states no requirement — that is the world every checkout predating
+/// pipeline packages lives in, and taking it away on the day of an upgrade
+/// would be a migration wearing the clothes of a feature. A checkout
 /// that states a requirement <em>and</em> carries its own copy is refused rather
 /// than resolved, because picking a winner hides the contradiction in the one
 /// file that was supposed to settle it.

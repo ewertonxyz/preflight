@@ -28,16 +28,16 @@ public sealed class EffectivePolicy
     }
 
     /// <param name="environment">
-    /// The machine facts the engine defaults are derived from. Defaults to the
+    /// The machine facts the tool defaults are derived from. Defaults to the
     /// real machine; a test passes a fixed one so that
     /// <c>maxDegreeOfParallelism</c> stops being a core count in a golden file.
-    /// See <see cref="EngineEnvironment"/>.
+    /// See <see cref="MachineEnvironment"/>.
     /// </param>
     /// <param name="target">
     /// What the run is aimed at, and which halves of it the user actually said.
     /// Required rather than defaulted: a target that fell back to a value would
     /// switch this layer off in silence, and silence is what the layer exists
-    /// to remove. See ADR-030.
+    /// to remove.
     /// </param>
     public static EffectivePolicy Build(
         IReadOnlyList<RuleDescriptor> descriptors,
@@ -45,11 +45,11 @@ public sealed class EffectivePolicy
         PolicyDocument? local,
         IReadOnlyList<PolicySetOverride> setOverrides,
         StatedBuildTarget target,
-        EngineEnvironment? environment = null)
+        MachineEnvironment? environment = null)
     {
         ArgumentNullException.ThrowIfNull(target);
 
-        PolicyNode node = BuildDefaults(descriptors, environment ?? EngineEnvironment.Current);
+        PolicyNode node = BuildDefaults(descriptors, environment ?? MachineEnvironment.Current);
 
         if (pipeline is not null)
         {
@@ -57,8 +57,8 @@ public sealed class EffectivePolicy
 
             // After the document it belongs to and before the local overlay.
             // Above local would take from a developer the ability to loosen a
-            // rule on the platform they are working on, which is the whole use
-            // of section 6.3.
+            // rule on the platform they are working on, which is most of what a
+            // local overlay is for.
             node = ApplyTargets(node, pipeline, target);
         }
 
@@ -82,8 +82,9 @@ public sealed class EffectivePolicy
     /// Once, here, and never per rule. The layer resolves while the policy is
     /// being built, so <c>IPolicyReader</c> is unchanged and no rule — built in
     /// or plugin — knows a target exists. That is what keeps the cost off the
-    /// hot path and what stops section 11.2 from turning this into a major
-    /// version. See ADR-030.
+    /// hot path, and it is also what keeps this a minor version: a member added
+    /// to a published contract obliges every compiled plugin to be rebuilt, and
+    /// targets ask nothing of the rules at all.
     /// </remarks>
     private static PolicyNode ApplyTargets(PolicyNode node, PolicyDocument pipeline, StatedBuildTarget target)
     {
@@ -188,7 +189,7 @@ public sealed class EffectivePolicy
     {
         if (merged is not PolicyNode.ObjectNode root ||
             root.Members.GetValueOrDefault("defaultTimeoutSeconds") is not PolicyNode.Leaf rootDefault ||
-            rootDefault.Value.Origin is PolicyOrigin.EngineDefault ||
+            rootDefault.Value.Origin is PolicyOrigin.ToolDefault ||
             root.Members.GetValueOrDefault("rules") is not PolicyNode.ObjectNode rules)
         {
             return merged;
@@ -337,22 +338,22 @@ public sealed class EffectivePolicy
 
     /// <summary>
     /// Builds a path that safely crosses a rule id: the id is one segment,
-    /// never re-split even though it contains dots of its own Only
+    /// never re-split even though it contains dots of its own. Only
     /// <paramref name="key"/> is split.
     /// </summary>
     private static string[] RulePath(RuleId ruleId, string key) => ["rules", ruleId.Value, .. key.Split('.')];
 
     private static PolicyNode.ObjectNode BuildDefaults(
         IReadOnlyList<RuleDescriptor> descriptors,
-        EngineEnvironment environment)
+        MachineEnvironment environment)
     {
         var rootMembers = new Dictionary<string, PolicyNode>
         {
-            ["maxDegreeOfParallelism"] = Leaf((long)environment.ProcessorCount, new PolicyOrigin.EngineDefault()),
-            ["defaultTimeoutSeconds"] = Leaf(60L, new PolicyOrigin.EngineDefault()),
-            ["historyPath"] = Leaf(".preflight/history", new PolicyOrigin.EngineDefault()),
-            ["historyMode"] = Leaf("shared", new PolicyOrigin.EngineDefault()),
-            ["cachePath"] = Leaf(".preflight/cache", new PolicyOrigin.EngineDefault()),
+            ["maxDegreeOfParallelism"] = Leaf((long)environment.ProcessorCount, new PolicyOrigin.ToolDefault()),
+            ["defaultTimeoutSeconds"] = Leaf(60L, new PolicyOrigin.ToolDefault()),
+            ["historyPath"] = Leaf(".preflight/history", new PolicyOrigin.ToolDefault()),
+            ["historyMode"] = Leaf("shared", new PolicyOrigin.ToolDefault()),
+            ["cachePath"] = Leaf(".preflight/cache", new PolicyOrigin.ToolDefault()),
         };
 
         var rules = new Dictionary<string, PolicyNode>();
@@ -361,7 +362,7 @@ public sealed class EffectivePolicy
         {
             rules[descriptor.Id.Value] = new PolicyNode.ObjectNode(new Dictionary<string, PolicyNode>
             {
-                ["enabled"] = Leaf(true, new PolicyOrigin.EngineDefault()),
+                ["enabled"] = Leaf(true, new PolicyOrigin.ToolDefault()),
                 ["blocking"] = Leaf(descriptor.DefaultBlocking, new PolicyOrigin.DescriptorDefault()),
                 ["gating"] = Leaf(descriptor.DefaultGating, new PolicyOrigin.DescriptorDefault()),
                 ["severity"] = Leaf(SeverityToRaw(descriptor.DefaultSeverity), new PolicyOrigin.DescriptorDefault()),

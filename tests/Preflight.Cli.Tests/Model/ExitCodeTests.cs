@@ -3,6 +3,8 @@ namespace Preflight.Cli.Tests.Model;
 using Preflight.Abstractions.Rules;
 using Preflight.Cli.Model;
 using Preflight.Core;
+using Preflight.Core.Execution;
+using Preflight.Core.Graph;
 using Preflight.Core.Plugins;
 using Preflight.Core.Policy;
 

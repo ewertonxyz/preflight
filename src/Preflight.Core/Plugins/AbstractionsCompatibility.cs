@@ -30,7 +30,7 @@ public static class AbstractionsCompatibility
     public const string AssemblyName = "Preflight.Abstractions";
 
     /// <summary>
-    /// The version of <c>Preflight.Abstractions</c> this engine provides.
+    /// The version of <c>Preflight.Abstractions</c> this tool provides.
     /// </summary>
     /// <remarks>
     /// Read once from the loaded assembly, so a defect here is a refusal table
@@ -62,7 +62,7 @@ public static class AbstractionsCompatibility
     /// plugin may run, and the cache key decides whether a stored result is
     /// still readable. Those two answering differently is a cached pass served
     /// under a contract that changed, which is the most expensive defect this
-    /// engine can produce, because the evidence of it is the run that did not
+    /// tool can produce, because the evidence of it is the run that did not
     /// happen.
     /// </para>
     /// </remarks>
@@ -125,7 +125,7 @@ public static class AbstractionsCompatibility
     public static string RefusalFor(string assemblyPath, Version plugin, Version host) =>
         string.Format(
             CultureInfo.InvariantCulture,
-            "Plugin '{0}' was built against {1} {2} and this engine provides {3}. " +
+            "Plugin '{0}' was built against {1} {2} and this tool provides {3}. " +
             "Rebuild the plugin against {1} {3}, or upgrade preflight.",
             assemblyPath,
             AssemblyName,

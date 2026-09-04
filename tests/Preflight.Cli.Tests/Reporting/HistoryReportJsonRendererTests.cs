@@ -24,8 +24,8 @@ public sealed class HistoryReportJsonRendererTests
     }
 
     [Fact]
-    public Task Report_ForTheDocumentedExample_MatchesTheGolden() =>
-        Verify(Render(HistoryReportFixture.DocumentedExample()));
+    public Task Report_ForTheCanonicalExample_MatchesTheGolden() =>
+        Verify(Render(HistoryReportFixture.CanonicalExample()));
 
     /// <summary>
     /// An empty history is a document, not a row of measured zeros.

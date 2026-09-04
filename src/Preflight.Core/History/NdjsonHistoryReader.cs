@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Services;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// Reads the history back, one line at a time.
@@ -14,14 +15,16 @@ using Preflight.Abstractions.Services;
 /// <para>
 /// Streaming rather than materialised, and that is a decision taken on the
 /// first line of code rather than deferred. Streaming aggregation is the first
-/// remedy when the history outgrows the month, and calls it cheap to do — a
-/// signature returning a list is what makes it stop being cheap, because by
-/// then every caller has indexed into one.
+/// remedy reached for when a history outgrows the month it was written in, and
+/// it is cheap while the signature yields — a signature returning a list is
+/// what makes it stop being cheap, because by then every caller has indexed
+/// into one.
 /// </para>
 /// <para>
-/// Reading needs no seam of its own: <see cref="IFileSystem"/> already exposes
-/// exactly the three members this wants, and a fourth would cost a major
-/// version. Writing is the direction that needed a new interface.
+/// Reading needs no interface of its own: <see cref="IFileSystem"/> already
+/// exposes exactly the three members this wants, and adding a fourth to a
+/// contract plugins compile against would oblige every one of them to be
+/// rebuilt. Writing is the direction that needed a new interface.
 /// </para>
 /// <para>
 /// Files are visited in ordinal order of their full path. <c>EnumerateFiles</c>
@@ -35,6 +38,8 @@ public sealed class NdjsonHistoryReader
 
     public NdjsonHistoryReader(IFileSystem fileSystem)
     {
+        ArgumentNullException.ThrowIfNull(fileSystem);
+
         _fileSystem = fileSystem;
     }
 
@@ -51,6 +56,8 @@ public sealed class NdjsonHistoryReader
         string directory,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(directory);
+
         if (!_fileSystem.DirectoryExists(directory))
         {
             yield break;

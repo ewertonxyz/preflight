@@ -14,6 +14,7 @@ using Preflight.Cli.Reporting;
 using Preflight.Cli.Storage;
 using Preflight.Core;
 using Preflight.Core.Caching;
+using Preflight.Core.Execution;
 using Preflight.Core.History;
 using Preflight.Core.Plugins;
 using Preflight.Core.Policy;
@@ -189,7 +190,7 @@ public static class PreflightCommandLine
             TimeProvider = TimeProvider.System,
             History = new FileHistoryStore(),
             Cache = new FileRuleCacheStore(),
-            Machine = EngineEnvironment.Current,
+            Machine = MachineEnvironment.Current,
             WorkspaceWriter = new WorkspaceFileWriter(),
         };
     }
@@ -304,8 +305,8 @@ public static class PreflightCommandLine
     /// <para>
     /// Kept because removing it turns every existing CI invocation into a parse
     /// failure on the day the tool is upgraded, which is a migration disguised
-    /// as a rename. It is hidden from help so that the documented surface has
-    /// one name for one thing, and it emits no warning: there is one line of
+    /// as a rename. It is hidden from help so that the surface the tool advertises
+    /// has one name for one thing, and it emits no warning: there is one line of
     /// stdout per run whose bytes are fixed — a golden file holds them, and a
     /// consumer diffing two runs is entitled to see nothing move — and one
     /// stderr that continuous integration does not read. A deprecation notice

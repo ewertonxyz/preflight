@@ -8,6 +8,7 @@ using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
 using Preflight.Cli.Model;
 using Preflight.Core;
+using Preflight.Core.Execution;
 using Preflight.Core.History;
 
 /// <summary>
@@ -93,9 +94,9 @@ public sealed class SarifReporter
             {
                 name = DriverName,
 
-                // One entry per execution, in the presentation order of section
-                // 8.3, so that ruleIndex means the same thing in two runs of the
-                // same workspace. Emitting only the rules that produced a
+                // One entry per execution, in the order the report presents
+                // them, so that ruleIndex means the same thing in two runs of
+                // the same workspace. Emitting only the rules that produced a
                 // finding would make the index depend on the outcome.
                 //
                 // No driver version: it would change the bytes of this document

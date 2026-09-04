@@ -60,13 +60,13 @@ public sealed class CollidingRule : IValidationRule
 }
 
 /// <summary>
-/// A rule the engine cannot instantiate.
+/// A rule the tool cannot instantiate.
 /// </summary>
 /// <remarks>
-/// The rule interface: the engine constructs rules with <c>Activator</c> and no
+/// The rule interface: the tool constructs rules with <c>Activator</c> and no
 /// container, so a constructor with a parameter is a rule that can never run.
 /// It is refused rather than skipped, because a type that wrote
-/// <c>: IValidationRule</c> declared an intent the engine has to honour or
+/// <c>: IValidationRule</c> declared an intent the tool has to honour or
 /// reject out loud.
 /// </remarks>
 public sealed class ConstructorArgumentRule : IValidationRule

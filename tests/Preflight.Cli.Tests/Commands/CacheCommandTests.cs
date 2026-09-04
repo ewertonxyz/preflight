@@ -7,7 +7,7 @@ using Preflight.TestSupport;
 /// <c>preflight run</c> against a real cache, and <c>preflight cache clear</c>.
 /// </summary>
 /// <remarks>
-/// The end-to-end half of the incremental cache. The engine's tests prove the cache is
+/// The end-to-end half of the incremental cache. The tool's tests prove the cache is
 /// consulted; these prove the CLI wires it to the directory policy names, that
 /// <c>--no-cache</c> reaches it, and that clearing it is a command rather than
 /// an instruction to delete a folder by hand.

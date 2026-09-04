@@ -2,6 +2,7 @@ namespace Preflight.Core.Tests.History;
 
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
+using Preflight.Core.Execution;
 using Preflight.Core.History;
 using static Preflight.Core.Tests.History.HistoryEntries;
 
@@ -111,7 +112,8 @@ public sealed class HistoryReportBuilderTests
 
     /// <remarks>
     /// <c>--no-skip</c> is recorded on every run for this line: a contrast
-    /// run reports more failures by design, and a report that cannot see the
+    /// run reports more failures because that is what it is for, and a report
+    /// that cannot see the
     /// flag inflates the failure count.
     /// </remarks>
     [Fact]

@@ -1,4 +1,4 @@
-namespace Preflight.Core;
+namespace Preflight.Core.Graph;
 
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
@@ -27,8 +27,9 @@ public abstract record GraphValidationError
     /// started from.
     /// </summary>
     /// <remarks>
-    /// 7.1 is explicit that "cycle detected" is not an acceptable message: a
-    /// seven-node cycle described that way costs whoever fixes it half an hour.
+    /// "Cycle detected" is not an acceptable message: a seven-node cycle
+    /// described that way costs whoever fixes it half an hour of reading
+    /// descriptors to find the edge they have to cut.
     /// </remarks>
     public sealed record CycleDetected(IReadOnlyList<RuleId> Path) : GraphValidationError
     {
@@ -41,8 +42,9 @@ public abstract record GraphValidationError
     /// </summary>
     /// <remarks>
     /// Kept apart from <see cref="CycleDetected"/> rather than folded in as its
-    /// one-node case, because 7.1 asks for a message that says what this almost
-    /// always is: the wrong id pasted into <c>DependsOn</c>.
+    /// one-node case, so that the message can say what this almost always is:
+    /// the wrong id pasted into <c>DependsOn</c>. Folded in, it would be
+    /// reported as a cycle of length one and read as something exotic.
     /// </remarks>
     public sealed record SelfDependency(RuleId RuleId) : GraphValidationError
     {
@@ -81,23 +83,4 @@ public abstract record GraphValidationError
         public override string Message =>
             $"Rule id '{RuleId}' is declared more than once among the discovered rules.";
     }
-}
-
-/// <summary>
-/// Thrown when <see cref="RuleGraph.Build"/> finds one or more defects.
-/// </summary>
-/// <remarks>
-/// Accumulates every problem in the descriptor set rather than stopping at the
-/// first, matching what policy validation already does: someone fixing a rule
-/// set should see everything wrong with it in one pass.
-/// </remarks>
-public sealed class GraphValidationException : ConfigurationLoadException
-{
-    public GraphValidationException(IReadOnlyList<GraphValidationError> errors)
-        : base(string.Join(Environment.NewLine, errors.Select(error => error.Message)))
-    {
-        Errors = errors;
-    }
-
-    public IReadOnlyList<GraphValidationError> Errors { get; }
 }

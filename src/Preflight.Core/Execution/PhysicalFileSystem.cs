@@ -1,4 +1,4 @@
-namespace Preflight.Core;
+namespace Preflight.Core.Execution;
 
 using Preflight.Abstractions.Services;
 
@@ -29,9 +29,26 @@ using Preflight.Abstractions.Services;
 /// </remarks>
 public sealed class PhysicalFileSystem : IFileSystem
 {
-    public bool FileExists(string path) => File.Exists(path);
+    // These two are guarded and the rest are not, and the difference is what a
+    // null actually does. File.Exists and Directory.Exists answer false for a
+    // null path — "there is no such file" about a question nobody asked — and a
+    // rule reading that would report a finding on evidence it never had. Every
+    // other member here reaches a BCL call that already throws
+    // ArgumentNullException naming the parameter, and a guard in front of it
+    // would be a line that changes nothing.
+    public bool FileExists(string path)
+    {
+        ArgumentNullException.ThrowIfNull(path);
 
-    public bool DirectoryExists(string path) => Directory.Exists(path);
+        return File.Exists(path);
+    }
+
+    public bool DirectoryExists(string path)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+
+        return Directory.Exists(path);
+    }
 
     public long GetFileSize(string path) => new FileInfo(path).Length;
 

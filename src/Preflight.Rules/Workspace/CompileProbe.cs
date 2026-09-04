@@ -22,7 +22,7 @@ using Preflight.Abstractions.Services;
 /// <remarks>
 /// The <c>{probeOutput}</c> token is how the probe is kept from writing into
 /// the workspace. The tool never does, and it matters twice over here: a
-/// validation run must leave a checkout exactly as it found it, and the engine
+/// validation run must leave a checkout exactly as it found it, and the tool
 /// runs rules at one level concurrently, so two probes writing to the same
 /// intermediates would corrupt each other. But a compiler writes wherever it is
 /// told, and told nothing it writes next to the sources. The read-only
@@ -33,7 +33,7 @@ using Preflight.Abstractions.Services;
 ///
 /// <para>
 /// <c>Inputs</c> exists for the incremental cache, and it is the one part of
-/// this manifest that can be wrong in a way the tool cannot detect. The engine
+/// this manifest that can be wrong in a way the tool cannot detect. The tool
 /// does not know what a compiler reads, and inferring it was rejected precisely
 /// because an inferred set errs by optimism. So the workspace declares it — the
 /// same arrangement as <c>minimumVersion</c> and <c>restoredMarker</c>, where

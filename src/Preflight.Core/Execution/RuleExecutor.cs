@@ -1,82 +1,23 @@
-namespace Preflight.Core;
+namespace Preflight.Core.Execution;
 
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
 using Preflight.Abstractions.Services;
 using Preflight.Core.Caching;
+using Preflight.Core.Graph;
 using Preflight.Core.Policy;
-
-/// <summary>
-/// Everything one run needs.
-/// </summary>
-/// <remarks>
-/// <see cref="RunId"/> is nullable so a caller can fix it: without that seam,
-/// the console reporter's golden files could never stabilise.
-/// <see cref="NoSkip"/> is the engine half of the <c>--no-skip</c> contrast
-/// flag.
-/// </remarks>
-public sealed record RunRequest
-{
-    public required IReadOnlyList<IValidationRule> Rules { get; init; }
-
-    public required EffectivePolicy Policy { get; init; }
-
-    public required ValidationStage Stage { get; init; }
-
-    public required BuildTarget Target { get; init; }
-
-    public required DirectoryInfo WorkspaceRoot { get; init; }
-
-    public required IFileSystem FileSystem { get; init; }
-
-    public required IProcessRunner Processes { get; init; }
-
-    /// <summary>
-    /// Where cached results live, or <see langword="null"/> for no caching.
-    /// </summary>
-    /// <remarks>
-    /// There is no <c>NoCache</c> flag beside this, deliberately.
-    /// <c>--no-cache</c> is the CLI declining to hand the engine a store, which
-    /// leaves the engine with one condition instead of two that have to agree —
-    /// and two booleans meaning "do not cache" is how a flag ends up being
-    /// honoured in one code path and ignored in another.
-    /// </remarks>
-    public IRuleCacheStore? Cache { get; init; }
-
-    public IReadOnlyList<ChangedFile> ChangedFiles { get; init; } = [];
-
-    public IReadOnlyList<string> PolicyChain { get; init; } = [];
-
-    public string? Pipeline { get; init; }
-
-    /// <summary>
-    /// The version of the installed package the policy came from, when one did.
-    /// </summary>
-    /// <remarks>
-    /// Carried through so that the result can say which delivery of the pipeline
-    /// produced this verdict. Without it two runs of one commit against two
-    /// packages are indistinguishable in every machine-readable output the tool
-    /// writes. See ADR-034.
-    /// </remarks>
-    public string? PipelineVersion { get; init; }
-
-    public bool FailOnWarning { get; init; }
-
-    public bool NoSkip { get; init; }
-
-    public Guid? RunId { get; init; }
-}
 
 /// <summary>
 /// Runs the selected rules, level by level, and assembles the result.
 /// </summary>
 /// <remarks>
-/// Rules within a level have no dependency on each other by construction, so
-/// the parallelism needs no coordination beyond the level boundary — provided
-/// the rules honour the concurrency contract, which the engine does not police
-/// beyond the isolation of 8.2. Serialising everything to defend against a
-/// badly written rule would throw away the only reason per-level parallelism
-/// exists.
+/// A level is exactly the set of rules whose dependencies are all already
+/// placed, so no rule in one can depend on another in the same one, and the
+/// parallelism needs no coordination beyond the level boundary. That holds
+/// provided the rules honour the concurrency contract, which the tool does
+/// not police beyond running each one inside its own try/catch. Serialising
+/// everything to defend against a badly written rule would throw away the only
+/// reason per-level parallelism exists.
 /// </remarks>
 public sealed class RuleExecutor
 {
@@ -169,9 +110,15 @@ public sealed class RuleExecutor
         // attribution has no such reason.
         if (!cancelled)
         {
+            // The disabled ids are gathered once. Asked per attribution, this
+            // was a scan of the skipped list inside a walk of the skipped list,
+            // which costs the square of the rule count on a path every run
+            // takes.
+            var disabled = executionSet.Skipped.Select(entry => entry.RuleId).ToHashSet();
+
             executions.AddRange(skipped.Values
                 .Where(attribution => runnable.Contains(attribution.RuleId) ||
-                    Disabled(executionSet, attribution.RuleId))
+                    disabled.Contains(attribution.RuleId))
                 .Where(attribution => !reported.Contains(attribution.RuleId))
                 .Select(attribution => SkippedExecution(attribution, snapshots)));
         }
@@ -220,9 +167,6 @@ public sealed class RuleExecutor
     private static RunVerdict Verdict(IReadOnlyList<RuleExecution> executions, bool cancelled) =>
         cancelled ? RunVerdict.Errored : RunVerdictAggregation.Aggregate(executions);
 
-    private static bool Disabled(ExecutionSet executionSet, RuleId ruleId) =>
-        executionSet.Skipped.Any(entry => entry.RuleId == ruleId);
-
     private static RuleExecution SkippedExecution(
         SkipPropagation.SkipAttribution attribution,
         IReadOnlyDictionary<RuleId, RulePolicySnapshot> snapshots)
@@ -255,7 +199,7 @@ public sealed class RuleExecutor
     /// <para>
     /// <c>cachePath</c> is read here rather than in the CLI for the same reason
     /// <c>maxDegreeOfParallelism</c> is: it is a resolved policy value, and the
-    /// engine is what holds the resolved policy. The CLI decides
+    /// tool is what holds the resolved policy. The CLI decides
     /// <em>whether</em> to cache; policy decides <em>where</em>.
     /// </para>
     /// <para>

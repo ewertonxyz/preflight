@@ -1,6 +1,7 @@
 namespace Preflight.Core.Tests.Graph;
 
 using Preflight.Core;
+using Preflight.Core.Graph;
 
 /// <summary>
 /// Pins the exact public surface of <see cref="RuleGraph"/> against

@@ -1,6 +1,7 @@
 namespace Preflight.Core.Plugins;
 
 using Preflight.Abstractions.Rules;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// Turns the assemblies a run was pointed at into the rules it will execute.
@@ -9,10 +10,11 @@ using Preflight.Abstractions.Rules;
 /// <para>
 /// Every way this can go wrong is exit 2 and aborts the run; none of them is a
 /// warning. A plugin quietly skipped means the run finished without rules the
-/// policy declared enabled and reported success, which is the false green of
-/// principle 7 — and it arrives with a second, misleading error, because the
-/// policy keys of the skipped plugin then read as "unknown rule id" about a
-/// rule the user wrote and can see on disk.
+/// policy declared enabled and reported success — the worst thing a validation
+/// tool can do, because everything downstream now trusts a check that never
+/// ran. It also arrives with a second, misleading error, because the policy
+/// keys of the skipped plugin then read as "unknown rule id" about a rule the
+/// user wrote and can see on disk.
 /// </para>
 /// <para>
 /// That is also why loading happens before policy validation, and why this type
@@ -39,9 +41,9 @@ public sealed class PluginLoader
 
     /// <param name="loader">How an assembly is opened.</param>
     /// <param name="hostAbstractions">
-    /// The contract version this engine provides. A parameter rather than a
+    /// The contract version this tool provides. A parameter rather than a
     /// static read, so that the version refusal table can be exercised without
-    /// shipping an engine per row.
+    /// shipping a tool per row.
     /// </param>
     public PluginLoader(IAssemblyLoader loader, Version hostAbstractions)
     {
@@ -93,7 +95,7 @@ public sealed class PluginLoader
 
     /// <remarks>
     /// The order of the three checks is the order of their consequences. A
-    /// contract version this engine cannot honour makes every judgement about
+    /// contract version this tool cannot honour makes every judgement about
     /// the types inside meaningless, so it is decided first and the assembly is
     /// dropped. A foreign contract makes the types unusable individually, so
     /// the assembly contributes nothing rather than contributing the subset
@@ -137,7 +139,7 @@ public sealed class PluginLoader
         catch (RuleDiscoveryException exception)
         {
             // Re-wrapped rather than allowed to propagate. RuleDiscovery names
-            // the type, which is enough when the types came from the engine's
+            // the type, which is enough when the types came from the tool's
             // own assembly and is not enough when four plugins were probed.
             errors.Add(new PluginLoadError.RuleTypeRejected(assembly.Path, exception.Message));
         }
@@ -187,7 +189,7 @@ public sealed class PluginLoader
     /// Matched by <see cref="Type.FullName"/> and not by identity, because
     /// identity is exactly the thing that is broken in the case being detected.
     /// The assignability test comes first so that a rule which really does
-    /// implement this engine's contract never reaches the name comparison.
+    /// implement this tool's contract never reaches the name comparison.
     /// </remarks>
     private static Type? ForeignRuleInterfaceOf(Type type) =>
         typeof(IValidationRule).IsAssignableFrom(type)

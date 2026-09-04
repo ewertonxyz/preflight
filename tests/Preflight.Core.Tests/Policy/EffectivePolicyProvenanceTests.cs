@@ -29,11 +29,11 @@ public sealed class EffectivePolicyProvenanceTests
     }
 
     [Fact]
-    public void Build_ForAnUntouchedRootKey_OriginIsEngineDefault_DistinctFromRuleDescriptorDefault()
+    public void Build_ForAnUntouchedRootKey_OriginIsToolDefault_DistinctFromRuleDescriptorDefault()
     {
         var policy = EffectivePolicy.Build([LargeFile], pipeline: null, local: null, setOverrides: [], target: StatedBuildTarget.Unstated);
 
-        policy.RootValue<long>("maxDegreeOfParallelism").Origin.ShouldBeOfType<PolicyOrigin.EngineDefault>();
+        policy.RootValue<long>("maxDegreeOfParallelism").Origin.ShouldBeOfType<PolicyOrigin.ToolDefault>();
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public sealed class EffectivePolicyProvenanceTests
     }
 
     [Fact]
-    public void Build_MirrorsTheDesignDocExplainExample_ForTheDocumentedFourFieldScenario()
+    public void Build_ForTheFourFieldExplainScenario_CarriesEveryLayerThatTouchedTheValue()
     {
         var descriptor = LargeFile with { DefaultSeverity = Severity.Error, DefaultTimeoutSeconds = 60 };
         var production = PolicyDocument.Parse("""

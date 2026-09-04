@@ -6,6 +6,7 @@ using Preflight.Abstractions.Rules;
 using Preflight.Abstractions.Services;
 using Preflight.Core;
 using Preflight.Core.Caching;
+using Preflight.Core.Execution;
 using Preflight.Core.Policy;
 using Preflight.Core.Tests.Execution;
 using static Preflight.Core.Tests.Graph.GraphFixture;
@@ -42,7 +43,8 @@ internal sealed class FakeCacheableRule : IValidationRule, ICacheableRule
 
     /// <summary>Completes the moment the fingerprint is entered.</summary>
     /// <remarks>
-    /// The same seam <c>FakeRule.Started</c> is, and for the same reason: a
+    /// The same substitution point <c>FakeRule.Started</c> is, and for the same
+    /// reason: a
     /// cancellation test has to cancel <em>while</em> the rule is inside the
     /// call, and sleeping until it probably is would be a race dressed as a
     /// test.
@@ -161,6 +163,12 @@ internal sealed class RecordingCacheStore : IRuleCacheStore
 internal static class CacheFixture
 {
     public static readonly DirectoryInfo Workspace = new(Path.Combine(Path.GetTempPath(), "preflight-cache-tests"));
+
+    /// <summary>
+    /// Where the history sits for the refusal tests: the tool default,
+    /// resolved against <see cref="Workspace"/>.
+    /// </summary>
+    public static readonly string History = Path.Combine(Workspace.FullName, ".preflight", "history");
 
     public const string Directory = "/cache";
 

@@ -1,4 +1,4 @@
-namespace Preflight.Core;
+namespace Preflight.Core.Graph;
 
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
@@ -35,10 +35,11 @@ public sealed record ExecutionSet
     /// </summary>
     /// <remarks>
     /// <see cref="DisabledDependencies"/> names the disabled rules themselves,
-    /// never an intermediate rule that was skipped for the same reason — 7.3's
-    /// rule that attribution points at the root someone can actually fix. The
-    /// report has to be able to say the cause was configuration rather than
-    /// failure, in those words.
+    /// never an intermediate rule that was skipped for the same reason.
+    /// Attribution points at the root somebody can actually fix, and the
+    /// intermediate rule is not it — nobody disabled that one. The report has
+    /// to be able to say the cause was configuration rather than failure, in
+    /// those words.
     /// </remarks>
     public sealed record SkippedByDisabledDependency
     {

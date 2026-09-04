@@ -8,10 +8,10 @@ using Preflight.Core.Policy;
 /// Fixes who a seal refuses, and — just as important — who it does not.
 /// </summary>
 /// <remarks>
-/// A seal that criminalised ordinary policy would re-open two accepted
-/// decisions: ADR-011 and ADR-019 both say disabling a rule is intended use of
-/// section 6.1. Half the entries here exist to prove the seal did not grow
-/// teeth it was never given. See ADR-031.
+/// A seal that criminalised ordinary policy would take back something the tool
+/// already promises: disabling a rule is intended use, not an evasion. Half the
+/// entries here exist to prove the seal did not grow teeth it was never given —
+/// it forbids changing a value a baseline fixed, and nothing else.
 /// </remarks>
 public sealed class PolicySealValidationTests
 {
@@ -172,9 +172,9 @@ public sealed class PolicySealValidationTests
     /// A seal on one key leaves every other key of that rule free.
     /// </summary>
     /// <remarks>
-    /// ADR-011 and ADR-019 both record that disabling a rule is intended use.
-    /// A seal implementation that treated any downstream change to a rule as a
-    /// violation would re-litigate both, in code, without saying so.
+    /// Disabling a rule is intended use. A seal implementation that treated any
+    /// downstream change to a rule as a violation would quietly withdraw that,
+    /// in code, without anybody deciding to.
     /// </remarks>
     [Fact]
     public void ValidateSeals_WithAnUnsealedEnabledSetToFalse_ReturnsNoErrors()
@@ -287,11 +287,10 @@ public sealed class PolicySealValidationTests
     }
 
     /// <remarks>
-    /// A root-key override carries no rule id — <c>--set :cachePath=...</c>, in
-    /// the form section 6.2 already documents. ADR-023 nº5 named
-    /// <c>cachePath</c> as the one that can be pointed back into the workspace,
-    /// so a studio baseline that cannot hold it there has sealed nothing worth
-    /// sealing.
+    /// A root-key override carries no rule id — <c>--set :cachePath=...</c>,
+    /// the same shape the flag already accepts. <c>cachePath</c> is the key
+    /// that can be pointed back into the workspace, so a studio baseline that
+    /// cannot hold it where it put it has sealed nothing worth sealing.
     /// </remarks>
     [Fact]
     public void ValidateSeals_WithASetOverrideOnASealedRootKey_ReturnsError()
@@ -362,8 +361,8 @@ public sealed class PolicySealValidationTests
     }
 
     /// <remarks>
-    /// Section 6.4 requires every problem in a load to come back together: a
-    /// policy with four faults should cost one edit, not four runs.
+    /// Every problem in a load comes back together: a policy with four faults
+    /// should cost one edit, not four runs.
     /// </remarks>
     [Fact]
     public void ValidateSeals_WithSeveralViolations_ReturnsAllOfThem()

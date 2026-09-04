@@ -8,24 +8,27 @@ using Preflight.Core.History;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The documented example is the <c>report</c> screen, number for number, so
-/// the golden file is a comparison against the design document rather than
-/// against whatever the renderer happened to produce first.
+/// One canonical report, fixed number for number, so that a golden file
+/// compares the renderer against a shape somebody chose rather than against
+/// whatever it happened to produce the first time it ran. Every number in it
+/// is there to make a case interesting: the build series has enough
+/// observations for a median and not for a p95, and the ceiling exists so the
+/// caveat below it has something to caveat.
 /// </para>
 /// <para>
-/// It moved here from <c>Cli.Tests</c> when the reporters gave <c>Core.Tests</c> a
-/// second reason to build one: <c>HistoryReportDocument</c> projects the same
-/// report the console renders, and two fixtures producing "the documented
-/// example" would be two examples. Same reason as
-/// <see cref="RunResultFixture"/>, same phase's worth of drift avoided.
+/// It lives here, and not beside the renderer, because two projects render the
+/// same report: the console reporter draws it and
+/// <c>HistoryReportDocument</c> projects it into JSON. Two fixtures claiming
+/// to be the canonical example would be two examples, and the day they drifted
+/// apart neither golden file would say so.
 /// </para>
 /// </remarks>
 public static class HistoryReportFixture
 {
     /// <summary>
-    /// The documented screen: 142 runs, a measured build, and a ceiling.
+    /// The canonical screen: 142 runs, a measured build, and a ceiling.
     /// </summary>
-    public static HistoryReport DocumentedExample() => new()
+    public static HistoryReport CanonicalExample() => new()
     {
         Window = TimeSpan.FromDays(30),
         RunCount = 142,

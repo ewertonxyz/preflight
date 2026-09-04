@@ -4,6 +4,7 @@ using NSubstitute;
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Services;
 using Preflight.Core;
+using Preflight.Core.Changes;
 
 /// <summary>
 /// Fixes the parsing of <c>git diff --name-status -z</c> against a substituted
@@ -110,7 +111,7 @@ public sealed class GitChangeSourceTests
     /// Anything unrecognised is an error, not a silent drop.
     /// </summary>
     /// <remarks>
-    /// This is the false green of the whole block. A file quietly missing from
+    /// This is the quiet failure the whole block guards. A file quietly missing from
     /// the changed set makes <c>core.presubmit.large-file</c> report <c>n/a</c>
     /// on a commit that had something to check — and the built-in rule set already calls
     /// <c>n/a</c> for something unexamined the honest answer, which is exactly
@@ -217,7 +218,7 @@ public sealed class GitChangeSourceTests
     }
 
     /// <remarks>
-    /// The CLI refuses this first, but the engine is hostable
+    /// The CLI refuses this first, but Preflight.Core is hostable
     /// without the CLI. Returning an empty list here would make every
     /// pre-submit rule report <c>NotApplicable</c> and the run go green having
     /// examined nothing.

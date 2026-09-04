@@ -4,15 +4,16 @@ using System.Collections.Concurrent;
 using Preflight.Abstractions.Rules;
 using Preflight.Abstractions.Services;
 using Preflight.Core;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// Captures what each rule logged, and which rule logged it.
 /// </summary>
 /// <remarks>
 /// The queue is concurrent because rules in one level write at the same time —
-/// serialising those writes is the engine's job,
+/// serialising those writes is the tool's job,
 /// and a fixture that could not survive the concurrency would be unable to
-/// observe whether the engine did it.
+/// observe whether the tool did it.
 /// </remarks>
 internal sealed class RecordingRuleLoggerFactory : IRuleLoggerFactory
 {

@@ -9,19 +9,19 @@ using Preflight.Abstractions.Services;
 /// name) to the type a caller actually asked for.
 /// </summary>
 /// <remarks>
-/// The user chose to throw rather than fail silently on a type mismatch: a rule
-/// asking <see cref="Preflight.Abstractions.Services.IPolicyReader.GetValue{T}"/> for
+/// Throws rather than failing silently on a type mismatch. A rule asking
+/// <see cref="Preflight.Abstractions.Services.IPolicyReader.GetValue{T}"/> for
 /// the wrong type and quietly receiving its own fallback is indistinguishable
-/// from the key being absent, which is exactly the false green this project
-/// exists to prevent. Because a rule runs isolated behind a try/catch, the
-/// exception simply makes that rule <c>Errored</c> — the correct status for a
-/// defect in the rule itself, not in the workspace.
+/// from the key being absent, so a policy that was written and is being ignored
+/// looks exactly like a policy nobody wrote. Because a rule runs isolated
+/// behind a try/catch, the exception simply makes that rule <c>Errored</c> —
+/// the correct status for a defect in the rule itself, not in the workspace.
 ///
 /// Enum values are matched against the exact lowercase strings the schema
 /// documents — "error", not "Error" or "ERROR" — because
 /// <see cref="Enum.Parse{TEnum}(string)"/> against the PascalCase member name
 /// would either wrongly accept the uppercase form (case-insensitive) or wrongly
-/// reject the documented lowercase form (case-sensitive against a
+/// reject the lowercase form the schema declares (case-sensitive against a
 /// differently-cased name). Neither is what a strict schema asks for.
 /// </remarks>
 internal static class PolicyValueConversion

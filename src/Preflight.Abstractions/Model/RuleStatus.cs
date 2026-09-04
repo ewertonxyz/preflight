@@ -4,7 +4,7 @@ namespace Preflight.Abstractions.Model;
 /// The outcome of running a rule.
 /// </summary>
 /// <remarks>
-/// Three distinctions the engine never collapses into one bucket:
+/// Three distinctions the tool never collapses into one bucket:
 /// <see cref="Failed"/> means the workspace is wrong, <see cref="Errored"/>
 /// means the rule itself is defective (an exception or a timeout), and
 /// <see cref="NotApplicable"/> means the rule ran but had nothing to check — a

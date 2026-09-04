@@ -1,4 +1,4 @@
-namespace Preflight.Core.Tests;
+namespace Preflight.Core.Tests.Contract;
 
 using Preflight.Abstractions.Model;
 

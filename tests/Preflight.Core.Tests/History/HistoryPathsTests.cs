@@ -11,7 +11,7 @@ public sealed class HistoryPathsTests
     private static readonly DateTimeOffset August =
         new(2026, 8, 26, 14, 30, 0, TimeSpan.Zero);
 
-    private static readonly EngineEnvironment Workstation = new()
+    private static readonly MachineEnvironment Workstation = new()
     {
         ProcessorCount = 8,
         MachineName = "WKS-1234",

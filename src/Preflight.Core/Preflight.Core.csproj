@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    The engine: discovery, policy resolution, graph, execution, history.
+    The tool: discovery, policy resolution, graph, execution, history.
     Knows nothing about the CLI, about output formatting, or about exit codes.
     That separation is what would let Core be hosted as a library rather than a
     process if the invocation volume ever demanded it.

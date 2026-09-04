@@ -13,7 +13,7 @@ using Preflight.Core.Policy;
 /// One rule and one setting throughout, because what is under test is the
 /// order of the layers rather than the merge itself — the merge has its own
 /// tests, and repeating them here with a target block on top would only make a
-/// failure harder to read. See ADR-030.
+/// failure harder to read.
 /// </remarks>
 public sealed class EffectivePolicyTargetLayerTests
 {
@@ -74,7 +74,7 @@ public sealed class EffectivePolicyTargetLayerTests
     /// <remarks>
     /// The most important entry here. Above the local overlay, this layer would
     /// take from a developer the ability to loosen a rule on the platform they
-    /// are working on — which is the entire use section 6.3 describes.
+    /// are working on, which is most of what a local overlay is for.
     /// </remarks>
     [Fact]
     public void Build_WithAMatchingTarget_SitsBetweenThePipelineDocumentAndLocal()
@@ -106,8 +106,9 @@ public sealed class EffectivePolicyTargetLayerTests
     }
 
     /// <remarks>
-    /// ADR-015 says the CLI refuses what it does not understand — and a
-    /// <c>--platform</c> no block mentions is not that. It is the common case,
+    /// The tool refuses what it does not understand, and a <c>--platform</c> no
+    /// block mentions is not that — nothing is ambiguous about a target that
+    /// simply does not apply. It is the common case,
     /// and asserting it explicitly is what stops somebody making it an error
     /// later because it looked like one.
     /// </remarks>
@@ -244,9 +245,10 @@ public sealed class EffectivePolicyTargetLayerTests
     /// <remarks>
     /// This is how "zero cost per rule" is proved. The layer resolves while the
     /// policy is built, so the reader a rule receives exposes already-resolved
-    /// values and carries no target concept — which is also what keeps section
-    /// 11.2 from turning this into a major version that recompiles every
-    /// plugin.
+    /// values and carries no target concept. That is also what keeps the whole
+    /// layer a minor version: a member added to a contract plugins compile
+    /// against obliges every one of them to be rebuilt, and targets ask nothing
+    /// of the rules at all.
     /// </remarks>
     [Fact]
     public void IPolicyReader_HasTheSameMembersAsBeforeTheTargetLayer() =>

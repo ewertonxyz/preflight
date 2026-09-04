@@ -20,7 +20,7 @@ using Preflight.Rules;
 public sealed class BuiltInRuleDescriptorsTests
 {
     /// <summary>
-    /// Every rule in <c>Preflight.Rules</c>, found the way the engine finds
+    /// Every rule in <c>Preflight.Rules</c>, found the way the tool finds
     /// them.
     /// </summary>
     /// <remarks>
@@ -145,7 +145,7 @@ public sealed class BuiltInRuleDescriptorsTests
     }
 
     /// <remarks>
-    /// A rule needs a public parameterless constructor, because the engine
+    /// A rule needs a public parameterless constructor, because the tool
     /// instantiates it with <see cref="Activator"/> and no container is
     /// involved. A rule that grew a constructor parameter would be found by
     /// discovery and then fail to be created, mid-run.
@@ -157,7 +157,7 @@ public sealed class BuiltInRuleDescriptorsTests
         {
             rule.GetType()
                 .GetConstructor(BindingFlags.Public | BindingFlags.Instance, Type.EmptyTypes)
-                .ShouldNotBeNull($"{rule.GetType().Name} must be constructible by the engine.");
+                .ShouldNotBeNull($"{rule.GetType().Name} must be constructible by the tool.");
         }
     }
 }

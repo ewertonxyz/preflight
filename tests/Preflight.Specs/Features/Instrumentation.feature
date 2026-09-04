@@ -1,6 +1,7 @@
 Feature: Instrumentation
-    The tool measures itself, and no synthetic data enters the report. Two of its claims are only observable from outside the
-    process, which is what these scenarios are for.
+    The tool measures itself, and no synthetic data enters the report. Two of
+    its claims are only observable from outside the process, which is what
+    these scenarios are for.
 
     The first is that a run leaves a record behind at all, in the place the
     policy names, without anybody asking it to. The second is the contract of

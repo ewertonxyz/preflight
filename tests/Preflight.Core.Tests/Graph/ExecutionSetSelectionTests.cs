@@ -3,6 +3,7 @@ namespace Preflight.Core.Tests.Graph;
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
 using Preflight.Core;
+using Preflight.Core.Graph;
 using Preflight.Core.Policy;
 using static Preflight.Core.Tests.Graph.GraphFixture;
 
@@ -19,8 +20,8 @@ using static Preflight.Core.Tests.Graph.GraphFixture;
 /// exactly that check.
 /// </para>
 /// <para>
-/// The glossary warns that "dependency in another stage" and
-/// "dependency disabled by policy" are false friends: in code both begin as
+/// "Dependency in another stage" and "dependency disabled by policy" are false
+/// friends worth keeping apart: in code both begin as
 /// "this <c>DependsOn</c> edge points at a descriptor that is not a root of
 /// this run", and a single boolean would collapse them and get one backwards.
 /// They are tested side by side here for that reason, including the edge that
@@ -64,11 +65,13 @@ public sealed class ExecutionSetSelectionTests
     }
 
     /// <remarks>
-    /// The design's own worked example, reproduced with its own ids so nobody
-    /// "simplifies" it later without reading stage selection first.
+    /// The worked example this project keeps coming back to — a build-readiness
+    /// run that has to pull a workspace-stage toolchain rule in with it —
+    /// reproduced with its own ids so nobody "simplifies" it later without
+    /// understanding what the stage actually selects.
     /// </remarks>
     [Fact]
-    public void Select_WithTheDesignWorkedExample_PullsInCrossStageToolchainAndExcludesUnrelatedRules()
+    public void Select_WithTheWorkedExample_PullsInCrossStageToolchainAndExcludesUnrelatedRules()
     {
         var descriptors = WorkedExample();
 
@@ -143,11 +146,11 @@ public sealed class ExecutionSetSelectionTests
     }
 
     /// <remarks>
-    /// A deliberate divergence from the literal ordering in the load-time flow, which
-    /// computes the closure from every stage-matching rule and only then
-    /// subtracts the disabled ones. Read literally, disabling a rule would
-    /// leave its exclusive dependency running — and able to fail the run —
-    /// which empties out what disabling is for. Worth an ADR.
+    /// A deliberate divergence from the obvious ordering, which computes the
+    /// closure from every stage-matching rule and only then subtracts the
+    /// disabled ones. Done that way, disabling a rule leaves its exclusive
+    /// dependency running — and able to fail the run — which empties out what
+    /// disabling is for. The roots are filtered first instead.
     /// </remarks>
     [Fact]
     public void Select_WithADisabledRootsExclusiveDependency_ExcludesTheDependencyEntirely()
@@ -190,8 +193,8 @@ public sealed class ExecutionSetSelectionTests
     }
 
     /// <remarks>
-    /// The sharpest point of the glossary's false friend: one edge that is
-    /// both cross-stage and disabled. Being reachable from another stage must
+    /// The sharpest point of that false friend: one edge that is both
+    /// cross-stage and disabled. Being reachable from another stage must
     /// never let a rule bypass the enabled check.
     /// </remarks>
     [Fact]

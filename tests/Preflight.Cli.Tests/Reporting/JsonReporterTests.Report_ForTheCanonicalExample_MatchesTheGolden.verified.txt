@@ -40,7 +40,7 @@
           "path": "config/build/win64.json",
           "expected": "a \u0022contentRoot\u0022 entry",
           "actual": "key not present",
-          "remediation": "add \u0022contentRoot\u0022 pointing to the packaged content folder"
+          "remediation": "Add \u0022contentRoot\u0022 to the configuration, or ask the pipeline\u0027s author to drop it from \u0027requiredKeys\u0027."
         }
       ]
     },

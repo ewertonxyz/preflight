@@ -2,6 +2,7 @@ namespace Preflight.Core.History;
 
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// Folds the history into the numbers <c>preflight report</c> prints.
@@ -59,8 +60,9 @@ public static class HistoryReportBuilder
 
     /// <remarks>
     /// A private mutable fold rather than LINQ over a materialised list. The
-    /// sequence is walked once by construction, which is what keeps the cost
-    /// linear, and it cannot be walked twice by accident later.
+    /// sequence is walked exactly once because there is nothing to walk a
+    /// second time — the entries are never held — which is what keeps the cost
+    /// linear and stops a later edit from quietly reading them twice.
     /// </remarks>
     private sealed class Accumulator
     {
@@ -126,32 +128,42 @@ public static class HistoryReportBuilder
             }
         }
 
-        public HistoryReport Build(TimeSpan window) => new()
+        public HistoryReport Build(TimeSpan window)
         {
-            Window = window,
-            RunCount = _runs,
-            PassedCount = _passed,
-            PassedWithWarningsCount = _passedWithWarnings,
-            BlockedCount = _blocked,
-            ErroredCount = _errored,
-            BlockingVerdicts = [.. _blocking
-                .OrderBy(entry => entry.Key)
-                .Select(entry => new StageBlockCount(entry.Key, entry.Value))],
-            PromotedBlockCount = _promoted,
-            ContrastRunCount = _contrast,
-            PartialRunCount = _partial,
-            UnreadableLineCount = _unreadable,
-            IgnoredLineCount = _ignored,
-            PreflightDuration = DurationSummary.Of(_preflightDurations),
-            Measured = [.. _measured
-                .OrderBy(entry => entry.Key, StringComparer.Ordinal)
-                .Select(entry => new MeasuredSeries(entry.Key, DurationSummary.Of(entry.Value)))],
-            SlowestRules = [.. Slowest().Take(TopRuleCount)],
-            SlowestRulesNotShown = Math.Max(0, Slowest().Count() - TopRuleCount),
-            MostFrequentFailures = [.. Failures().Take(TopRuleCount)],
-            MostFrequentFailuresNotShown = Math.Max(0, Failures().Count() - TopRuleCount),
-            UpperBoundNotSpent = UpperBound(),
-        };
+            // Both rankings are needed twice — once for the rows that are shown
+            // and once for the count of the rows that are not — and both sort.
+            // Read as sequences they would each sort twice, so the report pays
+            // four sorts to print two lists.
+            var slowest = Slowest();
+            var failures = Failures();
+
+            return new HistoryReport
+            {
+                Window = window,
+                RunCount = _runs,
+                PassedCount = _passed,
+                PassedWithWarningsCount = _passedWithWarnings,
+                BlockedCount = _blocked,
+                ErroredCount = _errored,
+                BlockingVerdicts = [.. _blocking
+                    .OrderBy(entry => entry.Key)
+                    .Select(entry => new StageBlockCount(entry.Key, entry.Value))],
+                PromotedBlockCount = _promoted,
+                ContrastRunCount = _contrast,
+                PartialRunCount = _partial,
+                UnreadableLineCount = _unreadable,
+                IgnoredLineCount = _ignored,
+                PreflightDuration = DurationSummary.Of(_preflightDurations),
+                Measured = [.. _measured
+                    .OrderBy(entry => entry.Key, StringComparer.Ordinal)
+                    .Select(entry => new MeasuredSeries(entry.Key, DurationSummary.Of(entry.Value)))],
+                SlowestRules = [.. slowest.Take(TopRuleCount)],
+                SlowestRulesNotShown = Math.Max(0, slowest.Count - TopRuleCount),
+                MostFrequentFailures = [.. failures.Take(TopRuleCount)],
+                MostFrequentFailuresNotShown = Math.Max(0, failures.Count - TopRuleCount),
+                UpperBoundNotSpent = UpperBound(),
+            };
+        }
 
         private void Add(HistoryEvent value)
         {
@@ -216,11 +228,11 @@ public static class HistoryReportBuilder
 
             // Three exclusions, for three reasons. A skip costs nothing and
             // takes no time, and a zero next to a real measurement does not
-            // average with it - it replaces the ranking with one about how often
+            // average with it — it replaces the ranking with one about how often
             // a rule was skipped. A cancelled run was cut off mid-flight: the
             // record says which rules ran but not which one the cancellation
             // interrupted, so none of its durations can be trusted as a
-            // duration. And a cached result is a lookup, not a run - counting it
+            // duration. And a cached result is a lookup, not a run — counting it
             // would make the slowest rule look fast in exact proportion to how
             // well it caches, which is the measurement that says whether the
             // cache was worth building at all.
@@ -262,17 +274,17 @@ public static class HistoryReportBuilder
             return series;
         }
 
-        private IEnumerable<RuleDuration> Slowest() => _ruleDurations
+        private List<RuleDuration> Slowest() => [.. _ruleDurations
             .Select(entry => new { entry.Key, Median = PercentileCalculator.P50(entry.Value) })
             .Where(entry => entry.Median is not null)
             .OrderByDescending(entry => entry.Median!.Value)
             .ThenBy(entry => entry.Key, StringComparer.Ordinal)
-            .Select(entry => new RuleDuration(entry.Key, entry.Median!.Value));
+            .Select(entry => new RuleDuration(entry.Key, entry.Median!.Value))];
 
-        private IEnumerable<RuleFailureCount> Failures() => _ruleFailures
+        private List<RuleFailureCount> Failures() => [.. _ruleFailures
             .OrderByDescending(entry => entry.Value)
             .ThenBy(entry => entry.Key, StringComparer.Ordinal)
-            .Select(entry => new RuleFailureCount(entry.Key, entry.Value));
+            .Select(entry => new RuleFailureCount(entry.Key, entry.Value))];
 
         /// <remarks>
         /// Build readiness only. A block at pre-submit saves a review round,

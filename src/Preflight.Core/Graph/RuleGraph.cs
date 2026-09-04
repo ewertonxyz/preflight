@@ -1,4 +1,4 @@
-namespace Preflight.Core;
+namespace Preflight.Core.Graph;
 
 using Preflight.Abstractions.Rules;
 using Preflight.Core.Policy;
@@ -17,10 +17,11 @@ using Preflight.Core.Policy;
 /// <see cref="Build"/> is always given the full discovered universe: every
 /// stage, enabled and disabled alike. Filtering before this point would make a
 /// dependency on a disabled rule indistinguishable from a dependency on a
-/// misspelled one — both would simply be "not in the set I was given" — and 4.4
-/// needs those to be different outcomes. It also means a cycle anywhere in the
-/// rule set is found on every run, not only on the run whose stage happens to
-/// reach it.
+/// misspelled one — both would simply be "not in the set I was given" — and
+/// those are different outcomes: one is a policy choice to report as a skip
+/// with a cause, the other a typo to refuse at load. It also means a cycle
+/// anywhere in the rule set is found on every run, not only on the run whose
+/// stage happens to reach it.
 /// </para>
 /// </remarks>
 public sealed class RuleGraph
@@ -71,7 +72,8 @@ public sealed class RuleGraph
 
     /// <summary>
     /// Every rule that depends on this one, directly or transitively, in
-    /// ordinal order. This is what the skip propagation of 7.3 walks.
+    /// ordinal order. This is what skip propagation walks when a gating rule
+    /// fails.
     /// </summary>
     public IReadOnlyList<RuleId> TransitiveDependentsOf(RuleId id) => Reachable(id, _dependents);
 
@@ -197,8 +199,9 @@ public sealed class RuleGraph
     /// Walks dependency edges from the ordinally-first surviving node until it
     /// revisits one, then returns the loop from that revisit onward. Kahn only
     /// tells you <em>which</em> nodes are stuck, never in what order they reach
-    /// each other — reconstructing the path is the second pass that 7.1's
-    /// "print the path, in order" requirement actually costs.
+    /// each other, so printing the path in order costs this second pass. It is
+    /// worth the pass: "cycle detected" over seven rules leaves whoever has to
+    /// break the cycle guessing which edge to cut.
     /// </remarks>
     private static IReadOnlyList<RuleId> FindCycle(Dictionary<RuleId, List<RuleId>> remaining)
     {

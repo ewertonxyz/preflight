@@ -13,8 +13,8 @@ using Preflight.Abstractions.Rules;
 /// <c>Preflight.Core.Tests</c> and therefore unreachable from
 /// <c>Preflight.Cli.Tests</c> — where the SARIF reporter and the DOT renderer
 /// live. Copying it would give the two projects their own idea of what a
-/// descriptor set looks like, which is the drift that moved
-/// <see cref="RunResultFixture"/> here in the history.
+/// descriptor set looks like, which is the same drift that put
+/// <see cref="RunResultFixture"/> here rather than beside one of them.
 /// </para>
 /// <para>
 /// Everything is keyed by <see cref="RuleId"/>, never by
@@ -51,7 +51,7 @@ public static class RuleDescriptorFixture
 
     /// <summary>
     /// The three descriptors of the run
-    /// <see cref="RunResultFixture.DocumentedExample"/> renders, in the order
+    /// <see cref="RunResultFixture.CanonicalExample"/> renders, in the order
     /// that run executes them.
     /// </summary>
     /// <remarks>
@@ -61,7 +61,7 @@ public static class RuleDescriptorFixture
     /// dependency is the one the run's skip attribution already claims:
     /// <c>compile-probe</c> was skipped because <c>configuration</c> failed.
     /// </remarks>
-    public static RuleDescriptor[] ForDocumentedExample() =>
+    public static RuleDescriptor[] ForCanonicalExample() =>
     [
         Documented("core.workspace.toolchain", "https://wiki/preflight/rules/toolchain"),
         Rule("core.build.configuration"),

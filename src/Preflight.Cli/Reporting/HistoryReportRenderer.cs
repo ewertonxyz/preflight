@@ -231,9 +231,11 @@ public sealed class HistoryReportRenderer
 
     /// <remarks>
     /// Every line here exists because leaving it out would let a number be read
-    /// as something it is not: a contrast run reports more failures by design,
-    /// a cancelled run has no duration worth averaging, and a line nobody could
-    /// read is a hole in the sample the reader is entitled to know the size of.
+    /// as something it is not: a contrast run reports more failures because
+    /// that is what it is for, a cancelled run has no duration worth averaging,
+    /// and a line nobody could read is a hole in the sample the reader is
+    /// entitled to know the size of. The wording below is contract — a golden
+    /// file holds those bytes — so change the note and the file together.
     /// </remarks>
     private static void WriteNotes(StringBuilder writer, HistoryReport report)
     {

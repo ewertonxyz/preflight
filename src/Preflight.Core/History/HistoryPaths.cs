@@ -27,9 +27,9 @@ public static class HistoryPaths
     /// <remarks>
     /// A relative <c>historyPath</c> resolves against the workspace root, never
     /// against the current directory. Resolved against the process directory, a
-    /// history would split according to where the agent happened to be standing
-    /// when it invoked the tool — and the report reads all of it back as one
-    /// series.
+    /// history would split according to which directory the caller happened to
+    /// be standing in when it invoked the tool — and the report reads all of it
+    /// back as one series.
     /// </remarks>
     public static string DirectoryFor(DirectoryInfo workspaceRoot, HistorySettings settings)
     {
@@ -49,7 +49,7 @@ public static class HistoryPaths
     /// write different months for the same instant, and <c>--since</c> stops
     /// lining up across the boundary.
     /// </remarks>
-    public static string FileNameFor(HistorySettings settings, EngineEnvironment machine, DateTimeOffset now)
+    public static string FileNameFor(HistorySettings settings, MachineEnvironment machine, DateTimeOffset now)
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(machine);

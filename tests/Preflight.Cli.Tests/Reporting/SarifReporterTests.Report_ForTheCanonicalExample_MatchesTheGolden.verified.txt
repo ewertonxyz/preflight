@@ -59,7 +59,7 @@
           "kind": "fail",
           "level": "error",
           "message": {
-            "text": "Missing platform configuration entry.\nexpected: a \u0022contentRoot\u0022 entry\nactual: key not present\nfix: add \u0022contentRoot\u0022 pointing to the packaged content folder"
+            "text": "Missing platform configuration entry.\nexpected: a \u0022contentRoot\u0022 entry\nactual: key not present\nfix: Add \u0022contentRoot\u0022 to the configuration, or ask the pipeline\u0027s author to drop it from \u0027requiredKeys\u0027."
           },
           "locations": [
             {

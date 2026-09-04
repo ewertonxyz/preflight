@@ -3,6 +3,7 @@ namespace Preflight.TestSupport;
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
 using Preflight.Core;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// Builds the runs the reporter and history tests render.
@@ -15,10 +16,11 @@ using Preflight.Core;
 /// exist until both are pinned.
 /// </para>
 /// <para>
-/// It moved here from <c>Cli.Tests</c> when <c>Core.Tests</c> gained a second
-/// reason to build a finished <c>RunResult</c>: the NDJSON record describes the
-/// same run the JSON reporter does, and two fixtures producing "the documented
-/// example" would be two examples.
+/// It lives here, and not beside the reporters, because two projects need a
+/// finished <c>RunResult</c>: the NDJSON record describes the same run the JSON
+/// reporter does. Two fixtures claiming to be the canonical example would be
+/// two examples, and the day they drifted apart neither golden file would say
+/// so.
 /// </para>
 /// <para>
 /// Still separate from <c>Core.Tests</c>' <c>RunFixture</c>. That one builds a
@@ -35,10 +37,20 @@ public static class RunResultFixture
         new(2026, 8, 26, 14, 30, 0, TimeSpan.Zero);
 
     /// <summary>
-    /// The documented run: one pass, one failure with a full finding, and one
+    /// The canonical run: one pass, one failure with a full finding, and one
     /// skip attributed to the failure.
     /// </summary>
-    public static RunResult DocumentedExample() => new()
+    /// <remarks>
+    /// The finding is a hand-written copy of the one
+    /// <c>core.build.configuration</c> reports for a configuration missing
+    /// <c>contentRoot</c>, and it is a copy on purpose: building it by running
+    /// the rule would tie every reporter golden to which rules happen to exist,
+    /// and the reporters are meant to work for rules nobody has written yet.
+    /// The cost of the copy is that it has to be carried by hand — that rule's
+    /// own test asserts the same four strings exactly, so it fails first and is
+    /// the notice to update this.
+    /// </remarks>
+    public static RunResult CanonicalExample() => new()
     {
         RunId = FixedRunId,
         StartedAt = FixedStart,
@@ -64,7 +76,9 @@ public static class RunResultFixture
                         Location = new FindingLocation("config/build/win64.json"),
                         Expected = "a \"contentRoot\" entry",
                         Actual = "key not present",
-                        Remediation = "add \"contentRoot\" pointing to the packaged content folder",
+                        Remediation =
+                            "Add \"contentRoot\" to the configuration, or ask the pipeline's " +
+                            "author to drop it from 'requiredKeys'.",
                     },
                 ],
             },
@@ -77,7 +91,7 @@ public static class RunResultFixture
     };
 
     public static RunResult With(params RuleExecution[] executions) =>
-        DocumentedExample() with { Executions = executions };
+        CanonicalExample() with { Executions = executions };
 
     public static RuleExecution Execution(string id, RuleStatus status, double seconds) => new()
     {

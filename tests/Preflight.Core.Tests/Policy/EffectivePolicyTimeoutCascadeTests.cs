@@ -208,7 +208,7 @@ public sealed class EffectivePolicyTimeoutCascadeTests
     }
 
     [Fact]
-    public void Build_WhenOnlyTheRulesOwnValueIsSet_TheRootDefaultStaysAtItsEngineDefault()
+    public void Build_WhenOnlyTheRulesOwnValueIsSet_TheRootDefaultStaysAtItsToolDefault()
     {
         var production = PolicyDocument.Parse("""
             { "schemaVersion": 1, "rules": { "core.build.compile-probe": { "timeoutSeconds": 120 } } }
@@ -218,6 +218,6 @@ public sealed class EffectivePolicyTimeoutCascadeTests
 
         policy.RuleValue<long>(SlowRule.Id, "timeoutSeconds").Value.ShouldBe(120L);
         policy.RootValue<long>("defaultTimeoutSeconds").Value.ShouldBe(60L);
-        policy.RootValue<long>("defaultTimeoutSeconds").Origin.ShouldBeOfType<PolicyOrigin.EngineDefault>();
+        policy.RootValue<long>("defaultTimeoutSeconds").Origin.ShouldBeOfType<PolicyOrigin.ToolDefault>();
     }
 }

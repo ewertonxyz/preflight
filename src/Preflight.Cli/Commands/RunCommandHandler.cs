@@ -8,6 +8,8 @@ using Preflight.Cli.Pipelines;
 using Preflight.Cli.Policy;
 using Preflight.Cli.Reporting;
 using Preflight.Core;
+using Preflight.Core.Changes;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// <c>preflight run</c>.
@@ -68,7 +70,7 @@ public static class RunCommandHandler
                     RunId = options.RunId,
 
                     // --no-cache is expressed by there being no cache, not by a
-                    // flag the engine has to remember to honour.
+                    // flag the tool has to remember to honour.
                     Cache = options.NoCache ? null : environment.Cache,
                 },
                 cancellationToken);

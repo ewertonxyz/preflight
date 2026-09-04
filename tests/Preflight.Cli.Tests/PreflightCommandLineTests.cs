@@ -4,6 +4,7 @@ using Preflight.Abstractions.Model;
 using Preflight.Cli.Model;
 using Preflight.Cli.Parsing;
 using Preflight.Core;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// Fixes the command surface and the refusals it makes.
@@ -36,8 +37,8 @@ public sealed class PreflightCommandLineTests
     /// <remarks>
     /// The exact set, in order, rather than a containment check per name. The
     /// first version of this test asserted four <c>ShouldContain</c>s and would
-    /// have stayed green with two commands missing — which is what it looked
-    /// like when the history added two and nothing failed. A set comparison is the
+    /// have stayed green with two commands missing — which is exactly what
+    /// happened the last time the command surface grew. A set comparison is the
     /// only shape of this assertion that notices either direction.
     /// </remarks>
     [Fact]
@@ -266,7 +267,7 @@ public sealed class PreflightCommandLineTests
     /// Exit 2 here would mean the parser rejected it; anything else means it was
     /// understood. The run itself is a workspace with nothing in it, so the
     /// interesting part is the parse rather than the verdict — what the flag
-    /// then does to the engine is asserted where the engine is, in
+    /// then does to the tool is asserted where the tool is, in
     /// <c>RunCacheTests</c>.
     /// </remarks>
     [Fact]
@@ -344,7 +345,7 @@ public sealed class PreflightCommandLineTests
             // A child that cannot start, on purpose: with a target the policy
             // now resolves cleanly, so measure would really launch what it is
             // given — and an interactive shell waits forever. 127 is the
-            // documented answer for "the command does not exist", and it is not
+            // conventional answer for "the command does not exist", and it is not
             // 2, which is what this asserts.
             ["measure", "--label", "x", flag, "ps5", "--", "preflight-no-such-child"],
             ["report", "--since", "7d", flag, "ps5"],

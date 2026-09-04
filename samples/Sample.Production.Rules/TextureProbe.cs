@@ -4,18 +4,13 @@ using System.Buffers.Binary;
 using Preflight.Abstractions.Services;
 
 /// <summary>
-/// The pixel dimensions of a texture.
-/// </summary>
-public sealed record TextureSize(int Width, int Height);
-
-/// <summary>
 /// Decides what counts as a texture, and reads how big one is.
 /// </summary>
 /// <remarks>
 /// <para>
 /// The part of a production rule that is about the production's own file
 /// formats rather than about Preflight. It is separate from the rule for the
-/// reason every rule in this repository is separate from the engine: the rule
+/// reason every rule in this repository is separate from the tool: the rule
 /// then has one thing to test — the policy limit and the verdict — and this has
 /// one thing to test, which is bytes.
 /// </para>
@@ -58,10 +53,10 @@ public static class TextureProbe
     /// <see langword="null"/> if they cannot be read.
     /// </summary>
     /// <remarks>
-    /// Through <see cref="IFileSystem"/>, never <c>File.OpenRead</c>. Section
-    /// 11.3 lists that as one of the three things the example is really
-    /// teaching: it is what makes the rule unit-testable, and it is the only
-    /// access a rule is given.
+    /// Through <see cref="IFileSystem"/>, never <c>File.OpenRead</c>. It is the
+    /// only access a rule is given, and it is what makes this one testable
+    /// without a texture on disk — which is most of what this example exists to
+    /// show a plugin author.
     /// </remarks>
     public static async Task<TextureSize?> TryReadDimensionsAsync(
         IFileSystem fileSystem,

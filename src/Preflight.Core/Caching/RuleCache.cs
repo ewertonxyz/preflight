@@ -2,10 +2,11 @@ namespace Preflight.Core.Caching;
 
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
+using Preflight.Core.History;
 using Preflight.Core.Policy;
 
 /// <summary>
-/// The incremental cache, from the engine's side.
+/// The incremental cache, from the core's side.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -41,7 +42,7 @@ public sealed class RuleCache
     /// <remarks>
     /// A rule that exploded has to explode again. Caching a crash hides an
     /// unstable environment and turns an intermittent problem into a permanent,
-    /// wrong result — and <c>Skipped</c> is produced by the engine rather than
+    /// wrong result — and <c>Skipped</c> is produced by the tool rather than
     /// by a rule, so an entry claiming one was not written by this code and is
     /// not to be trusted.
     /// </remarks>
@@ -63,7 +64,13 @@ public sealed class RuleCache
     {
         ArgumentNullException.ThrowIfNull(workspaceRoot);
 
-        RequireSafeToEmpty(workspaceRoot, _directory);
+        // The history location comes from the same resolved policy the cache
+        // location came from, so the two can never be compared against
+        // different runs' configuration.
+        RequireSafeToEmpty(
+            workspaceRoot,
+            _directory,
+            HistoryPaths.DirectoryFor(workspaceRoot, HistorySettings.From(_policy)));
 
         return _store.Clear(_directory);
     }
@@ -82,27 +89,71 @@ public sealed class RuleCache
     /// </para>
     /// <para>
     /// The check is on the resolved path, not on the string, so <c>"a/.."</c>
-    /// and <c>"."</c> are the same refusal. It refuses the workspace root and
-    /// anything above it, and it refuses a path that would take the history
-    /// down with it — the two directories are siblings under <c>.preflight</c>
-    /// by default, and losing the history is a real cost rather than an
-    /// inconvenience.
+    /// and <c>"."</c> are the same refusal.
+    /// </para>
+    /// <para>
+    /// Two things must survive <see cref="Clear"/>, and each gets its own
+    /// refusal because the remedies differ. The workspace is the obvious one.
+    /// The history is the one that hid: <c>"cachePath": ".preflight"</c>
+    /// resolves to the parent of the default history directory, and before
+    /// this refusal existed it was accepted — the history survived only because
+    /// <see cref="Clear"/> matches the cache's own extension and a history file
+    /// carries a different one. That was a coincidence of two constants, not a
+    /// guarantee, and it would have ended the day either one changed.
+    /// </para>
+    /// <para>
+    /// Only containment in that direction is refused. A history directory that
+    /// contains the cache — <c>historyPath</c> at <c>.preflight</c> and
+    /// <c>cachePath</c> at <c>.preflight/cache</c> — is the ordinary layout and
+    /// loses nothing, because emptying the cache never walks upwards.
     /// </para>
     /// </remarks>
-    public static void RequireSafeToEmpty(DirectoryInfo workspaceRoot, string directory)
+    /// <param name="workspaceRoot">The workspace the run is validating.</param>
+    /// <param name="directory">The resolved <c>cachePath</c>, the directory that would be emptied.</param>
+    /// <param name="historyDirectory">The resolved <c>historyPath</c>, which must not be inside it.</param>
+    public static void RequireSafeToEmpty(
+        DirectoryInfo workspaceRoot,
+        string directory,
+        string historyDirectory)
     {
         ArgumentNullException.ThrowIfNull(workspaceRoot);
         ArgumentNullException.ThrowIfNull(directory);
+        ArgumentNullException.ThrowIfNull(historyDirectory);
 
-        var resolved = Path.TrimEndingDirectorySeparator(Path.GetFullPath(directory));
-        var root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(workspaceRoot.FullName));
+        var resolved = Resolve(directory);
 
-        if (string.Equals(resolved, root, StringComparison.OrdinalIgnoreCase) ||
-            root.StartsWith(resolved + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+        RequireDoesNotContain(
+            resolved,
+            Resolve(workspaceRoot.FullName),
+            "the workspace",
+            "point it at a directory of its own");
+
+        RequireDoesNotContain(
+            resolved,
+            Resolve(historyDirectory),
+            $"the history from '{HistorySettings.PathKey}'",
+            "give the cache and the history separate directories");
+    }
+
+    private static string Resolve(string path) =>
+        Path.TrimEndingDirectorySeparator(Path.GetFullPath(path));
+
+    /// <summary>
+    /// Refuses when <paramref name="candidate"/> is <paramref name="protectedPath"/>
+    /// or holds it somewhere below.
+    /// </summary>
+    private static void RequireDoesNotContain(
+        string candidate,
+        string protectedPath,
+        string description,
+        string remedy)
+    {
+        if (string.Equals(candidate, protectedPath, StringComparison.OrdinalIgnoreCase) ||
+            protectedPath.StartsWith(candidate + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
         {
             throw new UnsafeCachePathException(
-                $"'{CacheSettings.PathKey}' resolves to '{resolved}', which contains the workspace. " +
-                "Refusing to empty it: point it at a directory of its own.");
+                $"'{CacheSettings.PathKey}' resolves to '{candidate}', which contains {description}. " +
+                $"Refusing to empty it: {remedy}.");
         }
     }
 
@@ -159,7 +210,7 @@ public sealed class RuleCache
         // sources at --platform ps5 can legitimately produce a different answer
         // from the same sources at win64 — and a rule author who forgets to fold
         // them into the fingerprint gets a wrong result rather than a lost hit.
-        // The engine knows both for certain; the rule only might.
+        // The tool knows both for certain; the rule only might.
         //
         // The module id of the rule's own assembly closes the last gap, and it
         // is the one a plugin opens: a rule whose code changed is a different

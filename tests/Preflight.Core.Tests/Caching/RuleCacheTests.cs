@@ -3,11 +3,12 @@ namespace Preflight.Core.Tests.Caching;
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
 using Preflight.Core.Caching;
+using Preflight.Core.History;
 using Preflight.Core.Tests.Execution;
 using static Preflight.Core.Tests.Caching.CacheFixture;
 
 /// <summary>
-/// The engine's side of the incremental cache: when there is a key, and what may be
+/// The core's side of the incremental cache: when there is a key, and what may be
 /// stored under it.
 /// </summary>
 /// <remarks>
@@ -246,12 +247,38 @@ public sealed class RuleCacheTests
     public void RequireSafeToEmpty_ForAPathThatContainsTheWorkspace_Refuses(string relative) =>
         Should.Throw<UnsafeCachePathException>(() => RuleCache.RequireSafeToEmpty(
                 Workspace,
-                Path.Combine(Workspace.FullName, relative)))
+                Path.Combine(Workspace.FullName, relative),
+                History))
             .Message.ShouldContain(CacheSettings.PathKey);
 
+    /// <summary>
+    /// A cache path that would take the run history with it is refused.
+    /// </summary>
     /// <remarks>
-    /// The ordinary shapes stay allowed: the default, a nested one, and the
-    /// rooted path the history format's network-share escape needs.
+    /// The refusal that was documented before it existed. <c>.preflight</c> is
+    /// the parent of the default history directory and does not contain the
+    /// workspace, so the first check lets it through; the history survived only
+    /// because clearing matches the cache's extension and a history file
+    /// carries a different one. A coincidence of two constants is not a
+    /// guarantee, and losing a month of instrumentation to a cache command is
+    /// not a mistake anybody gets to make twice.
+    /// </remarks>
+    [Theory]
+    [InlineData(".preflight")]
+    [InlineData(".preflight/history")]
+    [InlineData(".preflight/history/..")]
+    public void RequireSafeToEmpty_ForAPathThatContainsTheHistory_Refuses(string relative) =>
+        Should.Throw<UnsafeCachePathException>(() => RuleCache.RequireSafeToEmpty(
+                Workspace,
+                Path.Combine(Workspace.FullName, relative),
+                History))
+            .Message.ShouldContain(HistorySettings.PathKey);
+
+    /// <remarks>
+    /// The ordinary shapes stay allowed: the default, which sits beside the
+    /// history rather than above it, and one somewhere else entirely. Only
+    /// containment downwards is refused — a history directory that contains the
+    /// cache loses nothing, because emptying the cache never walks upwards.
     /// </remarks>
     [Theory]
     [InlineData(".preflight/cache")]
@@ -259,7 +286,8 @@ public sealed class RuleCacheTests
     public void RequireSafeToEmpty_ForADirectoryOfItsOwn_Allows(string relative) =>
         Should.NotThrow(() => RuleCache.RequireSafeToEmpty(
             Workspace,
-            Path.Combine(Workspace.FullName, relative)));
+            Path.Combine(Workspace.FullName, relative),
+            History));
 
     [Theory]
     [InlineData(RuleStatus.Passed, true)]

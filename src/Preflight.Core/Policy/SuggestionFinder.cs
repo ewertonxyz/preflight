@@ -18,6 +18,9 @@ public static class SuggestionFinder
 {
     public static IReadOnlyList<string> FindClosest(string input, IEnumerable<string> candidates)
     {
+        ArgumentNullException.ThrowIfNull(input);
+        ArgumentNullException.ThrowIfNull(candidates);
+
         var threshold = Math.Max(3, (int)Math.Ceiling(input.Length / 2.0));
 
         var scored = candidates

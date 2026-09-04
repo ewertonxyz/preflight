@@ -2,6 +2,7 @@ namespace Preflight.Core.History;
 
 using System.Text;
 using System.Text.Json;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// Turns one event into the single line the NDJSON history holds.
@@ -13,8 +14,9 @@ using System.Text.Json;
 /// characters of anything. Today the two coincide, because the default
 /// serialiser escapes everything outside ASCII; they stop coinciding the moment
 /// somebody relaxes the encoder, and a limit that quietly became a character
-/// limit is how a line ends up over the byte limit that the third row calls
-/// unsafe.
+/// limit is how a line ends up longer than the size a single append can be
+/// relied on to write without another process interleaving into the middle of
+/// it.
 /// </para>
 /// <para>
 /// Measuring the serialised form has a second consequence worth stating: an
@@ -24,8 +26,9 @@ using System.Text.Json;
 /// the right thing rather than needing a rule of its own.
 /// </para>
 /// <para>
-/// The record is also one line by construction, not by hope. Every string in it
-/// goes through <see cref="JsonSerializer"/>, whose default encoder escapes
+/// The record is also one line as a matter of mechanism, not of hope. Every
+/// string in it goes through <see cref="JsonSerializer"/>, whose default
+/// encoder escapes
 /// control characters and everything outside ASCII — so a finding message
 /// containing a newline, a carriage return or U+2028 cannot split the record in
 /// two. That is the second way an append-only format loses data, and unlike the
@@ -43,6 +46,8 @@ public static class HistoryLine
     /// </summary>
     public static string ForRun(RunResult result)
     {
+        ArgumentNullException.ThrowIfNull(result);
+
         var full = JsonSerializer.Serialize(RunEventDocument.For(result), RunEventDocument.SingleLine);
 
         return Encoding.UTF8.GetByteCount(full) <= MaxBytes
@@ -57,6 +62,10 @@ public static class HistoryLine
     /// No cap, because there is nothing here that grows: a label, two instants
     /// and a command line. The 64 KB limit exists for a finding list.
     /// </remarks>
-    public static string ForExternal(ExternalMeasurement measurement) =>
-        JsonSerializer.Serialize(ExternalEventDocument.For(measurement), RunEventDocument.SingleLine);
+    public static string ForExternal(ExternalMeasurement measurement)
+    {
+        ArgumentNullException.ThrowIfNull(measurement);
+
+        return JsonSerializer.Serialize(ExternalEventDocument.For(measurement), RunEventDocument.SingleLine);
+    }
 }

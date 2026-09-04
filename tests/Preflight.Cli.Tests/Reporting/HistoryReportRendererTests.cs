@@ -23,23 +23,23 @@ public sealed class HistoryReportRendererTests
     /// The whole screen the report draws.
     /// </summary>
     [Fact]
-    public Task Report_ForTheDocumentedExample_MatchesTheGolden() =>
-        Verify(Render(HistoryReportFixture.DocumentedExample()));
+    public Task Report_ForTheCanonicalExample_MatchesTheGolden() =>
+        Verify(Render(HistoryReportFixture.CanonicalExample()));
 
     /// <summary>
     /// A suppressed percentile prints a dash and the reason for it.
     /// </summary>
     /// <remarks>
-    /// The documented example already contains the interesting case, and it is
+    /// The canonical example already contains the interesting case, and it is
     /// interesting because both halves appear on one line: the build series has
     /// enough observations for a p50 and not for a p95. A gate applied to the
     /// whole series rather than to each percentile would pass a test with one
-    /// series and be wrong on the example the design document draws.
+    /// series and be wrong on the canonical one.
     /// </remarks>
     [Fact]
     public void Report_WithASeriesBelowTheP95Minimum_PrintsTheDashAndWhatIsMissing()
     {
-        var text = Render(HistoryReportFixture.DocumentedExample());
+        var text = Render(HistoryReportFixture.CanonicalExample());
 
         text.ShouldContain("p50  38m02s");
         text.ShouldContain("(n=27, measured; p95 needs n>=50)");
@@ -55,7 +55,7 @@ public sealed class HistoryReportRendererTests
     /// </remarks>
     [Fact]
     public Task Report_WithoutAMeasuredBuild_OmitsTheUpperBoundAndSaysWhat_IsMissing() =>
-        Verify(Render(HistoryReportFixture.DocumentedExample() with
+        Verify(Render(HistoryReportFixture.CanonicalExample() with
         {
             Measured = [],
             UpperBoundNotSpent = null,
@@ -75,7 +75,7 @@ public sealed class HistoryReportRendererTests
     /// </summary>
     [Fact]
     public Task Report_WithEverythingWorthACaveat_PrintsAllOfThem() =>
-        Verify(Render(HistoryReportFixture.DocumentedExample() with
+        Verify(Render(HistoryReportFixture.CanonicalExample() with
         {
             ErroredCount = 3,
             RunCount = 145,
@@ -101,7 +101,7 @@ public sealed class HistoryReportRendererTests
     [Fact]
     public void Report_WithTheAsciiVariant_ContainsNothingOutsideAscii()
     {
-        var text = Render(HistoryReportFixture.DocumentedExample(), GlyphSet.Ascii);
+        var text = Render(HistoryReportFixture.CanonicalExample(), GlyphSet.Ascii);
 
         text.ShouldAllBe(character => character < 128);
     }
@@ -118,7 +118,7 @@ public sealed class HistoryReportRendererTests
     [Fact]
     public void Report_ForAMeasuredLabelThatIsEmpty_StillRenders()
     {
-        var text = Render(HistoryReportFixture.DocumentedExample() with
+        var text = Render(HistoryReportFixture.CanonicalExample() with
         {
             Measured = [new MeasuredSeries(string.Empty, new DurationSummary(5, TimeSpan.FromSeconds(60), null))],
         });

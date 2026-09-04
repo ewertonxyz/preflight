@@ -8,6 +8,9 @@ public static class LevenshteinDistance
 {
     public static int Compute(string a, string b)
     {
+        ArgumentNullException.ThrowIfNull(a);
+        ArgumentNullException.ThrowIfNull(b);
+
         var previousRow = new int[b.Length + 1];
         var currentRow = new int[b.Length + 1];
 

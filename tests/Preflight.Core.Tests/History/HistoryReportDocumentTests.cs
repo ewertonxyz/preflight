@@ -11,7 +11,7 @@ using Preflight.TestSupport;
 /// <remarks>
 /// Here rather than in <c>Cli.Tests</c> because the document lives in
 /// <c>Preflight.Core</c>: it is data, not rendering, and the project layering keeps
-/// output formatting out of the engine. The renderer that writes it lives in the
+/// output formatting out of the tool. The renderer that writes it lives in the
 /// CLI, and the architecture guard depends on that separation holding.
 /// </remarks>
 public sealed class HistoryReportDocumentTests
@@ -33,7 +33,7 @@ public sealed class HistoryReportDocumentTests
     [Fact]
     public void For_SerialisedWithTheRunEventOptions_WritesCamelCaseAndEnumNames()
     {
-        var json = Serialise(HistoryReportFixture.DocumentedExample());
+        var json = Serialise(HistoryReportFixture.CanonicalExample());
 
         json.ShouldContain("\"runCount\"");
         json.ShouldContain("\"stage\": \"BuildReadiness\"");
@@ -51,14 +51,14 @@ public sealed class HistoryReportDocumentTests
     /// <remarks>
     /// The honesty about an absent number, and it matters more here than on the
     /// screen: zero is a claim, "I did not measure" is not zero, and a machine
-    /// consumer sums the zero without ever reading it. The documented example
+    /// consumer sums the zero without ever reading it. The canonical example
     /// already carries the interesting case — the build series has enough
     /// observations for a p50 and not for a p95.
     /// </remarks>
     [Fact]
     public void For_WithAP95TheSampleCannotSupport_OmitsItRatherThanWritingZero()
     {
-        var json = Serialise(HistoryReportFixture.DocumentedExample());
+        var json = Serialise(HistoryReportFixture.CanonicalExample());
 
         var measured = JsonDocument.Parse(json).RootElement.GetProperty("measured")[0];
 
@@ -76,7 +76,7 @@ public sealed class HistoryReportDocumentTests
     [Fact]
     public void For_WritesEveryDurationAsMilliseconds()
     {
-        var json = Serialise(HistoryReportFixture.DocumentedExample());
+        var json = Serialise(HistoryReportFixture.CanonicalExample());
         var root = JsonDocument.Parse(json).RootElement;
 
         root.GetProperty("preflightDuration").GetProperty("p50Ms").GetInt64().ShouldBe(18400);
@@ -108,7 +108,7 @@ public sealed class HistoryReportDocumentTests
     [Fact]
     public void For_WritesErroredAsItsOwnCountSoTheBreakdownClosesWithTheTotal()
     {
-        var json = Serialise(HistoryReportFixture.DocumentedExample() with
+        var json = Serialise(HistoryReportFixture.CanonicalExample() with
         {
             ErroredCount = 3,
             RunCount = 145,
@@ -127,14 +127,14 @@ public sealed class HistoryReportDocumentTests
     }
 
     /// <remarks>
-    /// Publishing percentiles over an unknown fraction of the sample is
-    /// principle 7 pointed at the instrumentation. The counts are how a machine
+    /// Publishing percentiles over an unknown fraction of the sample is a
+    /// measurement dressed as a fact. The counts are how a machine
     /// consumer discovers the fraction it did not get.
     /// </remarks>
     [Fact]
     public void For_WritesTheUnreadableAndIgnoredLineCounts()
     {
-        var json = Serialise(HistoryReportFixture.DocumentedExample() with
+        var json = Serialise(HistoryReportFixture.CanonicalExample() with
         {
             UnreadableLineCount = 3,
             IgnoredLineCount = 1,
@@ -148,14 +148,15 @@ public sealed class HistoryReportDocumentTests
 
     /// <remarks>
     /// A cancelled run counts towards the verdicts and stays out of the
-    /// percentiles; a <c>--no-skip</c> run reports more failures by design.
+    /// percentiles; a <c>--no-skip</c> run reports more failures because that is
+    /// what it is for.
     /// The flag is recorded on every run so that a report can say it was in
     /// force, and a reader who cannot see it cannot explain the number.
     /// </remarks>
     [Fact]
     public void For_WritesThePartialRunCountAndTheContrastRunCount()
     {
-        var json = Serialise(HistoryReportFixture.DocumentedExample() with
+        var json = Serialise(HistoryReportFixture.CanonicalExample() with
         {
             PartialRunCount = 2,
             ContrastRunCount = 9,

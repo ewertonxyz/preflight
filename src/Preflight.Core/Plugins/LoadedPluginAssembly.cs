@@ -6,7 +6,7 @@ namespace Preflight.Core.Plugins;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The seam between "an assembly was opened" and "these rules exist".
+/// The boundary between "an assembly was opened" and "these rules exist".
 /// Reflection over a real file is the one part of plugin loading that cannot be
 /// exercised without a real file, so it is kept behind
 /// <see cref="IAssemblyLoader"/> and reduced to this record — three facts, all of
@@ -18,7 +18,7 @@ namespace Preflight.Core.Plugins;
 /// <see cref="Types"/> is every type the assembly declares, not the rules among
 /// them. Filtering here would hide one of the most irritating bugs in .NET
 /// plugin systems: a type that <em>says</em> it implements
-/// <c>IValidationRule</c> and is not assignable to the one this engine knows. A
+/// <c>IValidationRule</c> and is not assignable to the one this tool knows. A
 /// pre-filtered list cannot tell that apart from an assembly with no rules in
 /// it.
 /// </para>

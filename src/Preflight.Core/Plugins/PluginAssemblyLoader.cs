@@ -5,23 +5,6 @@ using System.Reflection;
 using System.Runtime.Loader;
 
 /// <summary>
-/// Thrown when a file in a plugin directory will not open as an assembly.
-/// </summary>
-/// <remarks>
-/// A <see cref="ConfigurationLoadException"/> so that an instance escaping the
-/// accumulation in <see cref="PluginLoader"/> still reaches exit 2 rather than
-/// exit 3. That difference decides who gets called, and a broken DLL is the
-/// tool owner's problem down either path.
-/// </remarks>
-public sealed class PluginAssemblyUnreadableException : ConfigurationLoadException
-{
-    public PluginAssemblyUnreadableException(string message)
-        : base(message)
-    {
-    }
-}
-
-/// <summary>
 /// Loads each plugin assembly into a collectible context of its own.
 /// </summary>
 /// <remarks>
@@ -34,7 +17,7 @@ public sealed class PluginAssemblyUnreadableException : ConfigurationLoadExcepti
 /// <para>
 /// The delegation is the whole point and the reason this class exists at all.
 /// Without it, the <c>IValidationRule</c> a plugin implements is a different
-/// type from the one the engine knows, <c>IsAssignableFrom</c> is false, and
+/// type from the one the tool knows, <c>IsAssignableFrom</c> is false, and
 /// the rule is discarded in silence. It is one of the most irritating bugs in
 /// .NET plugin systems, and the reason it is irritating is that everything
 /// looks fine.
@@ -144,7 +127,7 @@ public sealed class PluginAssemblyLoader : IAssemblyLoader
     /// abort-on-failure rule exists to prevent.
     /// </para>
     /// <para>
-    /// Excluded from coverage, and this is the phase's only exclusion. Reaching
+    /// Excluded from coverage rather than tested into the green. Reaching
     /// the catch needs an assembly whose transitive dependency is absent from
     /// the machine, and every way to obtain one is worse than the branch:
     /// committing a deliberately broken binary puts an unreviewable file in the
@@ -153,7 +136,7 @@ public sealed class PluginAssemblyLoader : IAssemblyLoader
     /// What this code decides — that an unreadable assembly is exit 2, named,
     /// and never a partial load — is asserted through
     /// <see cref="IAssemblyLoader"/> in <c>PluginLoaderTests</c>, which is the
-    /// seam that exists for it.
+    /// substitution point that exists for it.
     /// </para>
     /// </remarks>
     [ExcludeFromCodeCoverage]

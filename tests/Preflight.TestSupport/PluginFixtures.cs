@@ -103,7 +103,7 @@ public static class PluginFixtures
 
     /// <summary>
     /// A type that implements an <c>IValidationRule</c> which is not this
-    /// engine's.
+    /// tool's.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -117,7 +117,7 @@ public static class PluginFixtures
     /// </para>
     /// <para>
     /// What comes back is exactly what a broken plugin loader would hand the
-    /// engine: a type whose <c>GetInterfaces</c> names
+    /// tool: a type whose <c>GetInterfaces</c> names
     /// <c>Preflight.Abstractions.Rules.IValidationRule</c> and which
     /// <c>IsAssignableFrom</c> rejects. It is built from
     /// <c>Preflight.Rules.dll</c> rather than from the sample so that this

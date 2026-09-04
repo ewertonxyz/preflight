@@ -4,60 +4,12 @@ using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
 
 /// <summary>
-/// A percentile pair over one series, together with the sample it came from.
-/// </summary>
-/// <remarks>
-/// The sample size travels with the numbers rather than being recomputed by
-/// whoever renders them. The report prints <c>(n=142)</c> next to every
-/// percentile precisely so the number cannot be quoted without it.
-/// </remarks>
-/// <param name="SampleSize">How many observations there were.</param>
-/// <param name="P50">The median, or <see langword="null"/> below five observations.</param>
-/// <param name="P95">The 95th, or <see langword="null"/> below fifty.</param>
-public sealed record DurationSummary(int SampleSize, TimeSpan? P50, TimeSpan? P95)
-{
-    /// <summary>An empty series.</summary>
-    public static DurationSummary Empty { get; } = new(0, null, null);
-
-    /// <summary>
-    /// The summary of <paramref name="sample"/>, with the sample-size minimums
-    /// applied.
-    /// </summary>
-    public static DurationSummary Of(IReadOnlyList<TimeSpan> sample)
-    {
-        ArgumentNullException.ThrowIfNull(sample);
-
-        return new DurationSummary(sample.Count, PercentileCalculator.P50(sample), PercentileCalculator.P95(sample));
-    }
-}
-
-/// <summary>One measured label and how long it took.</summary>
-/// <param name="Label">The <c>--label</c> the measurement was filed under.</param>
-/// <param name="Duration">Its percentiles.</param>
-public sealed record MeasuredSeries(string Label, DurationSummary Duration);
-
-/// <summary>How many runs one stage blocked.</summary>
-/// <param name="Stage">The stage.</param>
-/// <param name="Count">How many of its runs ended <c>Blocked</c> on their own merits.</param>
-public sealed record StageBlockCount(ValidationStage Stage, int Count);
-
-/// <summary>One rule's median duration.</summary>
-/// <param name="RuleId">The rule.</param>
-/// <param name="P50">Its median.</param>
-public sealed record RuleDuration(string RuleId, TimeSpan P50);
-
-/// <summary>How often one rule failed.</summary>
-/// <param name="RuleId">The rule.</param>
-/// <param name="Count">How many executions ended <c>Failed</c> or <c>Errored</c>.</param>
-public sealed record RuleFailureCount(string RuleId, int Count);
-
-/// <summary>
 /// Everything <c>preflight report</c> prints, computed and not yet formatted.
 /// </summary>
 /// <remarks>
-/// Data first, text second. <c>report</c> originally had no
-/// <c>--format json</c> today, and the surest way to make one impossible later
-/// is to build the screen directly and leave the numbers unreachable except by
+/// Data first, text second. <c>report</c> shipped before it had a
+/// <c>--format json</c>, and the surest way to make one impossible later is to
+/// build the screen directly and leave the numbers unreachable except by
 /// re-parsing it.
 /// </remarks>
 public sealed record HistoryReport
@@ -113,8 +65,8 @@ public sealed record HistoryReport
     /// </summary>
     /// <remarks>
     /// The flag is recorded on every run for this line. A contrast run reports
-    /// more failures by design, and a thirty-day report that cannot tell it
-    /// apart inflates the failure count.
+    /// more failures because that is what it is for, and a thirty-day report
+    /// that cannot tell it apart inflates the failure count.
     /// </remarks>
     public required int ContrastRunCount { get; init; }
 
@@ -152,9 +104,9 @@ public sealed record HistoryReport
     /// </summary>
     /// <remarks>
     /// <see langword="null"/> when there is no median build duration to
-    /// multiply by. The assumption paragraph is part of the design rather than
-    /// a footnote, and a ceiling computed from a number that does not exist is
-    /// the fiction the paragraph exists to prevent.
+    /// multiply by. The number is a ceiling under a stated assumption, never a
+    /// saving, and computing it from a median that does not exist would turn a
+    /// bounded claim into an invented one.
     /// </remarks>
     public required TimeSpan? UpperBoundNotSpent { get; init; }
 }

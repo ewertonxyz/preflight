@@ -11,6 +11,7 @@ using Preflight.Cli.Services;
 using Preflight.Cli.Storage;
 using Preflight.Core;
 using Preflight.Core.Caching;
+using Preflight.Core.Execution;
 using Preflight.Core.History;
 using Preflight.Core.Plugins;
 using Preflight.Core.Policy;
@@ -54,7 +55,7 @@ public static class CommandEnvironments
         new(() => Directory.CreateTempSubdirectory("preflight-install-root-"));
 
     /// <summary>The machine the history file names are asserted against.</summary>
-    public static EngineEnvironment Machine { get; } = new()
+    public static MachineEnvironment Machine { get; } = new()
     {
         ProcessorCount = 8,
         MachineName = "WKS-1234",

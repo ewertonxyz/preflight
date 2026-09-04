@@ -17,7 +17,7 @@ using Preflight.Core.Policy;
 /// </para>
 /// <para>
 /// The cost of that choice is that a variant added later compiles cleanly and
-/// renders as <c>engine default</c> — no error, no failing test, and a wrong
+/// renders as <c>tool default</c> — no error, no failing test, and a wrong
 /// answer on the only screen that exists to give the right one. This test is
 /// what pays that cost: it enumerates the hierarchy by reflection, so the
 /// variant after <c>FromTarget</c> fails here rather than lying in production.
@@ -37,7 +37,7 @@ public sealed class InspectionCommandHandlersTests
         new PolicyOrigin.FromTarget("switch2", new PolicyOrigin.FromFile("projectc.json", 12)),
         new PolicyOrigin.FromPackage("projecta", "1.4.0", new PolicyOrigin.FromFile("acme.json", 8)),
         new PolicyOrigin.DescriptorDefault(),
-        new PolicyOrigin.EngineDefault(),
+        new PolicyOrigin.ToolDefault(),
     ];
 
     private static IReadOnlyList<Type> DeclaredVariants() =>
@@ -60,11 +60,11 @@ public sealed class InspectionCommandHandlersTests
                 string.CompareOrdinal(left.Name, right.Name))));
 
     /// <summary>
-    /// Only <c>EngineDefault</c> renders as an engine default.
+    /// Only <c>ToolDefault</c> renders as a tool default.
     /// </summary>
     /// <remarks>
     /// The assertion that catches the discard swallowing a new variant: any
-    /// origin that is not an engine default and reads as one is reporting a
+    /// origin that is not a tool default and reads as one is reporting a
     /// value's source as somewhere it did not come from.
     /// </remarks>
     [Fact]
@@ -77,9 +77,9 @@ public sealed class InspectionCommandHandlersTests
         {
             text.ShouldNotBeNullOrWhiteSpace($"{name} renders as nothing.");
 
-            if (name != nameof(PolicyOrigin.EngineDefault))
+            if (name != nameof(PolicyOrigin.ToolDefault))
             {
-                text.ShouldNotBe("engine default", $"{name} is being swallowed by the discard.");
+                text.ShouldNotBe("tool default", $"{name} is being swallowed by the discard.");
             }
         }
 

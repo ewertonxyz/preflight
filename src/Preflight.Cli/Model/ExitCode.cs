@@ -1,6 +1,7 @@
 namespace Preflight.Cli.Model;
 
 using Preflight.Core;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// Every exit code this tool produces, and the only place that decides which

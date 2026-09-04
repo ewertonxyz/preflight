@@ -175,7 +175,7 @@ public sealed partial class ToolchainRule : IValidationRule
         catch (OperationCanceledException)
         {
             // Not swallowed. A timeout is Errored — a defect in the rule or in
-            // the environment, and the engine's verdict to give. A rule that
+            // the environment, and the tool's verdict to give. A rule that
             // caught its own cancellation would report Failed instead, telling
             // the reader the workspace is broken when what happened is that the
             // tool ran past a deadline.
@@ -227,7 +227,7 @@ public sealed partial class ToolchainRule : IValidationRule
             Message = $"'{tool.Name}' is outside the accepted version range.",
             Expected = Describe(minimum, maximum),
             Actual = version.ToString(),
-            Remediation = $"Install a '{tool.Name}' inside the accepted range.",
+            Remediation = $"Install '{tool.Name}' at a version inside the accepted range.",
         };
     }
 

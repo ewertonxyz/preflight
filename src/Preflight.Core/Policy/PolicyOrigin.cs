@@ -7,10 +7,10 @@ namespace Preflight.Core.Policy;
 /// <c>explain</c> shows three shapes: a file and line, a code default, and —
 /// implicitly, since <c>--set</c> has neither — the command line.
 /// <see cref="DescriptorDefault"/> and
-/// <see cref="EngineDefault"/> are kept distinct even though both are "no file
+/// <see cref="ToolDefault"/> are kept distinct even though both are "no file
 /// touched this": one traces back to a specific <c>RuleDescriptor</c> field
 /// (<c>DefaultSeverity</c>, <c>DefaultBlocking</c>, <c>DefaultGating</c>,
-/// <c>DefaultTimeoutSeconds</c>), the other to a hardcoded engine constant that
+/// <c>DefaultTimeoutSeconds</c>), the other to a hardcoded tool constant that
 /// isn't per-rule authored data (root keys, and the rule-level <c>enabled</c>
 /// default, which has no corresponding descriptor field). Collapsing the two
 /// would lose information a future <c>explain</c> cannot get back without
@@ -35,9 +35,10 @@ public abstract record PolicyOrigin
     /// <c>explain</c> prints exactly this shape:
     /// <c>timeoutSeconds  60  preflight.base.json:5  (root defaultTimeoutSeconds)</c>.
     /// Flattening it to a plain <see cref="FromFile"/> would still name the
-    /// right file and line, but would lose the one thing that makes that line
-    /// readable — that the value is a root default, not something written about
-    /// this rule.
+    /// right file and line, but would lose what makes that line readable — that
+    /// the value is a root default, not something written about this rule. A
+    /// reader sent to that line finds a key with a different name and concludes
+    /// the report is wrong.
     /// </remarks>
     public sealed record FromRootKey(string RootKey, PolicyOrigin Source) : PolicyOrigin;
 
@@ -49,7 +50,7 @@ public abstract record PolicyOrigin
     /// prints <c>maxBytes  256  projectC.json:12  (target switch2)</c>, and
     /// flattening it to the file and line alone would keep the location while
     /// losing the one fact that explains why this run sees that number and
-    /// another run does not. See ADR-030.
+    /// another run does not.
     /// </remarks>
     public sealed record FromTarget(string TargetKey, PolicyOrigin Source) : PolicyOrigin;
 
@@ -64,13 +65,14 @@ public abstract record PolicyOrigin
     /// <c>maxBytes  256  projecta@1.4/acme.json:8</c>.
     /// <para>
     /// Without it, two runs of the same commit against two different packages
-    /// produce identical output, and the first principle of this project is
-    /// punctured with nothing on screen to say so. See ADR-034.
+    /// produce identical output. The tool would then be claiming that the same
+    /// inputs gave the same verdict when one of the inputs had changed, which
+    /// is the one claim everything else here rests on.
     /// </para>
     /// </remarks>
     public sealed record FromPackage(string Pipeline, string Version, PolicyOrigin Source) : PolicyOrigin;
 
     public sealed record DescriptorDefault : PolicyOrigin;
 
-    public sealed record EngineDefault : PolicyOrigin;
+    public sealed record ToolDefault : PolicyOrigin;
 }

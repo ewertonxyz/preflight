@@ -95,7 +95,7 @@ public sealed class PackageProvenanceTests
     /// The walk has a discard arm for the node kinds that carry no value of
     /// their own, and it returns them untouched. Left unexercised, a future node
     /// kind added to the policy model would pass through here silently and lose
-    /// its provenance — the values inside it would render as "engine default"
+    /// its provenance — the values inside it would render as "tool default"
     /// over a package path.
     /// </remarks>
     [Fact]

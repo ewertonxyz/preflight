@@ -1,24 +1,7 @@
-namespace Preflight.Core;
+namespace Preflight.Core.Changes;
 
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Services;
-
-/// <summary>
-/// The change source could not produce a list.
-/// </summary>
-/// <remarks>
-/// A <see cref="ConfigurationLoadException"/>, so it reaches exit 2 rather than
-/// exit 3. Every way this fails — a ref that does not resolve, a directory that
-/// is not a repository, git missing from PATH — is something the person running
-/// the tool can fix, and exit 3 is reserved for defects in the tool itself.
-/// </remarks>
-public sealed class ChangeSourceException : ConfigurationLoadException
-{
-    public ChangeSourceException(string message)
-        : base(message)
-    {
-    }
-}
 
 /// <summary>
 /// Produces the changed-file list by asking git.
@@ -26,12 +9,13 @@ public sealed class ChangeSourceException : ConfigurationLoadException
 /// <remarks>
 /// <para>
 /// Lives in <c>Preflight.Core</c>, and takes an <see cref="IProcessRunner"/>
-/// rather than starting a process itself. The seam exists so the expensive,
-/// environment-bound work stays testable; a <c>Process.Start</c> inline here
-/// would make the parser reachable only through a real repository.
+/// rather than starting a process itself. The process is injected so that the
+/// expensive, environment-bound half stays substitutable; a
+/// <c>Process.Start</c> inline here would make the parser reachable only
+/// through a real repository with real commits in it.
 /// </para>
 /// <para>
-/// The engine never fetches. Downloading an artefact is a declared non-goal,
+/// The tool never fetches. Downloading an artefact is a declared non-goal,
 /// and the tempting place to break it is exactly here: a shallow CI clone where
 /// <c>origin/main</c> does not resolve invites a <c>git fetch</c> to make the
 /// problem go away. Every command issued is a read.
@@ -58,8 +42,8 @@ public sealed class GitChangeSource : IChangeSource
         if (string.IsNullOrWhiteSpace(fromRef))
         {
             // The CLI refuses this before it gets here. The guard
-            // stays because this type is public and the engine is hostable
-            // without the CLI: an empty list returned silently would make every
+            // stays because this type is public and Preflight.Core is hostable
+            // without the command line: an empty list returned silently would make every
             // pre-submit rule report NotApplicable and the run go green having
             // examined nothing.
             throw new ChangeSourceException(
@@ -73,7 +57,7 @@ public sealed class GitChangeSource : IChangeSource
 
                 // -z is not a detail. Without it git quotes any path outside
                 // printable ASCII into octal escapes, separates fields with a
-                // tab and records with a newline - all three of which are legal
+                // tab and records with a newline — all three of which are legal
                 // inside a filename. With it, records are NUL-separated and
                 // never quoted, and three families of parsing branch stop
                 // existing rather than being tested.

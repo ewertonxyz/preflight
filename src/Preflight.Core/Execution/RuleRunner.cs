@@ -1,4 +1,4 @@
-namespace Preflight.Core;
+namespace Preflight.Core.Execution;
 
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
@@ -32,7 +32,7 @@ public sealed class RuleRunner
     /// Null rather than a no-op instance, and defaulted so that the majority of
     /// this class's tests — which are about isolation and have nothing to say
     /// about caching — read the same as they did before the cache existed. The
-    /// engine never decides whether to cache; it is handed a cache or it is
+    /// tool never decides whether to cache; it is handed a cache or it is
     /// not, and <c>--no-cache</c> is the CLI declining to hand one over.
     /// </remarks>
     public RuleRunner(TimeProvider timeProvider, RuleCache? cache = null)
@@ -62,23 +62,34 @@ public sealed class RuleRunner
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(runToken, timeout.Token);
 
         Task<RuleOutcome> running;
-        string? key;
+
+        // The cache and the key travel together, because a key without the
+        // cache that minted it is not a thing this method can act on. Kept as
+        // two independent locals, every use of the key had to assert that the
+        // cache was there as well, and an assertion is only as true as the last
+        // person to move the code above it.
+        (RuleCache Cache, string Key)? caching = null;
 
         try
         {
             // The fingerprint is the rule's own code, so it runs under the same
             // deadline and inside the same isolation as the rule itself. A
             // fingerprint that hangs is a rule that hangs.
-            key = _cache is null ? null : await _cache.KeyForAsync(rule, context, linked.Token);
-
-            if (key is not null &&
-                await _cache!.TryReadAsync(policy.RuleId, key, context, linked.Token) is { } cached)
+            if (_cache is { } cache)
             {
-                // The duration recorded is the lookup, not the run that
-                // originally produced this. It is drawn as 0.0s for that
-                // reason: the history would otherwise report a duration that
-                // did not happen in this run.
-                return Complete(cached, policy, Elapsed(startedAt)) with { FromCache = true };
+                if (await cache.KeyForAsync(rule, context, linked.Token) is { } key)
+                {
+                    if (await cache.TryReadAsync(policy.RuleId, key, context, linked.Token) is { } cached)
+                    {
+                        // The duration recorded is the lookup, not the run that
+                        // originally produced this. It is drawn as 0.0s for
+                        // that reason: the history would otherwise report a
+                        // duration that did not happen in this run.
+                        return Complete(cached, policy, Elapsed(startedAt)) with { FromCache = true };
+                    }
+
+                    caching = (cache, key);
+                }
             }
 
             // Invoking is its own step, not folded into the await: a rule whose
@@ -109,13 +120,13 @@ public sealed class RuleRunner
             var outcome = await running.WaitAsync(linked.Token);
             var execution = Complete(outcome, policy, Elapsed(startedAt));
 
-            if (key is not null)
+            if (caching is { } store)
             {
                 // Deliberately not the linked token. Cancellation landing between
                 // the rule finishing and the result being stored would turn a
                 // completed rule into an Errored one over a write nobody was
                 // waiting for.
-                await _cache!.WriteAsync(policy.RuleId, key, outcome, context, CancellationToken.None);
+                await store.Cache.WriteAsync(policy.RuleId, store.Key, outcome, context, CancellationToken.None);
             }
 
             return execution;
@@ -134,9 +145,10 @@ public sealed class RuleRunner
         }
         catch (Exception exception)
         {
-            // Deliberately broad, and deliberately not rethrown: this is the
-            // isolation of 8.2, and its whole point is that no rule can end the
-            // run for everybody else.
+            // Deliberately broad, and deliberately not rethrown. A rule runs
+            // isolated so that no rule can end the run for everybody else, and
+            // narrowing this catch would decide which third-party defects are
+            // allowed to take the build down.
             return Errored(policy, Elapsed(startedAt), exception.ToString());
         }
     }
@@ -174,11 +186,12 @@ public sealed class RuleRunner
 
     /// <remarks>
     /// The contract reserves <see cref="RuleStatus.Skipped"/> and
-    /// <see cref="RuleStatus.Errored"/> for the engine and gives a rule no
+    /// <see cref="RuleStatus.Errored"/> for the tool and gives a rule no
     /// factory for either — but <c>RuleOutcome.Status</c> is a public init
     /// property, so a rule can still claim one. Passing that through would put
-    /// a skip in the report with no cause attached, which is what 7.3 exists to
-    /// prevent, so it is reported as the contract violation it is.
+    /// a skip in the report with no cause attached — and a skip whose cause
+    /// nobody can name is the one the reader cannot act on, so it is reported
+    /// as the contract violation it is.
     /// </remarks>
     private static RuleExecution Complete(RuleOutcome outcome, RulePolicySnapshot policy, TimeSpan duration)
     {
@@ -192,8 +205,8 @@ public sealed class RuleRunner
             return Errored(
                 policy,
                 duration,
-                $"The rule declared status '{outcome.Status}', which only the engine may produce. " +
-                "Skipped and Errored are produced by the engine, never by a rule.");
+                $"The rule declared status '{outcome.Status}', which only the tool may produce. " +
+                "Skipped and Errored are produced by the tool, never by a rule.");
         }
 
         return Base(policy, duration) with

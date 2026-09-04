@@ -7,7 +7,7 @@ namespace Preflight.Core.History;
 /// <para>
 /// A new interface rather than a member on
 /// <see cref="Preflight.Abstractions.Services.IFileSystem"/>, and the reason is stated
-/// in two places already. <c>IFileSystem</c> is read-only by construction,
+/// in two places already. <c>IFileSystem</c> exposes no way to write at all,
 /// because never writing to the workspace is a non-goal expressed in the type
 /// system; and the plugin contract prices a new member on a published interface
 /// as a <b>major</b> version, which every plugin then has to be recompiled

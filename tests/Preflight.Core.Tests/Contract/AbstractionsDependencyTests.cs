@@ -1,4 +1,4 @@
-namespace Preflight.Core.Tests;
+namespace Preflight.Core.Tests.Contract;
 
 using System.Reflection;
 using System.Xml.Linq;
@@ -9,16 +9,16 @@ using static Preflight.TestSupport.RepositoryLayout;
 /// </summary>
 /// <remarks>
 /// <para>
-/// the project layering states that Abstractions has no dependencies beyond
-/// the BCL, and the plan lists verifying that explicitly as a the contracts
-/// deliverable. The assertion is cheap enough to stand from the first commits, and standing
-/// early is the point: it is far easier to keep a surface clean than to clean one.
+/// Abstractions depends on nothing beyond the BCL, and this asserts it rather
+/// than trusting it. The assertion cost almost nothing to write and has stood
+/// since the surface was empty, which is the point: keeping a surface clean is
+/// far cheaper than cleaning one.
 /// </para>
 /// <para>
-/// The cost of a dependency here is not paid by this repository. Abstractions is
-/// the single assembly an external production references in order to write its
+/// The cost of a dependency here is not paid by this repository. Abstractions
+/// is the single assembly an external plugin references in order to write its
 /// own rules, so anything added here is inherited by every plugin author, in
-/// every production, forever.
+/// every project that writes a rule, forever.
 /// </para>
 /// </remarks>
 public sealed class AbstractionsDependencyTests
@@ -49,7 +49,7 @@ public sealed class AbstractionsDependencyTests
 
         offenders.ShouldBeEmpty(
             "Preflight.Abstractions is referenced by every external plugin. A dependency added " +
-            "here is inherited by every production that writes a rule.");
+            "here is inherited by every project that writes a rule.");
     }
 
     [Fact]

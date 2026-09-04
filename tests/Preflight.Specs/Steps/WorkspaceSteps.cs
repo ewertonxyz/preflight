@@ -20,7 +20,7 @@ using Reqnroll;
 /// <para>
 /// The rules are the six real ones. Shaping their behaviour through policy
 /// rather than through fakes is what makes these scenarios worth having: a fake
-/// rule proves the engine, and the engine already has unit tests. What has no
+/// rule proves the tool, and the tool already has unit tests. What has no
 /// other test is whether the six shipped rules, the policy chain and the exit
 /// codes agree with each other when a real process runs them.
 /// </para>
@@ -242,17 +242,16 @@ public sealed class WorkspaceSteps : IDisposable
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Reads standard output, which the first version of these steps redirected
-    /// and then discarded. Without it the no-arguments scenario asserts only
-    /// that the process started — which stayed green through all of the first commits,
-    /// when the binary printed a scaffolding notice and nothing else.
+    /// Reads standard output rather than discarding it. Without that, the
+    /// no-arguments scenario asserts only that the process started, which stays
+    /// green for a binary that prints nothing at all.
     /// </para>
     /// <para>
     /// A table rather than one placeholder per command, and an exact comparison
     /// rather than a containment check per row. The previous shape had exactly
     /// four placeholders and would have gone on passing with two commands
-    /// missing; the history added two, and the feature's own preamble says the
-    /// scenario is worth nothing without exhaustiveness.
+    /// missing. A scenario that claims to name the whole command surface is
+    /// worth nothing unless it fails when the surface grows.
     /// </para>
     /// </remarks>
     [Then("the report names exactly these commands")]
@@ -326,8 +325,8 @@ public sealed class WorkspaceSteps : IDisposable
     /// needs a content root that exists, and the probe is declared with the
     /// inputs that are required before anything may be cached.
     /// </remarks>
-    [Given("a workspace whose compile probe declares its inputs")]
-    public void GivenAWorkspaceWhoseProbeDeclaresItsInputs()
+    [Given("the workspace's compile probe declares its inputs")]
+    public void GivenTheProbeDeclaresItsInputs()
     {
         Write("preflight.workspace.json", """
             {
@@ -352,10 +351,10 @@ public sealed class WorkspaceSteps : IDisposable
     /// default, and a scenario is the only place the two can be compared as one
     /// behaviour rather than two settings.
     /// </remarks>
-    [Given("a workspace whose compile probe declares nothing")]
-    public void GivenAWorkspaceWhoseProbeDeclaresNothing()
+    [Given("the workspace's compile probe declares nothing")]
+    public void GivenTheProbeDeclaresNothing()
     {
-        GivenAWorkspaceWhoseProbeDeclaresItsInputs();
+        GivenTheProbeDeclaresItsInputs();
 
         Write("preflight.workspace.json", """
             {
@@ -379,7 +378,7 @@ public sealed class WorkspaceSteps : IDisposable
     private static List<string> Split(string arguments)
     {
         var parts = new List<string>();
-        var current = new System.Text.StringBuilder();
+        var current = new StringBuilder();
         var quoted = false;
 
         foreach (var character in arguments)
@@ -434,8 +433,8 @@ public sealed class WorkspaceSteps : IDisposable
 
             // Decoded as UTF-8 whatever the host's console is set to. Without
             // these two, the bytes the child wrote are decoded with the parent's
-            // Console.OutputEncoding - a console code page on a developer
-            // machine, UTF-8 with no console attached on a build agent - so the
+            // Console.OutputEncoding — a console code page on a developer
+            // machine, UTF-8 with no console attached on a build agent — so the
             // same scenario could read differently in two places. It costs
             // nothing today, because no step asserts on a glyph and GlyphSet
             // falls back to ASCII when the encoding does not round-trip; it
@@ -458,9 +457,9 @@ public sealed class WorkspaceSteps : IDisposable
         }
 
         // Cleared first. A developer machine or a build agent may already export
-        // CI, and the local-overlay table turns on exactly that — a
-        // scenario about the overlay would otherwise pass or fail according to
-        // where it ran.
+        // CI, and whether the overlay applies turns on exactly that — a scenario
+        // about the overlay would otherwise pass or fail according to where it
+        // ran.
         foreach (var name in new[] { "CI", "TEAMCITY_VERSION", "GITHUB_ACTIONS", "BUILD_BUILDID", "JENKINS_URL" })
         {
             startInfo.Environment[name] = string.Empty;

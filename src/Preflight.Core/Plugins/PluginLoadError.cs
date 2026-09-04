@@ -58,7 +58,7 @@ public abstract record PluginLoadError
     }
 
     /// <summary>
-    /// A plugin built against a contract this engine does not provide.
+    /// A plugin built against a contract this tool does not provide.
     /// </summary>
     public sealed record IncompatibleAbstractions(string Path, Version Plugin, Version Host) : PluginLoadError
     {
@@ -68,7 +68,7 @@ public abstract record PluginLoadError
 
     /// <summary>
     /// A type that implements an <c>IValidationRule</c> from a different
-    /// <c>Preflight.Abstractions</c> than the engine's.
+    /// <c>Preflight.Abstractions</c> than the tool's.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -76,14 +76,14 @@ public abstract record PluginLoadError
     /// the load context delegates the contract assembly to the default one.
     /// Without this case the symptom is an assembly that loads, contributes
     /// nothing, and says nothing — indistinguishable from an empty directory,
-    /// and a green run missing the rules a production declared.
+    /// and a green run missing the rules a pipeline declared.
     /// </para>
     /// <para>
     /// Both identities are named because neither alone is actionable. The usual
     /// cause is a <c>Preflight.Abstractions.dll</c> shipped alongside the
-    /// plugin, which is what <c>Private=false</c> in 11.1 exists to prevent,
-    /// and the person reading the message needs to see two of them to believe
-    /// it.
+    /// plugin, which is what a plugin's project file sets
+    /// <c>Private=false</c> to prevent, and the person reading the message
+    /// needs to see two of them to believe it.
     /// </para>
     /// </remarks>
     public sealed record ForeignAbstractions(
@@ -95,7 +95,7 @@ public abstract record PluginLoadError
         public override string Message =>
             $"Type '{TypeName}' in plugin assembly '{Path}' implements " +
             $"'{AbstractionsCompatibility.AssemblyName}.{nameof(IValidationRule)}' from '{PluginContract}', " +
-            $"but this engine's contract is '{HostContract}'. The two are different types to the runtime, so " +
+            $"but this tool's contract is '{HostContract}'. The two are different types to the runtime, so " +
             "the rule would be silently ignored. Reference " +
             $"{AbstractionsCompatibility.AssemblyName} with Private=false so the plugin does not ship its own copy.";
     }
@@ -105,7 +105,7 @@ public abstract record PluginLoadError
     /// </summary>
     /// <remarks>
     /// Carries the assembly as well as the reason. <see cref="RuleDiscovery"/>
-    /// names the type, which is enough when the types came from the engine's
+    /// names the type, which is enough when the types came from the tool's
     /// own assembly and is not enough when a directory held four plugins.
     /// </remarks>
     public sealed record RuleTypeRejected(string Path, string Reason) : PluginLoadError
@@ -143,31 +143,4 @@ public abstract record PluginLoadError
                 RuleId.Value,
                 string.Join(", ", Assemblies.Select(name => $"'{name}'")));
     }
-}
-
-/// <summary>
-/// Thrown when loading the plugin set finds one or more defects.
-/// </summary>
-/// <remarks>
-/// <para>
-/// A <see cref="ConfigurationLoadException"/>, so exit 2 is reached through the
-/// boundary every other load-time failure already uses rather than through a
-/// second <c>catch</c> somebody has to remember.
-/// </para>
-/// <para>
-/// Accumulates, matching policy and graph validation. Someone who pointed
-/// <c>--rules-path</c> at a directory of four plugins built against last
-/// quarter's contract should be told about four of them, not asked to run the
-/// tool four times.
-/// </para>
-/// </remarks>
-public sealed class PluginLoadException : ConfigurationLoadException
-{
-    public PluginLoadException(IReadOnlyList<PluginLoadError> errors)
-        : base(string.Join(Environment.NewLine, errors.Select(error => error.Message)))
-    {
-        Errors = errors;
-    }
-
-    public IReadOnlyList<PluginLoadError> Errors { get; }
 }

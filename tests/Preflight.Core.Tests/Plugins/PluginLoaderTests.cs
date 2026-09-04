@@ -83,7 +83,7 @@ public sealed class PluginLoaderTests
     /// <remarks>
     /// The rule interface, and the assembly is named as well as the type.
     /// <c>RuleDiscovery</c> names only the type, which is enough when the types
-    /// came from the engine's own assembly and is not enough when a directory
+    /// came from the tool's own assembly and is not enough when a directory
     /// held four plugins.
     /// </remarks>
     [Fact]
@@ -192,8 +192,8 @@ public sealed class PluginLoaderTests
     /// "Warn and carry on" is rejected in every one of its forms, and this is
     /// the form that looks most reasonable: three plugins loaded, one did not,
     /// run the three. A run that finishes without rules the policy declared
-    /// enabled and reports success is the false green of principle 7 — worse
-    /// than a noisy failure, because nobody investigates a green.
+    /// enabled and reports success is worse than a noisy failure, because
+    /// nobody investigates a green.
     /// </remarks>
     [Fact]
     public void Load_WithOneBrokenAssemblyAmongSeveral_ContributesNoRuleAtAll()

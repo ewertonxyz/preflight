@@ -5,6 +5,7 @@ using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
 using Preflight.Abstractions.Services;
 using Preflight.Core;
+using Preflight.Core.Execution;
 using static Preflight.Core.Tests.Graph.GraphFixture;
 
 /// <summary>
@@ -202,7 +203,7 @@ public sealed class RuleRunnerTests
     }
 
     /// <remarks>
-    /// The outcome contract reserves <c>Skipped</c> and <c>Errored</c> for the engine, and
+    /// The outcome contract reserves <c>Skipped</c> and <c>Errored</c> for the tool, and
     /// offers a rule no factory for either — but <c>RuleOutcome.Status</c> is a
     /// public init property, so a rule can still claim one. Passing it through
     /// would put a <c>skipped</c> in the report with no cause attached, which is

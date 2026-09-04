@@ -1,4 +1,4 @@
-namespace Preflight.Core.Tests;
+namespace Preflight.Core.Tests.Contract;
 
 using System.Reflection;
 using Preflight.Abstractions.Model;
@@ -11,7 +11,7 @@ using Preflight.Abstractions.Rules;
 /// </summary>
 /// <remarks>
 /// There are deliberately no <c>Skipped()</c> or <c>Errored()</c> factories:
-/// those two statuses are produced by the engine, not by a rule. But <c>Status</c> is a public
+/// those two statuses are produced by the tool, not by a rule. But <c>Status</c> is a public
 /// <c>init</c> property with no restriction, so the object initializer can
 /// still construct either status directly. The last test below pins that as
 /// current behaviour rather than something this phase corrects — changing it

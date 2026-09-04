@@ -14,7 +14,7 @@ using static Preflight.TestSupport.RepositoryLayout;
 /// </para>
 /// <para>
 /// This is enforced here rather than left as a convention because the failure
-/// mode is silent. If a built-in rule reached into the engine, the gap it
+/// mode is silent. If a built-in rule reached into the tool, the gap it
 /// worked around in the Abstractions surface would never surface during
 /// development — every built-in rule would keep passing. It would be discovered
 /// by the first external plugin author, who has no such escape hatch and no way

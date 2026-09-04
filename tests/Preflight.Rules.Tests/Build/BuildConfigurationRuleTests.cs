@@ -12,11 +12,13 @@ using static Preflight.Rules.Tests.RuleFixture;
 /// reporter uses as its worked example.
 /// </summary>
 /// <remarks>
-/// One test below pins strings that a golden file in another project also
-/// pins. The example report the console reporter renders is this rule missing
-/// <c>contentRoot</c>, word for word — so if the wording drifts here and the
-/// golden is not updated with it, the example describes a tool that no longer
-/// says that. Both are meant to fail, and this is the one that says why.
+/// One test below pins four strings that goldens in another project quote. The
+/// example report every reporter renders is this rule missing
+/// <c>contentRoot</c>, word for word — but those goldens render a hand-written
+/// copy of the finding rather than calling this rule, so they will not object
+/// when the wording drifts here. Only this test will, which makes it the one
+/// place the two are held together and the reason it asserts exact strings
+/// instead of "it failed".
 /// </remarks>
 public sealed class BuildConfigurationRuleTests
 {
@@ -71,18 +73,19 @@ public sealed class BuildConfigurationRuleTests
     }
 
     /// <summary>
-    /// The finding the console reporter's golden file reproduces, word for
-    /// word.
+    /// The finding the reporters' worked examples quote, word for word.
     /// </summary>
     /// <remarks>
     /// Asserting the four exact strings rather than "it failed" is the whole
     /// point of this test. A looser assertion would stay green through a
-    /// reworded remediation, and the golden two projects away would be the only
-    /// thing left objecting — where it reads as a reporter defect rather than
-    /// as this rule having changed what it says.
+    /// reworded remediation, and nothing else would object: the console, JSON
+    /// and SARIF goldens two projects away render a hand-written copy of this
+    /// finding held in the reporter fixture, so they would go on showing the
+    /// old wording as what the tool says. This test failing is the reminder to
+    /// carry the new wording into that copy.
     /// </remarks>
     [Fact]
-    public async Task ExecuteAsync_WithoutContentRoot_ReportsTheFindingTheConsoleGoldenPins()
+    public async Task ExecuteAsync_WithoutContentRoot_ReportsTheFindingTheWorkedExamplesQuote()
     {
         var outcome = await Run(WorkspaceWith("""{ "platform": "win64" }"""));
 
@@ -94,7 +97,9 @@ public sealed class BuildConfigurationRuleTests
         finding.Location!.RelativePath.ShouldBe("config/build/win64.json");
         finding.Expected.ShouldBe("a \"contentRoot\" entry");
         finding.Actual.ShouldBe("key not present");
-        finding.Remediation.ShouldBe("add \"contentRoot\" pointing to the packaged content folder");
+        finding.Remediation.ShouldBe(
+            "Add \"contentRoot\" to the configuration, or ask the pipeline's author " +
+            "to drop it from 'requiredKeys'.");
     }
 
     /// <summary>

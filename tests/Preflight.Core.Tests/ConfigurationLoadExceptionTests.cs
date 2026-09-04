@@ -1,7 +1,8 @@
-namespace Preflight.Core.Tests.Graph;
+namespace Preflight.Core.Tests;
 
 using Preflight.Abstractions.Rules;
 using Preflight.Core;
+using Preflight.Core.Graph;
 using Preflight.Core.Policy;
 
 /// <summary>

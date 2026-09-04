@@ -3,10 +3,11 @@ namespace Preflight.Core.Tests.Execution;
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
 using Preflight.Core;
+using Preflight.Core.Execution;
 using Preflight.Core.Policy;
 
 /// <summary>
-/// Fixes the engine end to end: levels, parallelism, skip propagation between
+/// Fixes the tool end to end: levels, parallelism, skip propagation between
 /// levels, verdict aggregation, and the deterministic result of
 /// the determinism guarantee.
 /// </summary>
@@ -117,7 +118,7 @@ public sealed class RuleExecutorTests
 
     /// <remarks>
     /// Keeps exit 2 distinct from exit 3 (the exit-code contract). A misbehaving rule is a
-    /// verdict, never an exception escaping the engine — if it escaped, the CLI
+    /// verdict, never an exception escaping the tool — if it escaped, the CLI
     /// would have no result to map and would report a configuration error for
     /// what is a rule defect.
     /// </remarks>

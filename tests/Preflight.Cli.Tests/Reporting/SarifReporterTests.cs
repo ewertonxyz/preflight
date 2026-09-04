@@ -5,6 +5,7 @@ using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
 using Preflight.Cli.Reporting;
 using Preflight.Core;
+using Preflight.Core.Execution;
 using Preflight.TestSupport;
 
 /// <summary>
@@ -24,7 +25,7 @@ public sealed class SarifReporterTests
     {
         var output = new StringWriter();
 
-        new SarifReporter(output).Report(result, descriptors ?? RuleDescriptorFixture.ForDocumentedExample());
+        new SarifReporter(output).Report(result, descriptors ?? RuleDescriptorFixture.ForCanonicalExample());
 
         return output.ToString();
     }
@@ -148,7 +149,7 @@ public sealed class SarifReporterTests
     [Fact]
     public void Report_WritesOneDriverRulePerExecutionInPresentationOrderAndAStableRuleIndex()
     {
-        var rendered = Render(RunResultFixture.DocumentedExample());
+        var rendered = Render(RunResultFixture.CanonicalExample());
 
         var rules = Run(rendered)
             .GetProperty("tool")
@@ -188,17 +189,21 @@ public sealed class SarifReporterTests
     [Fact]
     public void Report_ForAFullyPopulatedFinding_FoldsExpectedActualAndFixIntoTheMessageInThatOrder()
     {
-        var rendered = Render(RunResultFixture.DocumentedExample());
+        var rendered = Render(RunResultFixture.CanonicalExample());
         var text = ResultFor(rendered, "core.build.configuration")
             .GetProperty("message")
             .GetProperty("text")
             .GetString()!;
 
+        // The three labels rather than the three values. What this test is
+        // about is the order the fold puts them in, and a rule is free to
+        // reword any of its four strings — pinning the values here would make
+        // that rewording look like a defect in this reporter.
         text.ShouldContain("Missing platform configuration entry.");
-        text.IndexOf("a \"contentRoot\" entry", StringComparison.Ordinal)
-            .ShouldBeLessThan(text.IndexOf("key not present", StringComparison.Ordinal));
-        text.IndexOf("key not present", StringComparison.Ordinal)
-            .ShouldBeLessThan(text.IndexOf("add \"contentRoot\"", StringComparison.Ordinal));
+        text.IndexOf("expected: ", StringComparison.Ordinal)
+            .ShouldBeLessThan(text.IndexOf("actual: ", StringComparison.Ordinal));
+        text.IndexOf("actual: ", StringComparison.Ordinal)
+            .ShouldBeLessThan(text.IndexOf("fix: ", StringComparison.Ordinal));
 
         rendered.ShouldNotContain("\"fixes\"");
         rendered.ShouldNotContain("\"properties\"");
@@ -258,7 +263,7 @@ public sealed class SarifReporterTests
     /// A rule with no descriptor is written by its id alone.
     /// </summary>
     /// <remarks>
-    /// Not in the phase's manifest. The engine only ever reports on rules it
+    /// Not in the phase's manifest. The tool only ever reports on rules it
     /// discovered, so this is unreachable through the CLI and reachable through
     /// this reporter's own public surface — which is exactly what a test
     /// exercises. What it pins is that the document degrades rather than
@@ -354,7 +359,7 @@ public sealed class SarifReporterTests
     [Fact]
     public void Report_WritesTheRunIdAndTheTimestampsAndNothingElseThatVaries()
     {
-        var rendered = Render(RunResultFixture.DocumentedExample());
+        var rendered = Render(RunResultFixture.CanonicalExample());
 
         Run(rendered)
             .GetProperty("automationDetails")
@@ -383,7 +388,7 @@ public sealed class SarifReporterTests
     public void Report_WithNothingExecuted_WritesAnEmptyResultsArrayRatherThanOmittingIt()
     {
         var rendered = Render(
-            RunResultFixture.DocumentedExample() with
+            RunResultFixture.CanonicalExample() with
             {
                 Executions = [],
                 Verdict = RunVerdict.Passed,
@@ -402,7 +407,7 @@ public sealed class SarifReporterTests
     [Fact]
     public void Report_RepeatedOverTheSameResult_ProducesIdenticalBytes()
     {
-        var result = RunResultFixture.DocumentedExample();
+        var result = RunResultFixture.CanonicalExample();
         var first = Render(result);
 
         for (var attempt = 0; attempt < 20; attempt++)
@@ -420,7 +425,7 @@ public sealed class SarifReporterTests
     [Fact]
     public void Report_WritesASingleParseableDocument()
     {
-        var rendered = Render(RunResultFixture.DocumentedExample());
+        var rendered = Render(RunResultFixture.CanonicalExample());
 
         Should.NotThrow(() => JsonDocument.Parse(rendered));
 
@@ -431,8 +436,8 @@ public sealed class SarifReporterTests
     }
 
     [Fact]
-    public Task Report_ForTheDocumentedExample_MatchesTheGolden() =>
-        Verify(Render(RunResultFixture.DocumentedExample()));
+    public Task Report_ForTheCanonicalExample_MatchesTheGolden() =>
+        Verify(Render(RunResultFixture.CanonicalExample()));
 
     /// <summary>
     /// Every status in one document.
