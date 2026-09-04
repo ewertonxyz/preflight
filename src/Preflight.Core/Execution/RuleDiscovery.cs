@@ -1,4 +1,4 @@
-namespace Preflight.Core;
+namespace Preflight.Core.Execution;
 
 using System.Reflection;
 using Preflight.Abstractions.Rules;

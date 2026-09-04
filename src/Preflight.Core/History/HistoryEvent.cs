@@ -2,6 +2,7 @@ namespace Preflight.Core.History;
 
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// One event read back out of the NDJSON history.

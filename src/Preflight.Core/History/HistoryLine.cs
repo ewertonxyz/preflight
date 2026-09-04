@@ -2,6 +2,7 @@ namespace Preflight.Core.History;
 
 using System.Text;
 using System.Text.Json;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// Turns one event into the single line the NDJSON history holds.

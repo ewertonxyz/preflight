@@ -3,6 +3,8 @@ namespace Preflight.Core.Tests.Changes;
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Services;
 using Preflight.Core;
+using Preflight.Core.Changes;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// Runs the change source against a real git repository.

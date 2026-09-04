@@ -21,7 +21,7 @@ using Preflight.Core.Policy;
 public sealed class PipelineSelectorTests : IDisposable
 {
     private readonly DirectoryInfo _workspace = Directory.CreateTempSubdirectory("preflight-select-");
-    private readonly Preflight.Core.PhysicalFileSystem _fileSystem = new();
+    private readonly Preflight.Core.Execution.PhysicalFileSystem _fileSystem = new();
 
     public void Dispose() => _workspace.Delete(recursive: true);
 

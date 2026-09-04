@@ -3,6 +3,7 @@ namespace Preflight.Cli.Reporting;
 using Preflight.Abstractions.Rules;
 using Preflight.Abstractions.Services;
 using Preflight.Core;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// The concrete log sink, writing to standard error.
