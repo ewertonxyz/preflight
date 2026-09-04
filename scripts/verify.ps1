@@ -57,12 +57,31 @@ function Invoke-Step {
     Write-Host ''
     Write-Host "=== $script:step. $Name ===" -ForegroundColor Cyan
 
+    # Cleared before the step, so that what is read after it belongs to this
+    # step and not to the one before. $LASTEXITCODE is only ever written by a
+    # native command or by a script that calls exit; a step doing neither used
+    # to inherit whatever was left there, which is wrong in both directions - a
+    # stale 0 reports a step that never ran as passed, and a stale non-zero
+    # blames a step that did nothing wrong. A step that is pure PowerShell needs
+    # no code of its own: ErrorActionPreference is Stop, so its failures arrive
+    # as terminating errors and end the run before this line.
+    #
+    # Through $global: on both sides, and that is the part worth reading twice.
+    # A bare '$LASTEXITCODE = 0' inside a function creates a local of that name,
+    # and the read below then finds the local zero rather than the code the
+    # native command wrote into the global scope - which does not weaken this
+    # gate, it disables it. Confirmed by running both forms over a command that
+    # exits 7: the scoped form catches it, the bare form calls the step passed.
+    $global:LASTEXITCODE = 0
+
     & $Action
 
-    if ($LASTEXITCODE -ne 0) {
+    $code = $global:LASTEXITCODE
+
+    if ($code -ne 0) {
         Write-Host ''
-        Write-Host "FAILED at step $script:step ($Name), exit code $LASTEXITCODE." -ForegroundColor Red
-        exit $LASTEXITCODE
+        Write-Host "FAILED at step $script:step ($Name), exit code $code." -ForegroundColor Red
+        exit $code
     }
 }
 
