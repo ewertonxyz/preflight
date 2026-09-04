@@ -15,9 +15,10 @@ using Preflight.Core.Execution;
 /// <para>
 /// Streaming rather than materialised, and that is a decision taken on the
 /// first line of code rather than deferred. Streaming aggregation is the first
-/// remedy when the history outgrows the month, and calls it cheap to do — a
-/// signature returning a list is what makes it stop being cheap, because by
-/// then every caller has indexed into one.
+/// remedy reached for when a history outgrows the month it was written in, and
+/// it is cheap while the signature yields — a signature returning a list is
+/// what makes it stop being cheap, because by then every caller has indexed
+/// into one.
 /// </para>
 /// <para>
 /// Reading needs no seam of its own: <see cref="IFileSystem"/> already exposes

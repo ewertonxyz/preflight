@@ -438,9 +438,10 @@ public static class PolicyValidator
         string keyPath,
         object? candidate)
     {
-        // Single, not SingleOrDefault: the seal was read out of this very
-        // chain, so the file is in it. A guard here would be a branch no input
-        // can take, standing in for an invariant the caller already holds.
+        // First, and deliberately not a TryGetValue with a fallback: the seal
+        // was read out of this very chain, so the file is in it. A guard here
+        // would be a branch no input can take, standing in for an invariant
+        // the caller already holds.
         var declaring = chain.First(document =>
             string.Equals(document.FilePath, declaredBy.FilePath, StringComparison.OrdinalIgnoreCase));
 
@@ -523,10 +524,14 @@ public static class PolicyValidator
             }
 
             // The inside of a target is a root scope: the same keys, validated
-            // by the same walk. Nesting targets inside targets is caught by
-            // that walk rather than by a rule of its own — 'targets' is a root
-            // key, so it is accepted here, and the recursion below is what
-            // stops it going anywhere.
+            // by the same walk. That means 'targets' is itself an accepted key
+            // here, and nothing below descends into it — so a targets block
+            // nested inside a target block passes validation and is then never
+            // applied, because only the root block is read when the layer
+            // resolves. It is the same defect the unparseable key above is
+            // refused for, and it is not refused. Adding that refusal would
+            // reject a document accepted today, so it is a change of contract
+            // rather than a correction.
             ValidateScope(block, PolicyKeySchema.RootKeys, source, $"{jsonPath}.", errors);
 
             if (block.Members.GetValueOrDefault("rules") is PolicyNode.ObjectNode rules)

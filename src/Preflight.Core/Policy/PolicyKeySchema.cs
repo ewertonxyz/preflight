@@ -89,8 +89,8 @@ internal static class PolicyKeySchema
     ]);
 
     /// <summary>
-    /// The rule keys in the order <c>preflight explain</c> prints them which is
-    /// also the order they are declared in.
+    /// The rule keys in the order <c>preflight explain</c> prints them, which
+    /// is also the order they are declared in.
     /// </summary>
     /// <remarks>
     /// <see cref="FrozenDictionary{TKey, TValue}"/> does not preserve insertion

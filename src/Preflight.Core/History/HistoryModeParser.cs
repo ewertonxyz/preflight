@@ -13,8 +13,9 @@ namespace Preflight.Core.History;
 /// method, which is exactly what a test should be allowed to do.
 /// </para>
 /// <para>
-/// The same shape as <see cref="Preflight.Core.StageParser"/>, for the same
-/// reason.
+/// <c>StageParser</c>, in the command line project, has the same shape for the
+/// same reason. It is named rather than linked because the engine does not
+/// reference that project and a link from here could never resolve.
 /// </para>
 /// </remarks>
 public static class HistoryModeParser

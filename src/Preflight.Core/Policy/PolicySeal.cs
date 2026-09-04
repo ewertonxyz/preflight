@@ -1,5 +1,7 @@
 namespace Preflight.Core.Policy;
 
+using System.Diagnostics.CodeAnalysis;
+
 /// <summary>
 /// Every path the policy chain declared unchangeable, and who declared it.
 /// </summary>
@@ -105,7 +107,7 @@ public sealed class PolicySeal
     public bool IsSealed(
         string? ruleId,
         string keyPath,
-        out SealSource declaredBy,
+        [NotNullWhen(true)] out SealSource? declaredBy,
         string? afterFilePath = null)
     {
         // A file not in the chain sits below all of it: that is the local
@@ -125,7 +127,7 @@ public sealed class PolicySeal
             }
         }
 
-        declaredBy = null!;
+        declaredBy = null;
 
         return false;
     }

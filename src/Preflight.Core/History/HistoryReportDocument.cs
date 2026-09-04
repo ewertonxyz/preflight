@@ -43,9 +43,9 @@ public static class HistoryReportDocument
             passedWithWarningsCount = report.PassedWithWarningsCount,
             blockedCount = report.BlockedCount,
 
-            // A line of its own so the breakdown adds up to runCount. Section
-            // A breakdown that does not close loses the reader at the first
-            // time they add the column up.
+            // A line of its own so the breakdown adds up to runCount. A
+            // breakdown that does not close loses the reader at the first time
+            // they add the column up.
             erroredCount = report.ErroredCount,
 
             promotedBlockCount = report.PromotedBlockCount,

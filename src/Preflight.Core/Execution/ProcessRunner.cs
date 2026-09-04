@@ -1,6 +1,8 @@
 namespace Preflight.Core.Execution;
 
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Preflight.Abstractions.Services;
 
 /// <summary>
@@ -82,7 +84,7 @@ public sealed class ProcessRunner : IProcessRunner
         {
             return Launch(startInfo);
         }
-        catch (System.ComponentModel.Win32Exception exception)
+        catch (Win32Exception exception)
         {
             // The executable is not on PATH. That is a configuration problem
             // with a name — "git is not installed" — and it deserves that
@@ -104,7 +106,7 @@ public sealed class ProcessRunner : IProcessRunner
     /// alternative is a NullReferenceException three lines later with nothing
     /// naming the executable.
     /// </remarks>
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage]
     private static Process Launch(ProcessStartInfo startInfo) =>
         Process.Start(startInfo)
             ?? throw new ProcessLaunchException($"'{startInfo.FileName}' did not start.");
@@ -121,7 +123,7 @@ public sealed class ProcessRunner : IProcessRunner
     /// fails on a loaded machine — the sort that gets deleted rather than
     /// fixed.
     /// </remarks>
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage]
     private static void Kill(Process process)
     {
         try

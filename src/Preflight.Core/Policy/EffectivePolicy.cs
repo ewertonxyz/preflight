@@ -337,7 +337,7 @@ public sealed class EffectivePolicy
 
     /// <summary>
     /// Builds a path that safely crosses a rule id: the id is one segment,
-    /// never re-split even though it contains dots of its own Only
+    /// never re-split even though it contains dots of its own. Only
     /// <paramref name="key"/> is split.
     /// </summary>
     private static string[] RulePath(RuleId ruleId, string key) => ["rules", ruleId.Value, .. key.Split('.')];
