@@ -6,7 +6,7 @@ using Preflight.Core.Plugins;
 /// An <see cref="IAssemblyLoader"/> that answers from a table.
 /// </summary>
 /// <remarks>
-/// The seam that makes the loader's decisions testable without a DLL per case.
+/// What makes the loader's decisions testable without a DLL per case.
 /// What it fakes is narrow on purpose — a path either produces an assembly
 /// description or throws the one exception the real loader throws — because
 /// everything else about plugin loading is a judgement about that description,

@@ -43,7 +43,8 @@ internal sealed class FakeCacheableRule : IValidationRule, ICacheableRule
 
     /// <summary>Completes the moment the fingerprint is entered.</summary>
     /// <remarks>
-    /// The same seam <c>FakeRule.Started</c> is, and for the same reason: a
+    /// The same substitution point <c>FakeRule.Started</c> is, and for the same
+    /// reason: a
     /// cancellation test has to cancel <em>while</em> the rule is inside the
     /// call, and sleeping until it probably is would be a race dressed as a
     /// test.

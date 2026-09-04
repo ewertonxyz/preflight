@@ -9,7 +9,7 @@ using Preflight.Core.Policy;
 /// <remarks>
 /// The grammar is two strings and a separator, deliberately. There is no glob,
 /// for the reason <c>compileProbe.inputs</c> has none: a pattern language is a
-/// parser to write and test before two strings can be compared. See ADR-030.
+/// parser to write and test before two strings can be compared.
 /// </remarks>
 public sealed class PolicyTargetKeyTests
 {
@@ -104,7 +104,8 @@ public sealed class PolicyTargetKeyTests
     /// <c>Development</c>, so a <c>win64|Development</c> block would otherwise
     /// fire on a run that said only <c>--platform win64</c> — handing somebody
     /// one configuration's thresholds because they omitted a flag, and calling
-    /// it a pass. ADR-015 says refuse rather than assume.
+    /// it a pass. The tool refuses rather than assumes, everywhere, and an
+    /// unstated axis is the case that makes the difference visible.
     /// </remarks>
     [Fact]
     public void Matches_WithAnAxisTheUserDidNotState_IsFalse()

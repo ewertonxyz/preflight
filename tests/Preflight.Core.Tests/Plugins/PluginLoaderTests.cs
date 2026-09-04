@@ -192,8 +192,8 @@ public sealed class PluginLoaderTests
     /// "Warn and carry on" is rejected in every one of its forms, and this is
     /// the form that looks most reasonable: three plugins loaded, one did not,
     /// run the three. A run that finishes without rules the policy declared
-    /// enabled and reports success is the false green of principle 7 — worse
-    /// than a noisy failure, because nobody investigates a green.
+    /// enabled and reports success is worse than a noisy failure, because
+    /// nobody investigates a green.
     /// </remarks>
     [Fact]
     public void Load_WithOneBrokenAssemblyAmongSeveral_ContributesNoRuleAtAll()

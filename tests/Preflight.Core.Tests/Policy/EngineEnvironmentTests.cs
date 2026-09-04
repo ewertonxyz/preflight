@@ -11,8 +11,9 @@ using Preflight.Core.Policy;
 /// <remarks>
 /// policy precedence lists <c>maxDegreeOfParallelism</c> as a root key
 /// whose engine default is the processor count, and the explain command prints
-/// effective values with their origin. Without a seam, any golden file covering
-/// that output asserts the core count of whoever recorded it.
+/// effective values with their origin. With no way to inject the machine facts,
+/// any golden file covering that output asserts the core count of whoever
+/// recorded it.
 /// </remarks>
 public sealed class EngineEnvironmentTests
 {
@@ -46,9 +47,9 @@ public sealed class EngineEnvironmentTests
 
     /// <remarks>
     /// The injected value is a default, not an override: it still sits at the
-    /// weakest layer, so a policy file continues to win over it. A seam that
-    /// accidentally promoted the value would pass the test above and break the
-    /// precedence table of policy precedence.
+    /// weakest layer, so a policy file continues to win over it. An injection
+    /// point that accidentally promoted the value would pass the test above and
+    /// break the precedence order everything else depends on.
     /// </remarks>
     [Fact]
     public void Build_WithAnInjectedEnvironment_IsStillOverriddenByThePolicyFile()
@@ -71,7 +72,7 @@ public sealed class EngineEnvironmentTests
     /// Omitting the argument reads the real machine, which is what every
     /// production call site does. Asserted against
     /// <see cref="Environment.ProcessorCount"/> rather than a literal, because a
-    /// literal here would be the machine-dependent assertion this whole seam
+    /// literal here would be the machine-dependent assertion this whole type
     /// exists to eliminate.
     /// </remarks>
     [Fact]
@@ -85,7 +86,7 @@ public sealed class EngineEnvironmentTests
     /// <remarks>
     /// Asserted against <see cref="Environment"/> rather than against literals,
     /// because a literal here would be the machine-dependent assertion this
-    /// whole seam exists to eliminate. The machine name and the process id
+    /// whole type exists to eliminate. The machine name and the process id
     /// joined the record in the history: the history format names a history file after
     /// both, and reading them straight from the environment would make the file
     /// name untestable in exactly the way the processor count already was.

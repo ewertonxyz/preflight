@@ -8,7 +8,7 @@ namespace Preflight.TestSupport;
 /// <c>CommandEnvironment</c> has taken a <see cref="TimeProvider"/> since the
 /// beginning, with remarks saying it exists so the byte-identical guarantee is
 /// testable — and every call site passed
-/// <see cref="TimeProvider.System"/>, which is the same as not having the seam
+/// <see cref="TimeProvider.System"/>, which is the same as not injecting one
 /// at all. The history is what finally needed it: its file is named after a
 /// month, and a test asserting that name against the real clock is a test that
 /// changes its mind on the first of every month.
