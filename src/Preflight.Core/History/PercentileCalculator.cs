@@ -6,11 +6,11 @@ namespace Preflight.Core.History;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Both halves are the design. Interpolating between two observations invents a
+/// Both halves are deliberate. Interpolating between two observations invents a
 /// value nothing measured; and with <c>n = 27</c> a p95 is the 26th of 27
-/// ordered values — practically the maximum, dressed as a percentile. Section
-/// 10.3 calls presenting that the kind of number somebody uses in a meeting and
-/// cannot defend afterwards.
+/// ordered values — practically the maximum, dressed as a percentile. Publish
+/// that and somebody quotes it in a meeting and cannot defend it when asked how
+/// many runs it came from.
 /// </para>
 /// <para>
 /// The minimum is a parameter rather than a table keyed by percentile, because

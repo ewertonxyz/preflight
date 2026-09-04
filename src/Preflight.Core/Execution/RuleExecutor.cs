@@ -11,12 +11,13 @@ using Preflight.Core.Policy;
 /// Runs the selected rules, level by level, and assembles the result.
 /// </summary>
 /// <remarks>
-/// Rules within a level have no dependency on each other by construction, so
-/// the parallelism needs no coordination beyond the level boundary — provided
-/// the rules honour the concurrency contract, which the engine does not police
-/// beyond the isolation of 8.2. Serialising everything to defend against a
-/// badly written rule would throw away the only reason per-level parallelism
-/// exists.
+/// A level is exactly the set of rules whose dependencies are all already
+/// placed, so no rule in one can depend on another in the same one, and the
+/// parallelism needs no coordination beyond the level boundary. That holds
+/// provided the rules honour the concurrency contract, which the engine does
+/// not police beyond running each one inside its own try/catch. Serialising
+/// everything to defend against a badly written rule would throw away the only
+/// reason per-level parallelism exists.
 /// </remarks>
 public sealed class RuleExecutor
 {

@@ -35,7 +35,7 @@ internal enum PolicyValueKind
     /// A kind of its own rather than <see cref="Opaque"/>, because the whole
     /// point of the key is to be checked: a range whose members were never
     /// inspected would let a typo turn a bound into no bound, and the checkout
-    /// would stop requiring anything with nobody told. See ADR-032.
+    /// would stop requiring any particular pipeline version with nobody told.
     /// </remarks>
     VersionRange,
 }

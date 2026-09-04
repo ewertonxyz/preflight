@@ -43,9 +43,10 @@ internal static class PolicyKeySchema
         new("pipeline", PolicyValueKind.String),
 
         // The former spelling of "pipeline", still accepted. Removing it would
-        // turn every policy file written before ADR-027 into a load-time error
-        // under a schema that is strict by design, which is a migration and not
-        // a rename. Declaring both together is refused by PolicyValidator.
+        // turn every policy file written before the key was renamed into a
+        // load-time error, under a schema that refuses every key it does not
+        // list — which is a migration and not a rename. Declaring both together
+        // is refused by PolicyValidator.
         new("production", PolicyValueKind.String),
         new("maxDegreeOfParallelism", PolicyValueKind.Integer, Range: PositiveInt32),
         new("defaultTimeoutSeconds", PolicyValueKind.Integer, Range: PositiveInt32),
@@ -60,7 +61,7 @@ internal static class PolicyKeySchema
         new("targets", PolicyValueKind.TargetMap),
 
         // The paths a descendant may not override. Unioned along the extends
-        // chain, never replaced — see ADR-031.
+        // chain, never replaced.
         new(PolicySeal.KeyName, PolicyValueKind.StringArray),
 
         // The range of pipeline package versions this checkout accepts. The

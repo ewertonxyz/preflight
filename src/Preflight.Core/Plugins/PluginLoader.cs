@@ -10,10 +10,11 @@ using Preflight.Core.Execution;
 /// <para>
 /// Every way this can go wrong is exit 2 and aborts the run; none of them is a
 /// warning. A plugin quietly skipped means the run finished without rules the
-/// policy declared enabled and reported success, which is the false green of
-/// principle 7 — and it arrives with a second, misleading error, because the
-/// policy keys of the skipped plugin then read as "unknown rule id" about a
-/// rule the user wrote and can see on disk.
+/// policy declared enabled and reported success — the worst thing a validation
+/// tool can do, because everything downstream now trusts a check that never
+/// ran. It also arrives with a second, misleading error, because the policy
+/// keys of the skipped plugin then read as "unknown rule id" about a rule the
+/// user wrote and can see on disk.
 /// </para>
 /// <para>
 /// That is also why loading happens before policy validation, and why this type

@@ -5,11 +5,12 @@ namespace Preflight.Core.History;
 /// </summary>
 /// <remarks>
 /// The unreadable and ignored shapes are the whole reason this type exists
-/// rather than a bare <see cref="HistoryEvent"/>. The format spends four
-/// paragraphs establishing that a network share can produce an interleaved
-/// line, and a reader that silently swallowed one would let the report publish
-/// percentiles over an unknown fraction of the sample — principle 7, pointed at
-/// the instrumentation itself.
+/// rather than a bare <see cref="HistoryEvent"/>. Two processes appending to
+/// one file on a network share can interleave a line, and a reader that
+/// silently swallowed one would let the report publish percentiles over an
+/// unknown fraction of the sample. That is the same defect as a green run over
+/// a check that never ran, aimed at the instrumentation instead of at the
+/// workspace: the number looks like a measurement and is not one.
 /// </remarks>
 public abstract record HistoryEntry
 {

@@ -102,7 +102,7 @@ public static class RunEventDocument
     /// are exactly the ones somebody comes back to, and a record that cannot say
     /// which policy produced it is a record about nothing in particular. The
     /// policy chain still goes, because it is a list of paths rather than an
-    /// identity. See ADR-034.
+    /// identity.
     /// </remarks>
     public static object Truncated(RunResult result)
     {
