@@ -5,8 +5,10 @@ namespace Preflight.Core.Policy;
 /// <see cref="PolicyValidationError"/>s.
 /// </summary>
 /// <remarks>
-/// The user chose accumulation over fail-fast: every problem found across every
-/// document in the load is reported together, not just the first one.
+/// Accumulation over fail-fast: every problem found across every document in
+/// the load is reported together, not just the first one. Somebody who
+/// mistyped four keys should be told about four, not asked to run the tool
+/// four times.
 /// <see cref="PolicyValidator.ValidateAll"/> never throws this itself — it
 /// returns the list, and the caller decides whether a non-empty list is fatal.
 /// </remarks>

@@ -9,9 +9,10 @@ using Preflight.Abstractions.Services;
 /// <remarks>
 /// <para>
 /// Lives in <c>Preflight.Core</c>, and takes an <see cref="IProcessRunner"/>
-/// rather than starting a process itself. The seam exists so the expensive,
-/// environment-bound work stays testable; a <c>Process.Start</c> inline here
-/// would make the parser reachable only through a real repository.
+/// rather than starting a process itself. The process is injected so that the
+/// expensive, environment-bound half stays substitutable; a
+/// <c>Process.Start</c> inline here would make the parser reachable only
+/// through a real repository with real commits in it.
 /// </para>
 /// <para>
 /// The engine never fetches. Downloading an artefact is a declared non-goal,

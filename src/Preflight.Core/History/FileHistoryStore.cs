@@ -55,7 +55,7 @@ public sealed class FileHistoryStore : IHistoryStore
 
         // The terminator is part of the same buffer, so the record and its
         // newline cannot be split into two writes by anything above the
-        // operating system. That is the whole of what this class can promise.
+        // operating system. Nothing above that is promised here.
         var bytes = Encoding.UTF8.GetBytes(line + '\n');
 
         await using var stream = new FileStream(filePath, AppendOptions);

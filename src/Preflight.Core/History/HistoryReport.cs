@@ -65,8 +65,8 @@ public sealed record HistoryReport
     /// </summary>
     /// <remarks>
     /// The flag is recorded on every run for this line. A contrast run reports
-    /// more failures by design, and a thirty-day report that cannot tell it
-    /// apart inflates the failure count.
+    /// more failures because that is what it is for, and a thirty-day report
+    /// that cannot tell it apart inflates the failure count.
     /// </remarks>
     public required int ContrastRunCount { get; init; }
 
@@ -104,9 +104,9 @@ public sealed record HistoryReport
     /// </summary>
     /// <remarks>
     /// <see langword="null"/> when there is no median build duration to
-    /// multiply by. The assumption paragraph is part of the design rather than
-    /// a footnote, and a ceiling computed from a number that does not exist is
-    /// the fiction the paragraph exists to prevent.
+    /// multiply by. The number is a ceiling under a stated assumption, never a
+    /// saving, and computing it from a median that does not exist would turn a
+    /// bounded claim into an invented one.
     /// </remarks>
     public required TimeSpan? UpperBoundNotSpent { get; init; }
 }

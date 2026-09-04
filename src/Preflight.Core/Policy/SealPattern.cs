@@ -6,16 +6,16 @@ namespace Preflight.Core.Policy;
 /// <remarks>
 /// <para>
 /// <c><![CDATA[<rule-id-pattern>:<key-path>]]></c>. The separator is <c>:</c>
-/// and not <c>.</c>, for the reason <c>Docs/design.md 6.2</c> gives about
-/// <c>--set</c>: a rule id contains dots, so a fully dotted path cannot be
-/// split back into an id and a key.
+/// and not <c>.</c>, for the reason <c>--set</c> uses the same one: a rule id
+/// contains dots, so a fully dotted path cannot be split back into an id and a
+/// key.
 /// </para>
 /// <para>
 /// Three shapes, and each earns its place: <c>core.presubmit.large-file:settings.maxBytes</c>
 /// reaches into <c>settings</c>, which is the headline use — a project that may
 /// not raise a limit; <c>:cachePath</c> has an empty id and seals a root key,
 /// exactly as <c>--set :maxDegreeOfParallelism=4</c> already writes one; and
-/// <c>security.*:enabled</c> ends the id in a wildcard. See ADR-031.
+/// <c>security.*:enabled</c> ends the id in a wildcard.
 /// </para>
 /// </remarks>
 public readonly record struct SealPattern(string RuleIdPattern, string KeyPath)
@@ -48,7 +48,10 @@ public readonly record struct SealPattern(string RuleIdPattern, string KeyPath)
         // The wildcard ends the id or does not appear. In the middle it would
         // be a glob — a pattern language to write and test — and on the right
         // of the separator it would seal a rule's whole shape, collapsing
-        // blocking and gating, which section 7.2 keeps apart on purpose.
+        // blocking and gating into one lock. Those two are separate keys
+        // because they answer separate questions — whether a failure stops the
+        // build, and whether it stops what depends on it — and a studio that
+        // seals one has said nothing about the other.
         if (id.Contains(Wildcard) && !id.EndsWith(Wildcard))
         {
             return false;

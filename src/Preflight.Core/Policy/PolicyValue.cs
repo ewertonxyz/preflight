@@ -16,10 +16,13 @@ public static class PolicyValue
 /// it, oldest first.
 /// </summary>
 /// <remarks>
-/// The user chose full history over "just the immediate predecessor": every
-/// layer that ever set this key is retrievable, not only the one it most
-/// recently overrode. <see cref="Value"/> and <see cref="Origin"/> are the last
-/// entry; <see cref="History"/> is everything before it.
+/// Full history rather than just the immediate predecessor: every layer that
+/// ever set this key is retrievable, not only the one it most recently
+/// overrode. <c>explain</c> is the reason — a reader asking why a value is what
+/// it is usually wants the whole chain, and a single predecessor cannot be
+/// widened later without changing what every layer records.
+/// <see cref="Value"/> and <see cref="Origin"/> are the last entry;
+/// <see cref="History"/> is everything before it.
 /// </remarks>
 public sealed record PolicyValue<T>
 {

@@ -12,10 +12,11 @@ namespace Preflight.Core;
 /// one type whose file and line are always null for half its uses.
 /// </para>
 /// <para>
-/// What they do share is the caller. This base is what lets the exit-code
-/// selection of 8.4 have one <c>catch</c> instead of one per validation stage,
-/// which is also what stops a third kind of configuration error, added later,
-/// from being silently missed by a caller that only knew about two.
+/// What they do share is the caller. This base is what lets the code that
+/// chooses the process exit code have one <c>catch</c> instead of one per
+/// validation stage, which is also what stops a third kind of configuration
+/// error, added later, from being silently missed by a caller that only knew
+/// about two.
 /// </para>
 /// </remarks>
 public abstract class ConfigurationLoadException : Exception

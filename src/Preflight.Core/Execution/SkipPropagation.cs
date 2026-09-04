@@ -14,16 +14,17 @@ using Preflight.Core.Graph;
 /// transitively depends on it is skipped.
 /// </para>
 /// <para>
-/// The decision that matters is the attribution: it names the original failure,
-/// never the immediate parent. The design prints both formats side by side and
-/// says of the wrong one that it "manda o desenvolvedor investigar o lugar
-/// errado". Resolving through the skipped nodes until a real terminal ancestor
-/// appears is what buys that.
+/// The decision that matters is the attribution: it names the original
+/// failure, never the immediate parent. Naming the parent sends whoever reads
+/// the report to the wrong file — they open a rule that did nothing wrong, and
+/// the rule that actually failed is one or five hops further up. Resolving
+/// through the skipped nodes until a real terminal ancestor appears is what
+/// buys the right file.
 /// </para>
 /// <para>
-/// Pure by design — no async, no scheduling, no clock. Every case here would
-/// otherwise have to be provoked through a parallel run, which trades a short
-/// test for a long one with a race inside it.
+/// Pure: no async, no scheduling, no clock. Every case here would otherwise
+/// have to be provoked through a parallel run, which trades a short test for a
+/// long one with a race inside it.
 /// </para>
 /// </remarks>
 public static class SkipPropagation
@@ -125,9 +126,10 @@ public static class SkipPropagation
             .ThenBy(id => id.Value, StringComparer.Ordinal)];
 
     /// <remarks>
-    /// Built here from <c>Levels</c> rather than asked of the graph: 7.1 fixes
-    /// the graph's surface at three members, and the test that pins it exists
-    /// to make a fourth one noisy.
+    /// Built here from <c>Levels</c> rather than asked of the graph. The
+    /// graph's public surface is three members and a test pins it there, so
+    /// that a fourth cannot be added quietly — a graph that answers every
+    /// question anybody has is a graph nobody can reason about.
     /// </remarks>
     private static Dictionary<RuleId, int> LevelsOf(RuleGraph graph)
     {

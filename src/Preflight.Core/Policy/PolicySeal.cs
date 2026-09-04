@@ -7,17 +7,16 @@ using System.Diagnostics.CodeAnalysis;
 /// </summary>
 /// <remarks>
 /// <para>
-/// <c>Docs/design.md 6.3</c> names the hole this closes: nothing stopped a
-/// downstream layer setting <c>"blocking": false</c> on a rule the studio
-/// requires, and the run went green having checked less than the policy asked
-/// for.
+/// The hole this closes: nothing stopped a downstream layer setting
+/// <c>"blocking": false</c> on a rule the studio requires, and the run went
+/// green having checked less than the policy asked for.
 /// </para>
 /// <para>
 /// Seals are <b>unioned</b> along the <c>extends</c> chain and never replaced.
 /// A descendant cannot remove an ancestor's seal, which is why this is built
 /// from the individual documents rather than from the merged one — merging an
 /// array keeps the stronger side whole, so a pipeline declaring its own
-/// <c>sealed</c> would erase the baseline's without a word. See ADR-031.
+/// <c>sealed</c> would erase the baseline's without a word.
 /// </para>
 /// </remarks>
 public sealed class PolicySeal

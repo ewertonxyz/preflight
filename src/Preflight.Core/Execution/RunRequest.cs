@@ -10,8 +10,9 @@ using Preflight.Core.Policy;
 /// Everything one run needs.
 /// </summary>
 /// <remarks>
-/// <see cref="RunId"/> is nullable so a caller can fix it: without that seam,
-/// the console reporter's golden files could never stabilise.
+/// <see cref="RunId"/> is nullable so a caller can fix it. Left to generate its
+/// own, every run would print a different identifier and the console reporter's
+/// golden files could never settle on one.
 /// <see cref="NoSkip"/> is the engine half of the <c>--no-skip</c> contrast
 /// flag.
 /// </remarks>
@@ -56,7 +57,7 @@ public sealed record RunRequest
     /// Carried through so that the result can say which delivery of the pipeline
     /// produced this verdict. Without it two runs of one commit against two
     /// packages are indistinguishable in every machine-readable output the tool
-    /// writes. See ADR-034.
+    /// writes.
     /// </remarks>
     public string? PipelineVersion { get; init; }
 

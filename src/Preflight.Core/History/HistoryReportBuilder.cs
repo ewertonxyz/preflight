@@ -60,8 +60,9 @@ public static class HistoryReportBuilder
 
     /// <remarks>
     /// A private mutable fold rather than LINQ over a materialised list. The
-    /// sequence is walked once by construction, which is what keeps the cost
-    /// linear, and it cannot be walked twice by accident later.
+    /// sequence is walked exactly once because there is nothing to walk a
+    /// second time — the entries are never held — which is what keeps the cost
+    /// linear and stops a later edit from quietly reading them twice.
     /// </remarks>
     private sealed class Accumulator
     {

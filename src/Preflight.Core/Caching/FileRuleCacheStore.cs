@@ -21,7 +21,7 @@ using System.Text;
 /// </para>
 /// <para>
 /// Losing the move is not a failure. Two runs of the same workspace compute the
-/// same key by construction, so a writer that finds the destination taken has
+/// same key from the same inputs, so a writer that finds the destination taken has
 /// been beaten to it by somebody writing the same bytes — and on Windows that
 /// race surfaces as an <c>UnauthorizedAccessException</c> rather than as
 /// anything that reads like a race. Any other cause is simply a cache entry
