@@ -82,11 +82,17 @@ public sealed class RuleCache
     /// </para>
     /// <para>
     /// The check is on the resolved path, not on the string, so <c>"a/.."</c>
-    /// and <c>"."</c> are the same refusal. It refuses the workspace root and
-    /// anything above it, and it refuses a path that would take the history
-    /// down with it — the two directories are siblings under <c>.preflight</c>
-    /// by default, and losing the history is a real cost rather than an
-    /// inconvenience.
+    /// and <c>"."</c> are the same refusal. What it refuses is exactly one
+    /// thing: a directory that contains the workspace root, or is it.
+    /// </para>
+    /// <para>
+    /// It does <b>not</b> refuse a path that would take the history with it.
+    /// <c>"cachePath": ".preflight"</c> resolves to the parent of the default
+    /// history directory and is accepted here, and the history survives only
+    /// because <see cref="Clear"/> deletes the cache's own extension and a
+    /// history file carries a different one. That is a narrow escape rather
+    /// than a guarantee: give the two the same extension and this method would
+    /// hand <c>preflight cache clear</c> a month of instrumentation to delete.
     /// </para>
     /// </remarks>
     public static void RequireSafeToEmpty(DirectoryInfo workspaceRoot, string directory)

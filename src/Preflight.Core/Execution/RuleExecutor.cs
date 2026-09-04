@@ -109,9 +109,15 @@ public sealed class RuleExecutor
         // attribution has no such reason.
         if (!cancelled)
         {
+            // The disabled ids are gathered once. Asked per attribution, this
+            // was a scan of the skipped list inside a walk of the skipped list,
+            // which costs the square of the rule count on a path every run
+            // takes.
+            var disabled = executionSet.Skipped.Select(entry => entry.RuleId).ToHashSet();
+
             executions.AddRange(skipped.Values
                 .Where(attribution => runnable.Contains(attribution.RuleId) ||
-                    Disabled(executionSet, attribution.RuleId))
+                    disabled.Contains(attribution.RuleId))
                 .Where(attribution => !reported.Contains(attribution.RuleId))
                 .Select(attribution => SkippedExecution(attribution, snapshots)));
         }
@@ -159,9 +165,6 @@ public sealed class RuleExecutor
     /// </remarks>
     private static RunVerdict Verdict(IReadOnlyList<RuleExecution> executions, bool cancelled) =>
         cancelled ? RunVerdict.Errored : RunVerdictAggregation.Aggregate(executions);
-
-    private static bool Disabled(ExecutionSet executionSet, RuleId ruleId) =>
-        executionSet.Skipped.Any(entry => entry.RuleId == ruleId);
 
     private static RuleExecution SkippedExecution(
         SkipPropagation.SkipAttribution attribution,

@@ -56,7 +56,7 @@ public sealed class GitChangeSource : IChangeSource
 
                 // -z is not a detail. Without it git quotes any path outside
                 // printable ASCII into octal escapes, separates fields with a
-                // tab and records with a newline - all three of which are legal
+                // tab and records with a newline — all three of which are legal
                 // inside a filename. With it, records are NUL-separated and
                 // never quoted, and three families of parsing branch stop
                 // existing rather than being tested.

@@ -7,9 +7,9 @@ using Preflight.Abstractions.Rules;
 /// Everything <c>preflight report</c> prints, computed and not yet formatted.
 /// </summary>
 /// <remarks>
-/// Data first, text second. <c>report</c> originally had no
-/// <c>--format json</c> today, and the surest way to make one impossible later
-/// is to build the screen directly and leave the numbers unreachable except by
+/// Data first, text second. <c>report</c> shipped before it had a
+/// <c>--format json</c>, and the surest way to make one impossible later is to
+/// build the screen directly and leave the numbers unreachable except by
 /// re-parsing it.
 /// </remarks>
 public sealed record HistoryReport
