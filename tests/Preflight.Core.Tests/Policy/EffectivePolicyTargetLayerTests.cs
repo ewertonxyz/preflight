@@ -245,9 +245,10 @@ public sealed class EffectivePolicyTargetLayerTests
     /// <remarks>
     /// This is how "zero cost per rule" is proved. The layer resolves while the
     /// policy is built, so the reader a rule receives exposes already-resolved
-    /// values and carries no target concept — which is also what keeps section
-    /// 11.2 from turning this into a major version that recompiles every
-    /// plugin.
+    /// values and carries no target concept. That is also what keeps the whole
+    /// layer a minor version: a member added to a contract plugins compile
+    /// against obliges every one of them to be rebuilt, and targets ask nothing
+    /// of the rules at all.
     /// </remarks>
     [Fact]
     public void IPolicyReader_HasTheSameMembersAsBeforeTheTargetLayer() =>

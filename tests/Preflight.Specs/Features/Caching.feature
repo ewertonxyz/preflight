@@ -7,7 +7,7 @@ Feature: Incremental cache
     What the scenarios below are for is the half that cannot be seen from
     inside the process: that a second invocation of the real binary genuinely
     skips the work, that it says so where a person will read it, and that the
-    two documented escapes actually escape.
+    two escapes from it — the flag and the clear command — actually escape.
 
     The safe default gets a scenario of its own. A probe that has not declared
     its inputs is never cached, because there is no approximate

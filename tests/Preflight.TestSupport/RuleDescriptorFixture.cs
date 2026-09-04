@@ -13,8 +13,8 @@ using Preflight.Abstractions.Rules;
 /// <c>Preflight.Core.Tests</c> and therefore unreachable from
 /// <c>Preflight.Cli.Tests</c> — where the SARIF reporter and the DOT renderer
 /// live. Copying it would give the two projects their own idea of what a
-/// descriptor set looks like, which is the drift that moved
-/// <see cref="RunResultFixture"/> here in the history.
+/// descriptor set looks like, which is the same drift that put
+/// <see cref="RunResultFixture"/> here rather than beside one of them.
 /// </para>
 /// <para>
 /// Everything is keyed by <see cref="RuleId"/>, never by

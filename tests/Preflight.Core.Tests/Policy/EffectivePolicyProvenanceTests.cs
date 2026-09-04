@@ -86,7 +86,7 @@ public sealed class EffectivePolicyProvenanceTests
     }
 
     [Fact]
-    public void Build_MirrorsTheDesignDocExplainExample_ForTheDocumentedFourFieldScenario()
+    public void Build_ForTheFourFieldExplainScenario_CarriesEveryLayerThatTouchedTheValue()
     {
         var descriptor = LargeFile with { DefaultSeverity = Severity.Error, DefaultTimeoutSeconds = 60 };
         var production = PolicyDocument.Parse("""

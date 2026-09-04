@@ -65,9 +65,9 @@ public static class PolicyResolution
         // A resolved package replaces the workspace file as the entry of the
         // chain. It does not become an ancestor the checkout may extend and
         // override: if it did, `sealed` would be the only thing standing between
-        // a project and the studio's limits, and every project would re-litigate
-        // the baseline the previous phase spent an ADR settling. The local
-        // overlay is still the escape hatch, and it is still suppressed in CI.
+        // a project and the studio's limits, and every project would reopen the
+        // baseline that was settled once. The local overlay is still the escape
+        // hatch, and it is still suppressed in CI.
         var entryPath = package is not null
             ? Path.Combine(package.Root.FullName, PackagePolicyFileName(package))
             : EntryPath(workspaceRoot, fileSystem, selection.Pipeline);

@@ -606,9 +606,9 @@ public sealed class CommandEndToEndTests : IDisposable
 
         // A ref that resolves to the current tree in a workspace with no
         // repository would fail; the temp directory has none, so the change
-        // source refuses and the run is a configuration error. That is the
-        // documented behaviour, and asserting it here is what proves the change
-        // source is wired at all.
+        // source refuses and the run is a configuration error rather than a
+        // rejected commit. Asserting it here is what proves the change source is
+        // wired at all.
         Invoke("run", "--stage", "pre-submit", "--changed-from", "HEAD").ShouldBe(2);
 
         _error.ToString().ShouldNotBeEmpty();

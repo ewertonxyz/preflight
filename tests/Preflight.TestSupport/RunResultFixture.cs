@@ -16,10 +16,11 @@ using Preflight.Core.Execution;
 /// exist until both are pinned.
 /// </para>
 /// <para>
-/// It moved here from <c>Cli.Tests</c> when <c>Core.Tests</c> gained a second
-/// reason to build a finished <c>RunResult</c>: the NDJSON record describes the
-/// same run the JSON reporter does, and two fixtures producing "the documented
-/// example" would be two examples.
+/// It lives here, and not beside the reporters, because two projects need a
+/// finished <c>RunResult</c>: the NDJSON record describes the same run the JSON
+/// reporter does. Two fixtures claiming to be the canonical example would be
+/// two examples, and the day they drifted apart neither golden file would say
+/// so.
 /// </para>
 /// <para>
 /// Still separate from <c>Core.Tests</c>' <c>RunFixture</c>. That one builds a
@@ -36,7 +37,7 @@ public static class RunResultFixture
         new(2026, 8, 26, 14, 30, 0, TimeSpan.Zero);
 
     /// <summary>
-    /// The documented run: one pass, one failure with a full finding, and one
+    /// The canonical run: one pass, one failure with a full finding, and one
     /// skip attributed to the failure.
     /// </summary>
     public static RunResult DocumentedExample() => new()
