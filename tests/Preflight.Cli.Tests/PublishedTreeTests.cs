@@ -97,6 +97,30 @@ public sealed class PublishedTreeTests
             "state the decision in the file; do not point at where it is written.");
 
     /// <summary>
+    /// Preflight is a tool, and nothing published calls it an engine.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The word is not a synonym here, it is somebody else's product. This
+    /// validates game projects, and in that room "the engine" is Unreal or
+    /// Unity — so a comment calling Preflight one tells a reader it is a thing
+    /// it is not, in the exact vocabulary they use every day. It was written
+    /// that way in a hundred and sixty places before this test existed, which
+    /// is how a wrong word survives: nothing fails, and every new file copies
+    /// the last one.
+    /// </para>
+    /// <para>
+    /// <c>layout engine</c> is allowed and is the only thing that is. Graphviz
+    /// has one, the DOT renderer has opinions about it, and naming it is
+    /// naming somebody else's component rather than this one.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void TrackedFiles_DoNotCallPreflightAnEngine() =>
+        Occurrences(@"(?<!layout )\bengines?\b", RegexOptions.IgnoreCase).ShouldBeEmpty(
+            "Preflight is a tool. The engine is the thing it validates a project for.");
+
+    /// <summary>
     /// The private documentation folder, matched case-sensitively.
     /// </summary>
     /// <remarks>
@@ -108,6 +132,66 @@ public sealed class PublishedTreeTests
     public void TrackedFiles_DoNotCiteThePrivateDocumentationFolder() =>
         Occurrences("Docs/", RegexOptions.None).ShouldBeEmpty(
             "state the decision in the file; do not point at the folder it is written in.");
+
+    /// <summary>
+    /// The same two rules, over every commit message in the history.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// A message is published as surely as a file is, and unlike a file it
+    /// cannot be corrected in place: fixing one means rewriting history and
+    /// force-pushing a branch other people may already hold. That asymmetry is
+    /// the argument for checking it here, where the cost of a mistake is a red
+    /// test rather than a rewrite.
+    /// </para>
+    /// <para>
+    /// Every commit reachable from the checked-out ref, not a range against a
+    /// branch that may not exist on a fresh clone. The whole history of this
+    /// repository is a few dozen messages, so completeness costs nothing and a
+    /// range would only raise the question of which one.
+    /// </para>
+    /// <para>
+    /// Pull request bodies are the half this cannot reach — they live in the
+    /// forge and not in git. They stay with the person opening one.
+    /// </para>
+    /// </remarks>
+    [Theory]
+    [InlineData(@"claude")]
+    [InlineData(@"anthropic")]
+    [InlineData(@"co-authored-by")]
+    [InlineData(@"generated with")]
+    [InlineData(@"\bADR\b")]
+    [InlineData(@"IDEAS\.md")]
+    [InlineData(@"CLAUDE\.md")]
+    [InlineData(@"§")]
+    [InlineData(@"[Ss]ection \d+\.\d")]
+    public void CommitMessages_CarryNoneOfIt(string pattern)
+    {
+        var expression = new Regex(pattern, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(5));
+
+        CommitMessages.Value
+            .Where(commit => expression.IsMatch(commit.Message))
+            .Select(commit => $"{commit.Hash}: {Excerpt(commit.Message)}")
+            .ShouldBeEmpty("a commit message cannot be corrected without rewriting history.");
+    }
+
+    /// <summary>
+    /// Every commit reachable from HEAD, as a hash and a whole message.
+    /// </summary>
+    /// <remarks>
+    /// The record separator is a NUL, and the field separator a unit separator,
+    /// because a commit message is expected to contain newlines and blank lines
+    /// — anything printable chosen as a delimiter would eventually turn up
+    /// inside a message and split it in the wrong place.
+    /// </remarks>
+    private static readonly Lazy<IReadOnlyList<(string Hash, string Message)>> CommitMessages =
+        new(() =>
+        [
+            .. from record in Git("log", "--format=%H%x1f%B%x00").Split('\0', StringSplitOptions.RemoveEmptyEntries)
+               let parts = record.Split('\x1f', 2)
+               where parts.Length == 2
+               select (parts[0].Trim(), parts[1]),
+        ]);
 
     /// <summary>
     /// The one file the scan skips: this one.
@@ -204,31 +288,52 @@ public sealed class PublishedTreeTests
     {
         var root = RepositoryRoot();
 
-        using var process = Process.Start(new ProcessStartInfo("git")
-        {
-            ArgumentList = { "ls-files" },
-            WorkingDirectory = root,
-            RedirectStandardOutput = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-        }) ?? throw new InvalidOperationException("git did not start.");
-
-        var output = process.StandardOutput.ReadToEnd();
-        process.WaitForExit();
-
-        if (process.ExitCode != 0)
-        {
-            throw new InvalidOperationException(
-                $"'git ls-files' failed in '{root}' with exit code {process.ExitCode}. " +
-                "This test reads the tracked file list, so it needs a git checkout.");
-        }
-
         return
         [
-            .. from relative in output.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .. from relative in Git("ls-files").Split('\n', StringSplitOptions.RemoveEmptyEntries)
                let path = Path.Combine(root, relative.Trim())
                where File.Exists(path)
                select (relative.Trim(), File.ReadAllLines(path)),
         ];
+    }
+
+    /// <summary>
+    /// Runs git in the repository root and returns what it wrote to standard
+    /// output.
+    /// </summary>
+    /// <remarks>
+    /// A checkout is what this repository always is, so a git that will not run
+    /// is a broken environment rather than a case to tolerate quietly. The
+    /// exception says which command failed and why the test wanted it, because
+    /// the alternative is somebody deleting a guard they cannot explain.
+    /// </remarks>
+    private static string Git(params string[] arguments)
+    {
+        var root = RepositoryRoot();
+        var startInfo = new ProcessStartInfo("git")
+        {
+            WorkingDirectory = root,
+            RedirectStandardOutput = true,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+        };
+
+        foreach (var argument in arguments)
+        {
+            startInfo.ArgumentList.Add(argument);
+        }
+
+        using var process = Process.Start(startInfo)
+            ?? throw new InvalidOperationException("git did not start.");
+
+        var output = process.StandardOutput.ReadToEnd();
+        process.WaitForExit();
+
+        return process.ExitCode == 0
+            ? output
+            : throw new InvalidOperationException(
+                $"'git {string.Join(' ', arguments)}' failed in '{root}' with exit code " +
+                $"{process.ExitCode}. These guards read the tracked file list and the commit " +
+                "messages, so they need a git checkout.");
     }
 }
