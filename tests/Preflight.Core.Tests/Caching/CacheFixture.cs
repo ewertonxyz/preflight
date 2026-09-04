@@ -164,6 +164,12 @@ internal static class CacheFixture
 {
     public static readonly DirectoryInfo Workspace = new(Path.Combine(Path.GetTempPath(), "preflight-cache-tests"));
 
+    /// <summary>
+    /// Where the history sits for the refusal tests: the engine default,
+    /// resolved against <see cref="Workspace"/>.
+    /// </summary>
+    public static readonly string History = Path.Combine(Workspace.FullName, ".preflight", "history");
+
     public const string Directory = "/cache";
 
     public static EffectivePolicy PolicyFor(IValidationRule rule) =>
