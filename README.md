@@ -411,8 +411,23 @@ fixtures/                  Workspaces, good and broken, the tests run against.
 `Preflight.Rules` referencing `Preflight.Core` would make the plugin model fiction, so a test
 enforces the boundary. The built-in rules see exactly what an external plugin sees.
 
-Inside `Preflight.Cli`, a folder answers *what a file is* rather than which command it serves,
-because a type is reached from the outside by what it does and not by who asked for it:
+In both `Preflight.Core` and `Preflight.Cli`, a folder answers *what a file is* rather than which
+command or subsystem it serves, because a type is reached from the outside by what it does and not
+by who asked for it. Every folder is a namespace, and every type has a file named after it.
+
+```text
+Preflight.Core/
+  Policy/       Parsing, validating and merging policy into one effective answer.
+  Graph/        The rule dependency graph, and which rules a stage actually runs.
+  Execution/    Running the selected rules, and surviving whatever they do.
+  Caching/      The incremental cache, from the engine's side.
+  History/      The append-only run record, and the report computed over it.
+  Plugins/      Turning assemblies on disk into rules, or refusing to.
+  Changes/      The changed-file list, asked of git.
+```
+
+One file stays at the root: the base every load-time refusal derives from, which is what lets the
+exit-code mapping have a single `catch`.
 
 ```text
 Preflight.Cli/
