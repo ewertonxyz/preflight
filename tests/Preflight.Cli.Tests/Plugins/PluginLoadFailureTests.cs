@@ -75,7 +75,7 @@ public sealed class PluginLoadFailureTests
     /// </para>
     /// <para>
     /// The fixture is a real type from real assemblies, bound to a second copy
-    /// of the contract, which is exactly what a broken loader hands the engine.
+    /// of the contract, which is exactly what a broken loader hands the tool.
     /// A hand-written stand-in could not be built: a fake interface would need
     /// the full name <c>Preflight.Abstractions.Rules.IValidationRule</c>, and
     /// declaring that namespace inside a test project makes the real interface

@@ -8,7 +8,7 @@ using Preflight.Core.Tests.Execution;
 using static Preflight.Core.Tests.Caching.CacheFixture;
 
 /// <summary>
-/// The engine's side of the incremental cache: when there is a key, and what may be
+/// The core's side of the incremental cache: when there is a key, and what may be
 /// stored under it.
 /// </summary>
 /// <remarks>

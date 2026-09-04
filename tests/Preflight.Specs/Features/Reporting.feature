@@ -7,7 +7,7 @@ Feature: Reporting formats
 
     Every scenario shapes the six real rules through policy rather than through
     fakes, for the reason the rest of this suite does: a fake rule proves the
-    engine, and the engine already has unit tests.
+    tool, and the tool already has unit tests.
 
     # Errored comes first in aggregation so that a defect in a rule is
     # never reported as a problem with the workspace. Failed and Errored are

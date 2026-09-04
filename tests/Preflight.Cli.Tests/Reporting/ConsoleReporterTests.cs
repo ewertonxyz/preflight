@@ -256,7 +256,7 @@ public sealed class ConsoleReporterTests
     /// </summary>
     /// <remarks>
     /// <c>SkipReason</c> is nullable while <c>SkippedBecauseOf</c> is not, so
-    /// the shape is legal even though the engine never produces it. The failure
+    /// the shape is legal even though the tool never produces it. The failure
     /// this guards is cosmetic and permanent: a formatter that assumed a reason
     /// was always present would print <c>blocked by  x   ()</c> forever, and
     /// nobody would trace it back to a null on a record.

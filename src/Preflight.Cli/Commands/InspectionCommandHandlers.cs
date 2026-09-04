@@ -322,17 +322,17 @@ public static class InspectionCommandHandlers
             $"{package.Pipeline}@{package.Version}/{DescribeOrigin(package.Source)}",
         PolicyOrigin.DescriptorDefault => "RuleDescriptor default",
 
-        // EngineDefault is the discard rather than a named arm, because
+        // ToolDefault is the discard rather than a named arm, because
         // PolicyOrigin is a closed hierarchy and a switch expression still
         // demands a discard it cannot prove unreachable. Naming the last one
         // and adding a throw beside it puts a permanent hole in the branch
         // count; letting it be the discard does not.
         //
-        // What that costs is a variant added later rendering as an engine
+        // What that costs is a variant added later rendering as a tool
         // default, silently and with no test failing — so the guard lives in
         // InspectionCommandHandlersTests, which walks the hierarchy by
         // reflection. The switch stays honest about coverage; the test stays
         // honest about the hierarchy.
-        _ => "engine default",
+        _ => "tool default",
     };
 }

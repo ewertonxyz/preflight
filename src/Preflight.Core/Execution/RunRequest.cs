@@ -13,7 +13,7 @@ using Preflight.Core.Policy;
 /// <see cref="RunId"/> is nullable so a caller can fix it. Left to generate its
 /// own, every run would print a different identifier and the console reporter's
 /// golden files could never settle on one.
-/// <see cref="NoSkip"/> is the engine half of the <c>--no-skip</c> contrast
+/// <see cref="NoSkip"/> is the tool half of the <c>--no-skip</c> contrast
 /// flag.
 /// </remarks>
 public sealed record RunRequest
@@ -37,8 +37,8 @@ public sealed record RunRequest
     /// </summary>
     /// <remarks>
     /// There is no <c>NoCache</c> flag beside this, deliberately.
-    /// <c>--no-cache</c> is the CLI declining to hand the engine a store, which
-    /// leaves the engine with one condition instead of two that have to agree —
+    /// <c>--no-cache</c> is the CLI declining to hand the tool a store, which
+    /// leaves the tool with one condition instead of two that have to agree —
     /// and two booleans meaning "do not cache" is how a flag ends up being
     /// honoured in one code path and ignored in another.
     /// </remarks>

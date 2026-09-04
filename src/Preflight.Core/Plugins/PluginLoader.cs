@@ -41,9 +41,9 @@ public sealed class PluginLoader
 
     /// <param name="loader">How an assembly is opened.</param>
     /// <param name="hostAbstractions">
-    /// The contract version this engine provides. A parameter rather than a
+    /// The contract version this tool provides. A parameter rather than a
     /// static read, so that the version refusal table can be exercised without
-    /// shipping an engine per row.
+    /// shipping a tool per row.
     /// </param>
     public PluginLoader(IAssemblyLoader loader, Version hostAbstractions)
     {
@@ -95,7 +95,7 @@ public sealed class PluginLoader
 
     /// <remarks>
     /// The order of the three checks is the order of their consequences. A
-    /// contract version this engine cannot honour makes every judgement about
+    /// contract version this tool cannot honour makes every judgement about
     /// the types inside meaningless, so it is decided first and the assembly is
     /// dropped. A foreign contract makes the types unusable individually, so
     /// the assembly contributes nothing rather than contributing the subset
@@ -139,7 +139,7 @@ public sealed class PluginLoader
         catch (RuleDiscoveryException exception)
         {
             // Re-wrapped rather than allowed to propagate. RuleDiscovery names
-            // the type, which is enough when the types came from the engine's
+            // the type, which is enough when the types came from the tool's
             // own assembly and is not enough when four plugins were probed.
             errors.Add(new PluginLoadError.RuleTypeRejected(assembly.Path, exception.Message));
         }
@@ -189,7 +189,7 @@ public sealed class PluginLoader
     /// Matched by <see cref="Type.FullName"/> and not by identity, because
     /// identity is exactly the thing that is broken in the case being detected.
     /// The assignability test comes first so that a rule which really does
-    /// implement this engine's contract never reaches the name comparison.
+    /// implement this tool's contract never reaches the name comparison.
     /// </remarks>
     private static Type? ForeignRuleInterfaceOf(Type type) =>
         typeof(IValidationRule).IsAssignableFrom(type)

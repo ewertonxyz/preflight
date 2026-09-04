@@ -365,7 +365,7 @@ public sealed class ToolchainRuleTests
     }
 
     /// <summary>
-    /// A timeout is the engine's verdict, not the rule's.
+    /// A timeout is the tool's verdict, not the rule's.
     /// </summary>
     /// <remarks>
     /// A timeout is <c>Errored</c> — a defect in the rule or the environment. A

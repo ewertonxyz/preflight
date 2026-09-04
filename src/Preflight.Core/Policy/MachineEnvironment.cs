@@ -1,7 +1,7 @@
 namespace Preflight.Core.Policy;
 
 /// <summary>
-/// The facts about the machine that engine defaults and the history record are
+/// The facts about the machine that tool defaults and the history record are
 /// derived from.
 /// </summary>
 /// <remarks>
@@ -36,10 +36,10 @@ namespace Preflight.Core.Policy;
 /// applied: the next environment-derived fact is a property on this type.
 /// </para>
 /// </remarks>
-public sealed record EngineEnvironment
+public sealed record MachineEnvironment
 {
     /// <summary>
-    /// The number of logical processors available to the engine. Seeds
+    /// The number of logical processors available to the tool. Seeds
     /// <c>maxDegreeOfParallelism</c>.
     /// </summary>
     public required int ProcessorCount { get; init; }
@@ -59,7 +59,7 @@ public sealed record EngineEnvironment
     /// <summary>
     /// The real machine.
     /// </summary>
-    public static EngineEnvironment Current => new()
+    public static MachineEnvironment Current => new()
     {
         ProcessorCount = Environment.ProcessorCount,
         MachineName = Environment.MachineName,

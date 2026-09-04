@@ -36,7 +36,7 @@ public sealed class SampleDependencyTests
     /// default copies <c>Preflight.Abstractions.dll</c> into the output, the
     /// plugin ships its own copy of the contract, and the load context finds it
     /// sitting beside the plugin. The plugin's types then implement a
-    /// different <c>IValidationRule</c> from the one the engine is looking for,
+    /// different <c>IValidationRule</c> from the one the tool is looking for,
     /// and it is rejected as not being a rule at all — while everything about
     /// it looks correct.
     /// </remarks>

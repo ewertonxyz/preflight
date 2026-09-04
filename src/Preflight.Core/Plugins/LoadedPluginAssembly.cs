@@ -18,7 +18,7 @@ namespace Preflight.Core.Plugins;
 /// <see cref="Types"/> is every type the assembly declares, not the rules among
 /// them. Filtering here would hide one of the most irritating bugs in .NET
 /// plugin systems: a type that <em>says</em> it implements
-/// <c>IValidationRule</c> and is not assignable to the one this engine knows. A
+/// <c>IValidationRule</c> and is not assignable to the one this tool knows. A
 /// pre-filtered list cannot tell that apart from an assembly with no rules in
 /// it.
 /// </para>

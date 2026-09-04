@@ -33,7 +33,7 @@ public sealed class CompileProbeFingerprintTests : IDisposable
     /// Without a declaration there is no fingerprint, and that is the default.
     /// </summary>
     /// <remarks>
-    /// There is no approximate fingerprint, and the engine cannot work out what
+    /// There is no approximate fingerprint, and the tool cannot work out what
     /// a compiler reads. A workspace that has not said what its probe reads
     /// gets the safe answer, which is no caching at all.
     /// </remarks>

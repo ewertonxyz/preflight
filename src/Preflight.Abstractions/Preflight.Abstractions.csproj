@@ -9,8 +9,8 @@
     plugin author inherits. A test asserts this rather than trusting it.
 
     The three folders are the three questions a plugin author asks in order:
-    Rules holds what they write and what the engine hands back, Services holds
-    the interfaces the engine implements for them, and Model holds the data
+    Rules holds what they write and what the tool hands back, Services holds
+    the interfaces the tool implements for them, and Model holds the data
     those two exchange. The namespaces follow the folders.
   -->
 
@@ -21,7 +21,7 @@
     <!--
       Declared here rather than inherited, even though it currently equals the
       product version in Directory.Build.props. This number is the contract
-      between the engine and every plugin, and it moves when the surface a
+      between the tool and every plugin, and it moves when the surface a
       plugin compiles against moves — which is not the same event as a release
       of the tool. Keeping the declaration local is what lets the two diverge
       the day they need to, without a reader having to work out which of the

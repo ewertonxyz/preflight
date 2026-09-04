@@ -83,7 +83,7 @@ public sealed class PluginLoaderTests
     /// <remarks>
     /// The rule interface, and the assembly is named as well as the type.
     /// <c>RuleDiscovery</c> names only the type, which is enough when the types
-    /// came from the engine's own assembly and is not enough when a directory
+    /// came from the tool's own assembly and is not enough when a directory
     /// held four plugins.
     /// </remarks>
     [Fact]

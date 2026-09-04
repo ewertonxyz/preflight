@@ -14,7 +14,7 @@ namespace Preflight.Core.History;
 /// </para>
 /// <para>
 /// <c>StageParser</c>, in the command line project, has the same shape for the
-/// same reason. It is named rather than linked because the engine does not
+/// same reason. It is named rather than linked because the tool does not
 /// reference that project and a link from here could never resolve.
 /// </para>
 /// </remarks>

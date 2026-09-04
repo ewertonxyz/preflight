@@ -7,10 +7,10 @@ namespace Preflight.Core.Policy;
 /// <c>explain</c> shows three shapes: a file and line, a code default, and —
 /// implicitly, since <c>--set</c> has neither — the command line.
 /// <see cref="DescriptorDefault"/> and
-/// <see cref="EngineDefault"/> are kept distinct even though both are "no file
+/// <see cref="ToolDefault"/> are kept distinct even though both are "no file
 /// touched this": one traces back to a specific <c>RuleDescriptor</c> field
 /// (<c>DefaultSeverity</c>, <c>DefaultBlocking</c>, <c>DefaultGating</c>,
-/// <c>DefaultTimeoutSeconds</c>), the other to a hardcoded engine constant that
+/// <c>DefaultTimeoutSeconds</c>), the other to a hardcoded tool constant that
 /// isn't per-rule authored data (root keys, and the rule-level <c>enabled</c>
 /// default, which has no corresponding descriptor field). Collapsing the two
 /// would lose information a future <c>explain</c> cannot get back without
@@ -74,5 +74,5 @@ public abstract record PolicyOrigin
 
     public sealed record DescriptorDefault : PolicyOrigin;
 
-    public sealed record EngineDefault : PolicyOrigin;
+    public sealed record ToolDefault : PolicyOrigin;
 }

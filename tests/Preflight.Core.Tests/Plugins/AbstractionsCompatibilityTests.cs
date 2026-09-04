@@ -31,7 +31,7 @@ public sealed class AbstractionsCompatibilityTests
     /// contract in the ordinary way.</item>
     /// </list>
     /// <para>
-    /// The last three rows are the ones a pre-1.0 engine turns from theory into
+    /// The last three rows are the ones a pre-1.0 tool turns from theory into
     /// the everyday case. While the major is 0, SemVer moves the breaking axis
     /// to the minor, so 0.1 and 0.2 are as unrelated as 1.x and 2.x — and the
     /// asymmetry that lets 1.2.0 load on 1.4.0 does <em>not</em> carry over:
@@ -103,7 +103,7 @@ public sealed class AbstractionsCompatibilityTests
     }
 
     /// <summary>
-    /// The version the engine advertises is the one its contract assembly
+    /// The version the tool advertises is the one its contract assembly
     /// carries.
     /// </summary>
     /// <remarks>

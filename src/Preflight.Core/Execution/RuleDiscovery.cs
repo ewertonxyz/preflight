@@ -8,14 +8,14 @@ using Preflight.Abstractions.Rules;
 /// </summary>
 /// <remarks>
 /// <para>
-/// A rule needs a public parameterless constructor, and the engine instantiates
+/// A rule needs a public parameterless constructor, and the tool instantiates
 /// it with <see cref="Activator"/> — no dependency injection container is
 /// involved, and services reach the rule through its context.
 /// </para>
 /// <para>
 /// The types to scan are supplied by the caller rather than resolved here.
 /// <c>Preflight.Core</c> must never reference <c>Preflight.Rules</c>, so "the
-/// internal assembly" cannot be named from inside the engine; the CLI passes it
+/// internal assembly" cannot be named from inside the tool; the CLI passes it
 /// in. That constraint pays for itself in testability, since a test assembly is
 /// an assembly.
 /// </para>
@@ -72,7 +72,7 @@ public static class RuleDiscovery
 
     /// <remarks>
     /// A public type that writes <c>: IValidationRule</c> has declared an
-    /// intent the engine is obliged to honour or to reject out loud. Dropping
+    /// intent the tool is obliged to honour or to reject out loud. Dropping
     /// it silently would leave the rule missing from a green report, and a
     /// green report over a check that never ran is the one outcome this tool
     /// must never produce.
@@ -83,7 +83,7 @@ public static class RuleDiscovery
         {
             throw new RuleDiscoveryException(
                 $"Rule type '{type.FullName}' has no public parameterless constructor. " +
-                "The engine instantiates rules by reflection, without a container.");
+                "The tool instantiates rules by reflection, without a container.");
         }
 
         IValidationRule rule;

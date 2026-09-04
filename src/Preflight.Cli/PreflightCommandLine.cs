@@ -190,7 +190,7 @@ public static class PreflightCommandLine
             TimeProvider = TimeProvider.System,
             History = new FileHistoryStore(),
             Cache = new FileRuleCacheStore(),
-            Machine = EngineEnvironment.Current,
+            Machine = MachineEnvironment.Current,
             WorkspaceWriter = new WorkspaceFileWriter(),
         };
     }

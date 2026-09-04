@@ -20,7 +20,7 @@ using Reqnroll;
 /// <para>
 /// The rules are the six real ones. Shaping their behaviour through policy
 /// rather than through fakes is what makes these scenarios worth having: a fake
-/// rule proves the engine, and the engine already has unit tests. What has no
+/// rule proves the tool, and the tool already has unit tests. What has no
 /// other test is whether the six shipped rules, the policy chain and the exit
 /// codes agree with each other when a real process runs them.
 /// </para>

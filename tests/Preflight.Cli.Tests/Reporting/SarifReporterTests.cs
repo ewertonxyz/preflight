@@ -259,7 +259,7 @@ public sealed class SarifReporterTests
     /// A rule with no descriptor is written by its id alone.
     /// </summary>
     /// <remarks>
-    /// Not in the phase's manifest. The engine only ever reports on rules it
+    /// Not in the phase's manifest. The tool only ever reports on rules it
     /// discovered, so this is unreachable through the CLI and reachable through
     /// this reporter's own public surface — which is exactly what a test
     /// exercises. What it pins is that the document degrades rather than

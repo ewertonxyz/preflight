@@ -13,7 +13,7 @@ using Preflight.TestSupport;
 /// <para>
 /// The one question in plugin loading whose answer <em>is</em> the runtime:
 /// whether the <c>IValidationRule</c> a plugin implements is the same type the
-/// engine knows. Plugin loading calls getting it wrong one of the most irritating
+/// tool knows. Plugin loading calls getting it wrong one of the most irritating
 /// bugs in.NET plugin systems, and the reason it is irritating is that a
 /// broken loader produces no error, no log line and no rule — a green run
 /// missing everything a production declared.
@@ -40,7 +40,7 @@ public sealed class PluginLoadContextTests : IDisposable
     }
 
     /// <summary>
-    /// The contract a plugin binds to is the engine's own assembly instance.
+    /// The contract a plugin binds to is the tool's own assembly instance.
     /// </summary>
     /// <remarks>
     /// Reference equality on the <see cref="Assembly"/> object, which is the

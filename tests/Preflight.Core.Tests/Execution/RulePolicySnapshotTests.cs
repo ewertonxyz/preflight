@@ -7,7 +7,7 @@ using Preflight.Core.Execution;
 using static Preflight.Core.Tests.Graph.GraphFixture;
 
 /// <summary>
-/// Fixes the values the engine freezes before running a rule.
+/// Fixes the values the tool freezes before running a rule.
 /// </summary>
 /// <remarks>
 /// execution requires <c>EffectiveSeverity</c>, <c>Blocking</c>

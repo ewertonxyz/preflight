@@ -10,7 +10,7 @@ using Preflight.Abstractions.Services;
 /// </summary>
 /// <remarks>
 /// <see cref="IChangeSource"/> is sometimes counted among the services a rule
-/// receives, and it is not one: it is consumed by the engine to populate
+/// receives, and it is not one: it is consumed by the tool to populate
 /// <c>ChangedFiles</c>, never delivered to the rule. This test exists so that
 /// the apparent inconsistency is never resolved by wiring it into
 /// <see cref="RuleContext"/>.

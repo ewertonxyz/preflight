@@ -141,7 +141,7 @@ public sealed class SampleTextureDimensionRuleTests
     /// <remarks>
     /// The third of the three things a reader copies from this sample. A loop
     /// over a thousand textures that never checks the token cannot be stopped:
-    /// the engine's timeout fires, the run is recorded as over, and the thread
+    /// the tool's timeout fires, the run is recorded as over, and the thread
     /// keeps working on a result nobody will read.
     /// </remarks>
     [Fact]

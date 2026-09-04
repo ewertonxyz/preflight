@@ -16,13 +16,13 @@ using Preflight.Core.Policy;
 public sealed class NdjsonHistoryWriter
 {
     private readonly IHistoryStore _store;
-    private readonly EngineEnvironment _machine;
+    private readonly MachineEnvironment _machine;
     private readonly TimeProvider _clock;
 
     /// <param name="store">Where a line is appended.</param>
     /// <param name="machine">Names the file.</param>
     /// <param name="clock">Decides which month the file belongs to.</param>
-    public NdjsonHistoryWriter(IHistoryStore store, EngineEnvironment machine, TimeProvider clock)
+    public NdjsonHistoryWriter(IHistoryStore store, MachineEnvironment machine, TimeProvider clock)
     {
         ArgumentNullException.ThrowIfNull(store);
         ArgumentNullException.ThrowIfNull(machine);

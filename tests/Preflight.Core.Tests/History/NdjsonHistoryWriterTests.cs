@@ -13,7 +13,7 @@ public sealed class NdjsonHistoryWriterTests
     private static readonly DirectoryInfo Workspace =
         new(Path.Combine(Path.GetTempPath(), "preflight-writer"));
 
-    private static readonly EngineEnvironment Machine = new()
+    private static readonly MachineEnvironment Machine = new()
     {
         ProcessorCount = 8,
         MachineName = "WKS-1234",

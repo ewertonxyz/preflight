@@ -21,7 +21,7 @@ using Preflight.Abstractions.Services;
 /// </para>
 /// <para>
 /// <see cref="IChangeSource"/> is sometimes counted among those services, even
-/// though it is consumed by the engine and never delivered to the rule. That
+/// though it is consumed by the tool and never delivered to the rule. That
 /// property is tested against <c>RuleContext</c> itself, in
 /// <c>RuleContextTests</c>, not here.
 /// </para>
@@ -67,7 +67,7 @@ public sealed class AbstractionsSurfaceTests
 
     /// <remarks>
     /// A readonly record struct with one member, exactly as the fingerprint
-    /// contract writes it. The engine never inspects the value — it only
+    /// contract writes it. The tool never inspects the value — it only
     /// compares it — so the shape is the whole contract, and a second member
     /// would be a second thing a rule author has to be told about.
     /// </remarks>

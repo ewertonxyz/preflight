@@ -49,7 +49,7 @@ public static class HistoryPaths
     /// write different months for the same instant, and <c>--since</c> stops
     /// lining up across the boundary.
     /// </remarks>
-    public static string FileNameFor(HistorySettings settings, EngineEnvironment machine, DateTimeOffset now)
+    public static string FileNameFor(HistorySettings settings, MachineEnvironment machine, DateTimeOffset now)
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(machine);

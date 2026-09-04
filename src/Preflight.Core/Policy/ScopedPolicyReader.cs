@@ -9,7 +9,7 @@ using Preflight.Abstractions.Services;
 /// <remarks>
 /// Scoped to exactly one rule's <c>settings</c> object. This type only ever
 /// sees that subtree — obtained via
-/// <see cref="EffectivePolicy.ReaderFor"/> — so root keys, engine fields, and
+/// <see cref="EffectivePolicy.ReaderFor"/> — so root keys, tool fields, and
 /// other rules' settings are not merely hidden by convention, there is no path
 /// from here that reaches them.
 ///
@@ -33,7 +33,7 @@ public sealed class ScopedPolicyReader : IPolicyReader
 
     // The guard is on TryGetValue alone. GetValue reaches it on both of its
     // paths, so a second one here would repeat a check the call below already
-    // makes, on the hottest read in the engine.
+    // makes, on the hottest read in the tool.
 
     public bool TryGetValue<T>(string key, [MaybeNullWhen(false)] out T value)
     {

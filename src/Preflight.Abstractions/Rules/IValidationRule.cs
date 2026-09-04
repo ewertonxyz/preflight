@@ -10,7 +10,7 @@ using Preflight.Abstractions.Model;
 /// gates its dependents, or anything about other rules — it only reports
 /// passed, warned, failed or not-applicable, with evidence.
 ///
-/// A rule needs a public parameterless constructor; the engine discovers types
+/// A rule needs a public parameterless constructor; the tool discovers types
 /// by reflection and instantiates with <c>Activator.CreateInstance</c>.
 /// Services reach the rule through <see cref="RuleContext"/>, not through the
 /// constructor, so that <c>Preflight.Abstractions</c> never depends on a
@@ -25,7 +25,7 @@ public interface IValidationRule
     /// <remarks>
     /// <para>
     /// Four obligations, and each of them has a visible consequence when it is
-    /// not met, because the engine would rather report a broken rule than
+    /// not met, because the tool would rather report a broken rule than
     /// quietly absorb one.
     /// </para>
     /// <para>
@@ -39,7 +39,7 @@ public interface IValidationRule
     /// </para>
     /// <para>
     /// <b>Do not claim <see cref="RuleStatus.Skipped"/> or
-    /// <see cref="RuleStatus.Errored"/>.</b> The engine produces both — the
+    /// <see cref="RuleStatus.Errored"/>.</b> The tool produces both — the
     /// first from gating propagation, the second from an exception or a
     /// timeout — and a rule that returns either is itself recorded as
     /// <c>Errored</c>, naming the status it claimed. <see cref="RuleOutcome"/>

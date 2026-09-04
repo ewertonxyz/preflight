@@ -12,7 +12,7 @@ using Preflight.Core.Execution;
 /// <para>
 /// The one context service that stays in the CLI, because it is the only one
 /// about presentation: <c>IRuleLoggerFactory</c>'s own remarks say the sink is
-/// injected by the CLI so as to keep the engine from knowing how output is
+/// injected by the CLI so as to keep the tool from knowing how output is
 /// formatted.
 /// </para>
 /// <para>
@@ -22,7 +22,7 @@ using Preflight.Core.Execution;
 /// is not a rule author's problem to remember, so it is not left to them.
 /// </para>
 /// <para>
-/// Writes are serialised, because the engine runs rules at the same level
+/// Writes are serialised, because the tool runs rules at the same level
 /// concurrently — without the lock, two rules interleave mid-line and produce a
 /// log that describes neither.
 /// </para>

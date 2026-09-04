@@ -11,7 +11,7 @@ using Preflight.TestSupport;
 /// <remarks>
 /// Here rather than in <c>Cli.Tests</c> because the document lives in
 /// <c>Preflight.Core</c>: it is data, not rendering, and the project layering keeps
-/// output formatting out of the engine. The renderer that writes it lives in the
+/// output formatting out of the tool. The renderer that writes it lives in the
 /// CLI, and the architecture guard depends on that separation holding.
 /// </remarks>
 public sealed class HistoryReportDocumentTests

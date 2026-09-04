@@ -277,7 +277,7 @@ public sealed class CompileProbeRuleTests
     }
 
     /// <summary>
-    /// A timeout is the engine's verdict, not the rule's.
+    /// A timeout is the tool's verdict, not the rule's.
     /// </summary>
     /// <remarks>
     /// This is the rule most likely to hit the timeout, and the one where

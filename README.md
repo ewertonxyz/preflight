@@ -199,7 +199,7 @@ preflight explain core.presubmit.large-file --platform win64
 ```text
 Effective policy
   key                  value       origin
-  enabled              true        engine default
+  enabled              true        tool default
   blocking             true        RuleDescriptor default
   severity             error       RuleDescriptor default
   settings.maxBytes    2621440     projecta@1.4.0/projecta.json:9   (target win64)
@@ -420,7 +420,7 @@ Preflight.Core/
   Policy/       Parsing, validating and merging policy into one effective answer.
   Graph/        The rule dependency graph, and which rules a stage actually runs.
   Execution/    Running the selected rules, and surviving whatever they do.
-  Caching/      The incremental cache, from the engine's side.
+  Caching/      The incremental cache, from the core's side.
   History/      The append-only run record, and the report computed over it.
   Plugins/      Turning assemblies on disk into rules, or refusing to.
   Changes/      The changed-file list, asked of git.
@@ -485,9 +485,9 @@ line.
 | Platform | Windows today; nothing in the design is Windows-specific |
 
 The tool works end to end. What is happening now is a review, subsystem by subsystem, each on
-its own branch with the full suite green before it lands. The plugin contract, the built-in
-rules and the command line have been through it. The engine — graph, execution, policy,
-history and cache — has not, and is next.
+its own branch with the full suite green before it lands. Every subsystem has been through it:
+the plugin contract, the built-in rules, the command line, and the core — graph, execution,
+policy, history and cache — along with the test suites that hold them.
 
 ---
 

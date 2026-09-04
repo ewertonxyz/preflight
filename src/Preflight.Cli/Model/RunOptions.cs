@@ -34,7 +34,7 @@ public sealed record RunOptions
     /// <c>--no-cache</c>: ignore the incremental cache and re-execute.
     /// </summary>
     /// <remarks>
-    /// The engine has no flag of its own for this. The CLI expresses it by not
+    /// The tool has no flag of its own for this. The CLI expresses it by not
     /// handing <c>RunRequest</c> a cache store at all, so there is one
     /// condition downstream rather than two that have to agree.
     /// </remarks>

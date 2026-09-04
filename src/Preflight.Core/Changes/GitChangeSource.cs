@@ -15,7 +15,7 @@ using Preflight.Abstractions.Services;
 /// through a real repository with real commits in it.
 /// </para>
 /// <para>
-/// The engine never fetches. Downloading an artefact is a declared non-goal,
+/// The tool never fetches. Downloading an artefact is a declared non-goal,
 /// and the tempting place to break it is exactly here: a shallow CI clone where
 /// <c>origin/main</c> does not resolve invites a <c>git fetch</c> to make the
 /// problem go away. Every command issued is a read.
@@ -42,8 +42,8 @@ public sealed class GitChangeSource : IChangeSource
         if (string.IsNullOrWhiteSpace(fromRef))
         {
             // The CLI refuses this before it gets here. The guard
-            // stays because this type is public and the engine is hostable
-            // without the CLI: an empty list returned silently would make every
+            // stays because this type is public and Preflight.Core is hostable
+            // without the command line: an empty list returned silently would make every
             // pre-submit rule report NotApplicable and the run go green having
             // examined nothing.
             throw new ChangeSourceException(

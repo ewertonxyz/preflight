@@ -3,7 +3,7 @@ namespace Preflight.Abstractions.Services;
 using Preflight.Abstractions.Model;
 
 /// <summary>
-/// Produces the list of changed files for a run. Consumed by the engine, never
+/// Produces the list of changed files for a run. Consumed by the tool, never
 /// delivered to a rule.
 /// </summary>
 /// <remarks>

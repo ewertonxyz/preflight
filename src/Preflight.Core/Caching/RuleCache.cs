@@ -6,7 +6,7 @@ using Preflight.Core.History;
 using Preflight.Core.Policy;
 
 /// <summary>
-/// The incremental cache, from the engine's side.
+/// The incremental cache, from the core's side.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -42,7 +42,7 @@ public sealed class RuleCache
     /// <remarks>
     /// A rule that exploded has to explode again. Caching a crash hides an
     /// unstable environment and turns an intermittent problem into a permanent,
-    /// wrong result — and <c>Skipped</c> is produced by the engine rather than
+    /// wrong result — and <c>Skipped</c> is produced by the tool rather than
     /// by a rule, so an entry claiming one was not written by this code and is
     /// not to be trusted.
     /// </remarks>
@@ -210,7 +210,7 @@ public sealed class RuleCache
         // sources at --platform ps5 can legitimately produce a different answer
         // from the same sources at win64 — and a rule author who forgets to fold
         // them into the fingerprint gets a wrong result rather than a lost hit.
-        // The engine knows both for certain; the rule only might.
+        // The tool knows both for certain; the rule only might.
         //
         // The module id of the rule's own assembly closes the last gap, and it
         // is the one a plugin opens: a rule whose code changed is a different

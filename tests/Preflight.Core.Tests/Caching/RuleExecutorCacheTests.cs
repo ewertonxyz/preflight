@@ -19,7 +19,7 @@ public sealed class RuleExecutorCacheTests
 
     /// <remarks>
     /// <c>--no-cache</c> is the CLI declining to hand over a store, so the
-    /// engine has one condition rather than a flag it might forget to honour in
+    /// tool has one condition rather than a flag it might forget to honour in
     /// one of two code paths.
     /// </remarks>
     [Fact]
@@ -62,7 +62,7 @@ public sealed class RuleExecutorCacheTests
     }
 
     /// <summary>
-    /// The cache goes where <c>cachePath</c> says, not where the engine assumes.
+    /// The cache goes where <c>cachePath</c> says, not where the tool assumes.
     /// </summary>
     /// <remarks>
     /// The key is a hash, so the directory is the only part of the path a test
