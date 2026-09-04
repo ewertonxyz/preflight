@@ -36,8 +36,8 @@ public sealed class EffectivePolicyEnumerationTests
     /// The order is the assertion. The explain command prints this table, and
     /// the determinism guarantee makes a printed table diffable — a set that
     /// happens to be right today and reorders when a dictionary rehashes fails
-    /// intermittently, on someone else's machine, which is the worst failure
-    /// mode principle 1 has.
+    /// intermittently, on someone else's machine — the worst way a
+    /// determinism guarantee can break, because it breaks for somebody else.
     /// </remarks>
     [Fact]
     public void RuleEntries_ReturnsTheDeclaredRuleKeys_InSchemaDeclarationOrder()

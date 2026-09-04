@@ -62,7 +62,8 @@ public sealed class RuleDiscoveryTests
     /// intent; failing to give it a usable constructor is a mistake, not a
     /// decision. The load-time flow sends a load failure to exit 2 — the tool owner —
     /// while dropping it silently would leave the rule missing from a green
-    /// report, which is the false green of principle 7.
+    /// report, and a green report over a check that never ran is the one
+    /// outcome this tool must never produce.
     /// </remarks>
     [Fact]
     public void FromTypes_WithAPublicRuleLackingAParameterlessConstructor_ThrowsNamingTheType()

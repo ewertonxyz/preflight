@@ -114,7 +114,7 @@ foreach ($project in $testProjects) {
     $collected++
 }
 
-# Zero was the wrong bar. The skip above is silent by design - an assembly that
+# Zero was the wrong bar. The skip above is deliberately quiet — an assembly that
 # is not on disk prints one line and the loop moves on - so three test projects
 # out of four used to arrive here with $collected non-zero, publish a plausible
 # percentage, and hide the missing one in a log nobody reads. The count of test

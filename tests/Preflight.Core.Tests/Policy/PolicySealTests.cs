@@ -7,7 +7,7 @@ using Preflight.Core.Policy;
 /// </summary>
 /// <remarks>
 /// The separator is <c>:</c> because a rule id contains dots, which is the same
-/// ambiguity <c>--set</c> resolved the same way. See ADR-031.
+/// ambiguity <c>--set</c> resolved with the same character.
 /// </remarks>
 public sealed class PolicySealTests
 {
@@ -66,9 +66,10 @@ public sealed class PolicySealTests
     /// Sealing <c>blocking</c> does not seal <c>gating</c>.
     /// </summary>
     /// <remarks>
-    /// The live false friend. Section 7.2 makes them separate axes on purpose,
-    /// and a seal that covered both would hand out protection nobody asked for
-    /// while looking precise — invisible until the quarter it matters.
+    /// The live false friend. They are separate axes on purpose — whether a
+    /// failure stops the build, and whether it stops what depends on it — and a
+    /// seal that covered both would hand out protection nobody asked for while
+    /// looking precise, invisible until the quarter it matters.
     /// </remarks>
     [Fact]
     public void IsSealed_ForBlocking_DoesNotSealGating()
@@ -107,8 +108,8 @@ public sealed class PolicySealTests
     /// The gravest entry in this file. <c>PolicyNode.Merge</c> replaces a
     /// stronger leaf whole, so a pipeline declaring its own <c>sealed</c> array
     /// would erase the studio baseline's — and a baseline that silently stops
-    /// sealing is a governance false green, which is the exact thing the
-    /// feature exists to remove.
+    /// sealing is worse than one that was never written, because everybody
+    /// upstream still believes it holds.
     /// </remarks>
     [Fact]
     public void Parse_WithADescendantThatDeclaresItsOwnSeals_KeepsTheAncestorSeals()

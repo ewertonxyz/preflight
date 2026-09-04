@@ -79,7 +79,7 @@ public sealed class PercentileCalculatorTests
         (PercentileCalculator.P95(Seconds(size)) is not null).ShouldBe(expected);
 
     /// <remarks>
-    /// The pair of minimums is asymmetric by design, and the constants are the
+    /// The pair of minimums is deliberately asymmetric, and the constants are the
     /// only place that says so. A p50 is reported from five observations while a
     /// p95 waits for fifty.
     /// </remarks>

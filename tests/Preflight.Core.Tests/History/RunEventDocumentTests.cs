@@ -42,8 +42,7 @@ public sealed class RunEventDocumentTests
     /// <remarks>
     /// Provenance is the last thing worth dropping. The noisiest runs are
     /// exactly the ones somebody comes back to, and a record that cannot say
-    /// which package produced it is a record about nothing in particular. See
-    /// ADR-034.
+    /// which package produced it is a record about nothing in particular.
     /// </remarks>
     [Fact]
     public void Truncated_KeepsThePipelineAndItsVersion()

@@ -80,8 +80,9 @@
       that feature nobody could see: the picker builds its rows, marks the active
       one, and maps the chosen label back to a value, and none of that is the
       library's code. A TestConsole with keystrokes pushed into it exercises
-      exactly that and nothing else, which is the line ADR-035 nº16 was drawing
-      when it said the rendering is not tested.
+      exactly that and nothing else. Where the line falls: the rows, the marker
+      and the mapping are this project's to get right, and the rendering below
+      them belongs to the library and is not tested here.
     -->
     <PackageVersion Include="Spectre.Console.Testing" Version="0.51.1" />
   </ItemGroup>
@@ -120,8 +121,9 @@
     neither works here. Both hook the VSTest pipeline, and the .NET 10 SDK runs
     these projects through Microsoft.Testing.Platform instead. They restore and
     build cleanly and then silently produce nothing, which is worse than being
-    missing: a coverage step that reports success having measured nothing is the
-    false green of principle 7 aimed at the instrumentation itself.
+    missing: a coverage step that reports success having measured nothing is a
+    green run over a check that never happened, aimed at the instrumentation
+    rather than at the workspace.
 
     coverlet.console does not care about the runner. It instruments the assemblies
     and executes the test binary, and an xUnit v3 test project *is* a binary.
@@ -159,7 +161,7 @@
 
       Confined to Interactive/ and never reachable from Reporting/. Two systems
       deciding the same ANSI bytes is how the golden files stop being the truth,
-      and an architecture test holds the boundary. See ADR-035.
+      and an architecture test holds the boundary.
     -->
     <PackageVersion Include="Spectre.Console" Version="0.51.1" />
   </ItemGroup>
