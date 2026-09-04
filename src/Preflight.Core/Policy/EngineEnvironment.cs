@@ -18,7 +18,8 @@ namespace Preflight.Core.Policy;
 /// both directions. It hides a real effective value from the one command whose
 /// entire purpose is showing where effective values come from, and it does not
 /// scale: every future environment-derived default would need its own redaction
-/// rule, in every reporter, forever. A seam here is one place.
+/// rule, in every reporter, forever. Injecting the machine facts here is one
+/// place instead of many.
 /// </para>
 /// <para>
 /// A record rather than a bare <c>Func&lt;int&gt;</c> parameter for the same
@@ -31,8 +32,8 @@ namespace Preflight.Core.Policy;
 /// after the process as well. Those are the same kind of fact as the processor
 /// count — read once from the real machine, replaced wholesale by a test — so
 /// they are properties here rather than a second machine-facts type whose only
-/// difference would be which namespace it sits in. The remarks above
-/// pre-authorised exactly this.
+/// difference would be which namespace it sits in. That is the paragraph above
+/// applied: the next environment-derived fact is a property on this type.
 /// </para>
 /// </remarks>
 public sealed record EngineEnvironment
@@ -44,8 +45,8 @@ public sealed record EngineEnvironment
     public required int ProcessorCount { get; init; }
 
     /// <summary>
-    /// The machine this run is happening on. Names the history file of section
-    /// 10.1.
+    /// The machine this run is happening on. It names the history file, so two
+    /// machines appending to a shared directory never write to the same one.
     /// </summary>
     public required string MachineName { get; init; }
 

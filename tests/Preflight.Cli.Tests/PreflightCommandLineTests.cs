@@ -4,6 +4,7 @@ using Preflight.Abstractions.Model;
 using Preflight.Cli.Model;
 using Preflight.Cli.Parsing;
 using Preflight.Core;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// Fixes the command surface and the refusals it makes.

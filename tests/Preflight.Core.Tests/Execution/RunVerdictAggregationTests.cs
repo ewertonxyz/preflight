@@ -3,6 +3,7 @@ namespace Preflight.Core.Tests.Execution;
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
 using Preflight.Core;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// Fixes the four-row table of verdict aggregation, in the order it

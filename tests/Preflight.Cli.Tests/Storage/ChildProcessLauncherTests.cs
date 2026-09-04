@@ -4,6 +4,7 @@ using System.Text;
 using Preflight.Cli.Model;
 using Preflight.Cli.Storage;
 using Preflight.Core;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// The wrapper of the measure wrapper, against a real child process.

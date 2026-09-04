@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using Preflight.Abstractions.Rules;
 using Preflight.Abstractions.Services;
 using Preflight.Core;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// Captures what each rule logged, and which rule logged it.

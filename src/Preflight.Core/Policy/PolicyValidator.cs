@@ -9,10 +9,11 @@ using Preflight.Abstractions.Rules;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Never throws itself, and never stops at the first problem: the user chose to
-/// accumulate every error found across every document in the load and report
-/// them together. It is the caller's job to decide that a non-empty result is
-/// fatal and raise <see cref="PolicyValidationException"/>.
+/// Never throws itself, and never stops at the first problem: every error
+/// found across every document in the load is accumulated and reported
+/// together, so a policy with four mistakes takes one run to diagnose rather
+/// than four. It is the caller's job to decide that a non-empty result is fatal
+/// and raise <see cref="PolicyValidationException"/>.
 /// </para>
 /// <para>
 /// Every scope — root keys, per-rule keys, and a single <c>--set</c> override —
@@ -86,7 +87,7 @@ public static class PolicyValidator
         var source = ValidationSource.ForSetOverride();
 
         // ToNode always builds object nodes down to the leaf, so both casts
-        // below are shape-guaranteed by construction.
+        // below are guaranteed by the shape it produces rather than by hope.
         var root = (PolicyNode.ObjectNode)setOverride.ToNode();
 
         if (setOverride.RuleId is not { } ruleId)
@@ -156,8 +157,9 @@ public static class PolicyValidator
     /// <remarks>
     /// <para>
     /// <c>production</c> stays in the schema because removing it would turn
-    /// every policy file written before ADR-027 into a load-time error under a
-    /// table that is strict by design. Accepting both at once is a different
+    /// every policy file written before the key was renamed to <c>pipeline</c>
+    /// into a load-time error, under a table that refuses every key it does not
+    /// list. Accepting both at once is a different
     /// question, and the answer is the one the CLI gives for <c>--pipeline</c>
     /// with <c>--production</c>: two spellings of one key define no precedence
     /// between them, so honouring either would decide for the author which of
@@ -224,7 +226,7 @@ public static class PolicyValidator
     /// <para>
     /// Presence is not the test — value is. A file that writes the value the
     /// seal already fixed agrees with the policy, and refusing it would tell
-    /// the author that agreeing was forbidden. See ADR-031.
+    /// the author that agreeing was forbidden.
     /// </para>
     /// </remarks>
     public static IReadOnlyList<PolicyValidationError> ValidateSeals(
@@ -438,9 +440,10 @@ public static class PolicyValidator
         string keyPath,
         object? candidate)
     {
-        // Single, not SingleOrDefault: the seal was read out of this very
-        // chain, so the file is in it. A guard here would be a branch no input
-        // can take, standing in for an invariant the caller already holds.
+        // First, and deliberately not a TryGetValue with a fallback: the seal
+        // was read out of this very chain, so the file is in it. A guard here
+        // would be a branch no input can take, standing in for an invariant
+        // the caller already holds.
         var declaring = chain.First(document =>
             string.Equals(document.FilePath, declaredBy.FilePath, StringComparison.OrdinalIgnoreCase));
 
@@ -470,11 +473,11 @@ public static class PolicyValidator
     /// the same key in two spellings, and the inside of each is a root scope.
     /// </summary>
     /// <remarks>
-    /// A key nobody can parse is a block that silently never applies, which is
-    /// principle 7 written into a policy file — and the case collision is
-    /// worse, because both keys match at the same specificity and the winner
-    /// would come from dictionary order rather than from anything anybody
-    /// wrote. See ADR-030.
+    /// A key nobody can parse is a block that silently never applies: somebody
+    /// wrote a rule for a platform, the run reports success, and the rule was
+    /// never in force. The case collision is worse, because both keys match at
+    /// the same specificity and the winner would come from dictionary order
+    /// rather than from anything anybody wrote.
     /// </remarks>
     private static void ValidateTargetMap(
         PolicyNode.ObjectNode targets,
@@ -523,10 +526,14 @@ public static class PolicyValidator
             }
 
             // The inside of a target is a root scope: the same keys, validated
-            // by the same walk. Nesting targets inside targets is caught by
-            // that walk rather than by a rule of its own — 'targets' is a root
-            // key, so it is accepted here, and the recursion below is what
-            // stops it going anywhere.
+            // by the same walk. That means 'targets' is itself an accepted key
+            // here, and nothing below descends into it — so a targets block
+            // nested inside a target block passes validation and is then never
+            // applied, because only the root block is read when the layer
+            // resolves. It is the same defect the unparseable key above is
+            // refused for, and it is not refused. Adding that refusal would
+            // reject a document accepted today, so it is a change of contract
+            // rather than a correction.
             ValidateScope(block, PolicyKeySchema.RootKeys, source, $"{jsonPath}.", errors);
 
             if (block.Members.GetValueOrDefault("rules") is PolicyNode.ObjectNode rules)
@@ -560,9 +567,9 @@ public static class PolicyValidator
             // Without this, a rule entry that is not an object — "rules": { "core.a.b": 42 }
             // — passed validation in silence, and the merge then replaced the
             // rule's whole subtree with that scalar, so the failure surfaced
-            // later as an exception while reading an effective value. Section
-            // 6.4: failing late in a validation tool is embarrassing, failing
-            // silently is worse.
+            // later as an exception while reading an effective value. Failing
+            // late in a validation tool is embarrassing; failing silently is
+            // worse, and this input managed both.
             errors.Add(new PolicyValidationError(
                 $"Rule '{ruleId}' must be an object in {source.Description}.",
                 source.FilePath,

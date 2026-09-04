@@ -4,6 +4,7 @@ using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
 using Preflight.Core;
 using Preflight.Core.Caching;
+using Preflight.Core.Execution;
 using Preflight.Core.Tests.Execution;
 using Preflight.TestSupport;
 using static Preflight.Core.Tests.Caching.CacheFixture;

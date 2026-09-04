@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Text;
 using Preflight.Abstractions.Rules;
 using Preflight.Core;
+using Preflight.Core.Graph;
 
 /// <summary>
 /// Renders the rule dependency graph as Graphviz DOT, for

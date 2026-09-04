@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using Preflight.Abstractions.Rules;
 using Preflight.Cli.Reporting;
 using Preflight.Core;
+using Preflight.Core.Graph;
 using Preflight.TestSupport;
 
 /// <summary>

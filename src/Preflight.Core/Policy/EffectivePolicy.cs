@@ -37,7 +37,7 @@ public sealed class EffectivePolicy
     /// What the run is aimed at, and which halves of it the user actually said.
     /// Required rather than defaulted: a target that fell back to a value would
     /// switch this layer off in silence, and silence is what the layer exists
-    /// to remove. See ADR-030.
+    /// to remove.
     /// </param>
     public static EffectivePolicy Build(
         IReadOnlyList<RuleDescriptor> descriptors,
@@ -57,8 +57,8 @@ public sealed class EffectivePolicy
 
             // After the document it belongs to and before the local overlay.
             // Above local would take from a developer the ability to loosen a
-            // rule on the platform they are working on, which is the whole use
-            // of section 6.3.
+            // rule on the platform they are working on, which is most of what a
+            // local overlay is for.
             node = ApplyTargets(node, pipeline, target);
         }
 
@@ -82,8 +82,9 @@ public sealed class EffectivePolicy
     /// Once, here, and never per rule. The layer resolves while the policy is
     /// being built, so <c>IPolicyReader</c> is unchanged and no rule — built in
     /// or plugin — knows a target exists. That is what keeps the cost off the
-    /// hot path and what stops section 11.2 from turning this into a major
-    /// version. See ADR-030.
+    /// hot path, and it is also what keeps this a minor version: a member added
+    /// to a published contract obliges every compiled plugin to be rebuilt, and
+    /// targets ask nothing of the rules at all.
     /// </remarks>
     private static PolicyNode ApplyTargets(PolicyNode node, PolicyDocument pipeline, StatedBuildTarget target)
     {
@@ -337,7 +338,7 @@ public sealed class EffectivePolicy
 
     /// <summary>
     /// Builds a path that safely crosses a rule id: the id is one segment,
-    /// never re-split even though it contains dots of its own Only
+    /// never re-split even though it contains dots of its own. Only
     /// <paramref name="key"/> is split.
     /// </summary>
     private static string[] RulePath(RuleId ruleId, string key) => ["rules", ruleId.Value, .. key.Split('.')];

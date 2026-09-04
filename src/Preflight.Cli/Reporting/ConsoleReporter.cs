@@ -8,6 +8,7 @@ using Preflight.Cli.Parsing;
 using Preflight.Cli.Pipelines;
 using Preflight.Cli.Policy;
 using Preflight.Core;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// Renders a run for a terminal.

@@ -12,7 +12,7 @@ using Preflight.Abstractions.Rules;
 /// <para>
 /// An explicit record rather than serialising <see cref="RuleOutcome"/>
 /// directly. The outcome is a published contract with factory methods and a
-/// deliberately awkward <c>init</c> setter (see IDEAS.md); pointing a
+/// deliberately awkward <c>init</c> setter; pointing a
 /// deserialiser at it would make every future change to that type a change to a
 /// file format, silently.
 /// </para>

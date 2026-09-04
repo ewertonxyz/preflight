@@ -3,67 +3,6 @@ namespace Preflight.Core.Policy;
 using System.Collections.Frozen;
 
 /// <summary>
-/// What kind of value a policy key is allowed to hold.
-/// </summary>
-internal enum PolicyValueKind
-{
-    Boolean,
-    Integer,
-    String,
-
-    /// <summary>A string restricted to a closed set, listed in the key's definition.</summary>
-    StringEnum,
-
-    /// <summary>An object whose members are themselves validated — today only <c>rules</c>.</summary>
-    RuleMap,
-
-    /// <summary>An object whose contents are never inspected — today only <c>settings</c>.</summary>
-    Opaque,
-
-    /// <summary>
-    /// An object keyed by <c>PolicyTargetKey</c>, whose members are validated
-    /// as root scopes — today only <c>targets</c>.
-    /// </summary>
-    TargetMap,
-
-    /// <summary>An array of strings — today only <c>sealed</c>.</summary>
-    StringArray,
-
-    /// <summary>
-    /// An object holding an inclusive minimum and an optional exclusive
-    /// maximum — today only <c>requiresPipeline</c>.
-    /// </summary>
-    /// <remarks>
-    /// A kind of its own rather than <see cref="Opaque"/>, because the whole
-    /// point of the key is to be checked: a range whose members were never
-    /// inspected would let a typo turn a bound into no bound, and the checkout
-    /// would stop requiring anything with nobody told. See ADR-032.
-    /// </remarks>
-    VersionRange,
-}
-
-/// <summary>
-/// The inclusive range an <see cref="PolicyValueKind.Integer"/> key accepts.
-/// </summary>
-/// <remarks>
-/// The bounds are derived from the types the values end up in, not from taste.
-/// Below 1 is meaningless for all three numeric keys — a timeout of zero errors
-/// every rule instantly, and <c>Parallel.ForEachAsync</c> throws on a degree of
-/// zero. Above <see cref="int.MaxValue"/> the value survives the JSON reader as
-/// a <see langword="long"/> and then overflows on the way to
-/// <see cref="TimeSpan.FromSeconds(double)"/> or to an <see langword="int"/>
-/// worker count — an exception raised in the middle of a run, which the one
-/// rule about validation forbids: it happens at load, never during execution.
-/// </remarks>
-internal sealed record PolicyValueRange(long Minimum, long Maximum);
-
-internal sealed record PolicyKeyDefinition(
-    string Name,
-    PolicyValueKind Kind,
-    IReadOnlyList<string>? AllowedValues = null,
-    PolicyValueRange? Range = null);
-
-/// <summary>
 /// The single declarative description of every key a policy file may contain,
 /// per scope.
 /// </summary>
@@ -104,9 +43,10 @@ internal static class PolicyKeySchema
         new("pipeline", PolicyValueKind.String),
 
         // The former spelling of "pipeline", still accepted. Removing it would
-        // turn every policy file written before ADR-027 into a load-time error
-        // under a schema that is strict by design, which is a migration and not
-        // a rename. Declaring both together is refused by PolicyValidator.
+        // turn every policy file written before the key was renamed into a
+        // load-time error, under a schema that refuses every key it does not
+        // list — which is a migration and not a rename. Declaring both together
+        // is refused by PolicyValidator.
         new("production", PolicyValueKind.String),
         new("maxDegreeOfParallelism", PolicyValueKind.Integer, Range: PositiveInt32),
         new("defaultTimeoutSeconds", PolicyValueKind.Integer, Range: PositiveInt32),
@@ -121,7 +61,7 @@ internal static class PolicyKeySchema
         new("targets", PolicyValueKind.TargetMap),
 
         // The paths a descendant may not override. Unioned along the extends
-        // chain, never replaced — see ADR-031.
+        // chain, never replaced.
         new(PolicySeal.KeyName, PolicyValueKind.StringArray),
 
         // The range of pipeline package versions this checkout accepts. The
@@ -150,8 +90,8 @@ internal static class PolicyKeySchema
     ]);
 
     /// <summary>
-    /// The rule keys in the order <c>preflight explain</c> prints them which is
-    /// also the order they are declared in.
+    /// The rule keys in the order <c>preflight explain</c> prints them, which
+    /// is also the order they are declared in.
     /// </summary>
     /// <remarks>
     /// <see cref="FrozenDictionary{TKey, TValue}"/> does not preserve insertion

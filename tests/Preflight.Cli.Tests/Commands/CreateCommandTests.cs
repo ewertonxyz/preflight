@@ -149,7 +149,7 @@ public sealed class CreateCommandTests : IDisposable
             path, CreateCommandHandler.Skeleton, Encoding.UTF8, TestContext.Current.CancellationToken);
 
         var manifest = await WorkspaceManifest.LoadAsync(
-            new Preflight.Core.PhysicalFileSystem(), path, TestContext.Current.CancellationToken);
+            new Preflight.Core.Execution.PhysicalFileSystem(), path, TestContext.Current.CancellationToken);
 
         manifest.ShouldNotBeNull();
         manifest.Tools.ShouldBeEmpty();
