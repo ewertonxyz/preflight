@@ -21,7 +21,7 @@ using Preflight.Abstractions.Services;
 /// documents — "error", not "Error" or "ERROR" — because
 /// <see cref="Enum.Parse{TEnum}(string)"/> against the PascalCase member name
 /// would either wrongly accept the uppercase form (case-insensitive) or wrongly
-/// reject the documented lowercase form (case-sensitive against a
+/// reject the lowercase form the schema declares (case-sensitive against a
 /// differently-cased name). Neither is what a strict schema asks for.
 /// </remarks>
 internal static class PolicyValueConversion

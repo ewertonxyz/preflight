@@ -319,7 +319,7 @@ public sealed class CommandDispatchTests : IDisposable
     [InlineData("pipeline|pack|nowhere|-o|out.zip")]
     [InlineData("pipeline|validate|nowhere")]
     [InlineData("pipeline|install|nowhere.zip")]
-    public void ForEveryRefusalOfAPhase10Subcommand_TheBoundaryTurnsItIntoTwo(string arguments)
+    public void ForEveryRefusalOfAPipelineSubcommand_TheBoundaryTurnsItIntoTwo(string arguments)
     {
         Invoke(arguments.Split('|')).ShouldBe(2);
 

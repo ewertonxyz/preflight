@@ -37,15 +37,15 @@ Feature: The local overlay and CI
         Then it exits with code 1
         And the report says "--no-local"
 
-    # This flag has one purpose: debugging CI locally. It is the
-    # only row of the table where the overlay survives an automation server.
+    # This flag has one purpose: debugging CI locally. It is the only case where
+    # the overlay survives an automation server.
     Scenario: --allow-local applies the overlay even inside CI
         Given the environment variable "CI" is "true"
         When preflight is invoked with "run --stage workspace --allow-local"
         Then it exits with code 0
         And the report says "local overlay active"
 
-    # Detection is worded as "present and non-empty", which makes
+    # Detection is "the variable is present and non-empty", which makes
     # CI=false mean CI. It reads backwards, and it is pinned here because the
     # next reader will assume otherwise and "fix" it.
     Scenario: CI set to the string false is still CI

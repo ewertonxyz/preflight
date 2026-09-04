@@ -1,6 +1,7 @@
 namespace Preflight.Cli.Tests;
 
 using System.Diagnostics;
+using System.Text;
 using System.Text.RegularExpressions;
 using static Preflight.TestSupport.RepositoryLayout;
 
@@ -83,13 +84,14 @@ public sealed class PublishedTreeTests
     /// rejected beside it.
     /// </remarks>
     [Theory]
-    [InlineData(@"ADR-\d")]
+    [InlineData(@"\bADR\b")]
     [InlineData(@"IDEAS\.md")]
     [InlineData(@"CLAUDE\.md")]
     [InlineData(@"\.claude/")]
     [InlineData(@"§")]
     [InlineData(@"[Ss]ection \d+\.\d")]
     [InlineData(@"principle \d")]
+    [InlineData(@"the (design document|glossary|plan says|plan lists)")]
     public void TrackedFiles_CiteNothingAReaderCannotOpen(string pattern) =>
         Occurrences(pattern, RegexOptions.IgnoreCase).ShouldBeEmpty(
             "state the decision in the file; do not point at where it is written.");
@@ -119,6 +121,16 @@ public sealed class PublishedTreeTests
     /// </remarks>
     private const string ThisFile = nameof(PublishedTreeTests) + ".cs";
 
+    /// <remarks>
+    /// Matched against the file flattened to one line, not against each line in
+    /// turn, and that is the difference between a guard and a guard with a hole
+    /// in it. Comments here wrap at about eighty characters, so a citation lands
+    /// across a line break as often as not — <c>Section</c> ending one line and
+    /// <c>11.3</c> starting the next. A line-at-a-time scan sees neither half
+    /// and reports the file as clean, which is the worst thing a check like this
+    /// can do. The original line is recovered from the offset of the match, so a
+    /// failure still names the line somebody has to open.
+    /// </remarks>
     private static IReadOnlyList<string> Occurrences(string pattern, RegexOptions options)
     {
         var expression = new Regex(pattern, options, TimeSpan.FromSeconds(5));
@@ -127,10 +139,46 @@ public sealed class PublishedTreeTests
         [
             .. from file in TrackedFiles.Value
                where !file.Path.EndsWith(ThisFile, StringComparison.Ordinal)
-               from line in file.Lines.Index()
-               where expression.IsMatch(line.Item)
-               select $"{file.Path}:{line.Index + 1}: {Excerpt(line.Item)}",
+               let flattened = Flatten(file.Lines)
+               from match in expression.Matches(flattened.Text).Cast<Match>()
+               let line = LineAt(flattened.LineStarts, match.Index)
+               select $"{file.Path}:{line}: {Excerpt(file.Lines[line - 1])}",
         ];
+    }
+
+    /// <summary>
+    /// The file as a single line, with the offset each original line starts at.
+    /// </summary>
+    /// <remarks>
+    /// Each line contributes its text with any leading comment marker removed,
+    /// joined by one space. Dropping the marker is what closes the wrap: without
+    /// it a citation split across two documentation lines is still separated by
+    /// <c>///</c>, and the pattern that was supposed to find it does not.
+    /// </remarks>
+    private static (string Text, int[] LineStarts) Flatten(string[] lines)
+    {
+        var builder = new StringBuilder();
+        var starts = new int[lines.Length];
+
+        for (var index = 0; index < lines.Length; index++)
+        {
+            starts[index] = builder.Length;
+            builder.Append(CommentMarker.Replace(lines[index], string.Empty)).Append(' ');
+        }
+
+        return (builder.ToString(), starts);
+    }
+
+    private static readonly Regex CommentMarker = new(@"^\s*(///|//|#|\*|<!--)?\s*", RegexOptions.None, TimeSpan.FromSeconds(5));
+
+    private static int LineAt(int[] lineStarts, int offset)
+    {
+        var found = Array.BinarySearch(lineStarts, offset);
+
+        // BinarySearch returns the complement of the next-larger index when the
+        // offset falls inside a line rather than on its first character, which
+        // is the ordinary case: the line wanted is the one before it.
+        return found >= 0 ? found + 1 : ~found;
     }
 
     /// <remarks>

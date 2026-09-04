@@ -4,8 +4,8 @@ Feature: Root cause attribution
     right one. The difference is not cosmetic: the wrong one sends a developer
     to investigate a rule that is fine.
 
-    The build-readiness stage is the documented chain — toolchain, then
-    configuration, then compile-probe — so a failure at the top has two levels
+    The build-readiness stage is a chain — toolchain, then configuration, then
+    compile-probe — so a failure at the top has two levels
     of consequence and the attribution has somewhere to go wrong.
 
     Background:
@@ -18,10 +18,9 @@ Feature: Root cause attribution
         And the report says "blocked by  core.workspace.toolchain"
         And the report does not say "blocked by  core.build.configuration"
 
-    # The report is ordered by topological level, and that is what buys
-    # the cause reading before the symptom is what that ordering buys. A
-    # formatter that grouped failures first would spend it, and both lines
-    # would still be present.
+    # The report is ordered by topological level, and that ordering is what puts
+    # the cause on screen before the symptom. A formatter that grouped failures
+    # first would spend that, and both lines would still be present.
     Scenario: The cause is printed before the symptom
         Given the workspace needs git "999.0.0" or newer
         When preflight is invoked with "run --stage build-readiness"
@@ -38,8 +37,9 @@ Feature: Root cause attribution
         And the report does not say "failed, gating"
 
     # Through the executable. Disabling a root removes the cost of the
-    # rules that existed only to serve it — read literally, 4.3 would leave
-    # them running and able to fail the run.
+    # rules that existed only to serve it. Taking the closure first and
+    # subtracting the disabled after would leave them running and able to fail
+    # the run.
     Scenario: Disabling the root of a stage eliminates the whole chain
         Given the workspace needs git "999.0.0" or newer
         When preflight is invoked with "run --stage build-readiness --set core.build.configuration:enabled=false --set core.build.compile-probe:enabled=false"

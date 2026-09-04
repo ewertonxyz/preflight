@@ -242,17 +242,16 @@ public sealed class WorkspaceSteps : IDisposable
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Reads standard output, which the first version of these steps redirected
-    /// and then discarded. Without it the no-arguments scenario asserts only
-    /// that the process started — which stayed green through all of the first commits,
-    /// when the binary printed a scaffolding notice and nothing else.
+    /// Reads standard output rather than discarding it. Without that, the
+    /// no-arguments scenario asserts only that the process started, which stays
+    /// green for a binary that prints nothing at all.
     /// </para>
     /// <para>
     /// A table rather than one placeholder per command, and an exact comparison
     /// rather than a containment check per row. The previous shape had exactly
     /// four placeholders and would have gone on passing with two commands
-    /// missing; the history added two, and the feature's own preamble says the
-    /// scenario is worth nothing without exhaustiveness.
+    /// missing. A scenario that claims to name the whole command surface is
+    /// worth nothing unless it fails when the surface grows.
     /// </para>
     /// </remarks>
     [Then("the report names exactly these commands")]
@@ -458,9 +457,9 @@ public sealed class WorkspaceSteps : IDisposable
         }
 
         // Cleared first. A developer machine or a build agent may already export
-        // CI, and the local-overlay table turns on exactly that — a
-        // scenario about the overlay would otherwise pass or fail according to
-        // where it ran.
+        // CI, and whether the overlay applies turns on exactly that — a scenario
+        // about the overlay would otherwise pass or fail according to where it
+        // ran.
         foreach (var name in new[] { "CI", "TEAMCITY_VERSION", "GITHUB_ACTIONS", "BUILD_BUILDID", "JENKINS_URL" })
         {
             startInfo.Environment[name] = string.Empty;

@@ -10,12 +10,12 @@ Feature: Reporting formats
     engine, and the engine already has unit tests.
 
     # Errored comes first in aggregation so that a defect in a rule is
-    # never reported as a problem with the workspace, and the glossary records
-    # Failed versus Errored as a false friend. In SARIF that means the errored
-    # rule produces no result at all — it goes to the invocation, where section
-    # 8.4's exit code 3 already calls the tool's owner rather than the author of
-    # the commit. This is the only layer that says it in the language the
-    # decision was taken in.
+    # never reported as a problem with the workspace. Failed and Errored are
+    # false friends: one is a verdict about the workspace, the other about the
+    # rule. In SARIF that means the errored rule produces no result at all — it
+    # goes to the invocation, where exit code 3 already calls the tool's owner
+    # rather than the author of the commit. This is the only layer that says it
+    # in the vocabulary a review tool reads.
     Scenario: A rule that errors is reported as a tool problem, not a workspace problem
         Given a workspace
         And the workspace needs git "2.0.0" or newer

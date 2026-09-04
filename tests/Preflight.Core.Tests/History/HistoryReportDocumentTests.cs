@@ -51,7 +51,7 @@ public sealed class HistoryReportDocumentTests
     /// <remarks>
     /// The honesty about an absent number, and it matters more here than on the
     /// screen: zero is a claim, "I did not measure" is not zero, and a machine
-    /// consumer sums the zero without ever reading it. The documented example
+    /// consumer sums the zero without ever reading it. The canonical example
     /// already carries the interesting case — the build series has enough
     /// observations for a p50 and not for a p95.
     /// </remarks>
