@@ -8,6 +8,7 @@ using Preflight.Cli.Pipelines;
 using Preflight.Cli.Policy;
 using Preflight.Cli.Reporting;
 using Preflight.Core;
+using Preflight.Core.Execution;
 using Preflight.TestSupport;
 
 /// <summary>

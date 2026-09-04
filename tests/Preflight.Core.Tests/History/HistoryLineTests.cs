@@ -3,6 +3,7 @@ namespace Preflight.Core.Tests.History;
 using System.Text;
 using System.Text.Json;
 using Preflight.Abstractions.Model;
+using Preflight.Core.Execution;
 using Preflight.Core.History;
 using Preflight.TestSupport;
 

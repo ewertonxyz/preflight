@@ -4,6 +4,7 @@ using NSubstitute;
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Services;
 using Preflight.Core;
+using Preflight.Core.Changes;
 
 /// <summary>
 /// Fixes the parsing of <c>git diff --name-status -z</c> against a substituted

@@ -3,6 +3,7 @@ namespace Preflight.Cli.Tests.Reporting;
 using Preflight.Abstractions.Model;
 using Preflight.Cli.Reporting;
 using Preflight.Core;
+using Preflight.Core.Execution;
 using Preflight.TestSupport;
 
 /// <summary>

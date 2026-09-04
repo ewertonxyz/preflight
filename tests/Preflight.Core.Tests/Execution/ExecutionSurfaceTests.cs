@@ -1,6 +1,7 @@
 namespace Preflight.Core.Tests.Execution;
 
 using Preflight.Core;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// Pins the execution contracts of execution against silent drift.

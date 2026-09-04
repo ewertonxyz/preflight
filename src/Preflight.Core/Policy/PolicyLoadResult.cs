@@ -56,8 +56,8 @@ public sealed record PolicyLoadResult
     /// <para>
     /// That is exactly what a seal is: a studio baseline declaring
     /// <c>sealed</c> would be erased by a pipeline document declaring its own,
-    /// silently, and a baseline that quietly stops sealing is the governance
-    /// false green the whole feature exists to remove. See ADR-031.
+    /// silently. A baseline that quietly stops sealing is worse than one that
+    /// was never written, because everybody upstream still believes it holds.
     /// </para>
     /// </remarks>
     public required IReadOnlyList<PolicyDocument> Documents { get; init; }

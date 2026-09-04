@@ -2,6 +2,7 @@ namespace Preflight.Core.Tests.Execution;
 
 using Preflight.Abstractions.Services;
 using Preflight.Core;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// Fixes the real process runner: the parts a substitute cannot stand in for.

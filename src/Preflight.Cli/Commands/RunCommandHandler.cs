@@ -8,6 +8,8 @@ using Preflight.Cli.Pipelines;
 using Preflight.Cli.Policy;
 using Preflight.Cli.Reporting;
 using Preflight.Core;
+using Preflight.Core.Changes;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// <c>preflight run</c>.

@@ -6,7 +6,7 @@ namespace Preflight.Core.Caching;
 /// <remarks>
 /// A new interface rather than members on
 /// <see cref="Preflight.Abstractions.Services.IFileSystem"/>, for the reason that
-/// interface states in its own remarks: it is read-only by construction,
+/// interface states in its own remarks: it exposes no way to write at all,
 /// because the rule that this tool never writes to the workspace is expressed
 /// in the type system. A new member on it would also be a major version of the
 /// contract. <c>IHistoryStore</c> is the precedent, and this is the same shape.

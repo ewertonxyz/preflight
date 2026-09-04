@@ -3,6 +3,7 @@ namespace Preflight.Core.Tests.Execution;
 using System.Text;
 using Preflight.Abstractions.Services;
 using Preflight.Core;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// Fixes the one <see cref="IFileSystem"/> that ships.

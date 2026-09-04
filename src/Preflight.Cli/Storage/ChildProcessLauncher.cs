@@ -4,6 +4,7 @@ using System.Diagnostics;
 using Preflight.Cli.Model;
 using Preflight.Cli.Services;
 using Preflight.Core;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// Runs a real child process and copies its two streams through, unchanged.

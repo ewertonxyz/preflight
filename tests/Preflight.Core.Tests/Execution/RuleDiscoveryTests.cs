@@ -2,6 +2,8 @@ namespace Preflight.Core.Tests.Execution;
 
 using Preflight.Abstractions.Rules;
 using Preflight.Core;
+using Preflight.Core.Execution;
+using Preflight.Core.Graph;
 
 /// <summary>
 /// Fixes reflection discovery: which types become rules, which are ignored, and

@@ -3,6 +3,7 @@ namespace Preflight.Rules.Tests.Build;
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
 using Preflight.Core;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// The fingerprint of the one rule the cache exists for.

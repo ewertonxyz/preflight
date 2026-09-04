@@ -3,6 +3,8 @@ namespace Preflight.Core.Tests.Execution;
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
 using Preflight.Core;
+using Preflight.Core.Execution;
+using Preflight.Core.Graph;
 using static Preflight.Core.Tests.Graph.GraphFixture;
 
 /// <summary>

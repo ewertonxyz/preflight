@@ -4,6 +4,7 @@ using System.Buffers.Binary;
 using Preflight.Cli.Commands;
 using Preflight.Cli.Tests.Commands;
 using Preflight.Core;
+using Preflight.Core.Execution;
 using Preflight.TestSupport;
 
 /// <summary>

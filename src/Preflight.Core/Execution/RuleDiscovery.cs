@@ -1,24 +1,7 @@
-namespace Preflight.Core;
+namespace Preflight.Core.Execution;
 
 using System.Reflection;
 using Preflight.Abstractions.Rules;
-
-/// <summary>
-/// Thrown when a type that declared itself a rule cannot be turned into one.
-/// </summary>
-/// <remarks>
-/// A <see cref="ConfigurationLoadException"/> rather than a run outcome, on
-/// purpose. A load failure is exit 2, and the distinction is worth keeping: a
-/// broken configuration calls the tool's owner, a failing check calls the
-/// commit author.
-/// </remarks>
-public sealed class RuleDiscoveryException : ConfigurationLoadException
-{
-    public RuleDiscoveryException(string message)
-        : base(message)
-    {
-    }
-}
 
 /// <summary>
 /// Finds the rules in a set of types or assemblies.
@@ -90,8 +73,9 @@ public static class RuleDiscovery
     /// <remarks>
     /// A public type that writes <c>: IValidationRule</c> has declared an
     /// intent the engine is obliged to honour or to reject out loud. Dropping
-    /// it silently would leave the rule missing from a green report, which is
-    /// the false green principle 7 forbids.
+    /// it silently would leave the rule missing from a green report, and a
+    /// green report over a check that never ran is the one outcome this tool
+    /// must never produce.
     /// </remarks>
     private static IValidationRule Instantiate(Type type)
     {
