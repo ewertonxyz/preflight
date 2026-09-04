@@ -289,7 +289,7 @@ public sealed class ConsoleReporter
         // 'at' is deliberately not in the same column as the three below it.
         // Expected, actual and fix are aligned with each other because a
         // reader compares them; the location is a different kind of fact and
-        // sits on its own indent, exactly as the documented example draws it.
+        // sits on its own indent.
         if (finding.Location is { } location)
         {
             writer.Append("       at  ").Append(Describe(location)).Append('\n');
@@ -324,7 +324,8 @@ public sealed class ConsoleReporter
     /// Every cause is printed, in the order the engine gave them — by
     /// topological level, so the most likely root comes first; printing only
     /// the first element would throw the ordering away, and re-sorting it
-    /// alphabetically to look tidy would undo the ADR entirely.
+    /// alphabetically to look tidy would undo the whole point of attributing a
+    /// skip to its root cause.
     /// </remarks>
     private static void WriteSkipAttribution(StringBuilder writer, RuleExecution execution)
     {

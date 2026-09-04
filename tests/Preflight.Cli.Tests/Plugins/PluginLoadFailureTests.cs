@@ -12,13 +12,13 @@ using Preflight.TestSupport;
 /// file or a real type.
 /// </summary>
 /// <remarks>
-/// The plan says "the three failure modes" and the documents enumerate five —
-/// a corrupt assembly, a missing dependency, an incompatible contract, a type
-/// that cannot be constructed, and a rule id claimed twice. The count in 17 is
-/// stale rather than a smaller scope, and it has been corrected there. Three of
-/// the five are decided from a description of an assembly and are asserted in
-/// <c>Preflight.Core.Tests</c>; the two here are the ones a description cannot
-/// produce.
+/// Plugin loading has five failure modes: a corrupt assembly, a missing
+/// dependency, an incompatible contract, a type that cannot be constructed, and
+/// a rule id claimed twice. Three of them are decided from a description of an
+/// assembly and are asserted against a substitute in <c>Preflight.Core.Tests</c>.
+/// The two here are the ones no description can produce — they need a real file
+/// on disk or a real type in a real load context, which is the whole reason this
+/// class exists separately.
 /// </remarks>
 public sealed class PluginLoadFailureTests
 {

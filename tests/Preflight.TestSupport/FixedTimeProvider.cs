@@ -5,11 +5,11 @@ namespace Preflight.TestSupport;
 /// </summary>
 /// <remarks>
 /// <para>
-/// <c>CommandEnvironment</c> has taken a <see cref="TimeProvider"/> since the
-/// beginning, with remarks saying it exists so the byte-identical guarantee is
-/// testable — and every call site passed
-/// <see cref="TimeProvider.System"/>, which is the same as not injecting one
-/// at all. The history is what finally needed it: its file is named after a
+/// <c>CommandEnvironment</c> accepts a <see cref="TimeProvider"/> so that the
+/// promise of byte-identical output for identical input can be tested at all,
+/// and for a long time every call site handed it
+/// <see cref="TimeProvider.System"/> — which is the same as not accepting one.
+/// The history is what finally needed a fixed clock: its file is named after a
 /// month, and a test asserting that name against the real clock is a test that
 /// changes its mind on the first of every month.
 /// </para>

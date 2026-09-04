@@ -30,11 +30,11 @@ public sealed class HistoryReportRendererTests
     /// A suppressed percentile prints a dash and the reason for it.
     /// </summary>
     /// <remarks>
-    /// The documented example already contains the interesting case, and it is
+    /// The canonical example already contains the interesting case, and it is
     /// interesting because both halves appear on one line: the build series has
     /// enough observations for a p50 and not for a p95. A gate applied to the
     /// whole series rather than to each percentile would pass a test with one
-    /// series and be wrong on the example the design document draws.
+    /// series and be wrong on the canonical one.
     /// </remarks>
     [Fact]
     public void Report_WithASeriesBelowTheP95Minimum_PrintsTheDashAndWhatIsMissing()

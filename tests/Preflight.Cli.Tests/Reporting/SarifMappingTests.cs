@@ -7,10 +7,10 @@ using Preflight.Cli.Reporting;
 /// Fixes the two SARIF enumerations against the decisions behind them.
 /// </summary>
 /// <remarks>
-/// Separate from the reporter's own tests because this is the part of the phase
-/// that is easiest to get wrong and cheapest to prove in isolation: a level that
-/// disagreed with a kind would still produce a document that parses, validates
-/// against the schema, and says the wrong thing on somebody's review screen.
+/// Separate from the reporter's own tests because this is the part easiest to
+/// get wrong and cheapest to prove in isolation: a level that disagreed with a
+/// kind would still produce a document that parses, validates against the
+/// schema, and says the wrong thing on somebody's review screen.
 /// </remarks>
 public sealed class SarifMappingTests
 {
@@ -34,7 +34,7 @@ public sealed class SarifMappingTests
     /// <c>Errored</c> has no kind, and asking for one stops the run.
     /// </summary>
     /// <remarks>
-    /// The glossary's second false friend at the level of the mapping. Verdict aggregation
+    /// The second false friend, at the level of the mapping. Verdict aggregation
     /// puts <c>Errored</c> first in aggregation so a defect in the rule is
     /// never reported as a problem with the workspace, and this keeps it out
     /// of <c>results</c> entirely. An <c>Errored</c> arriving here is a reporter
@@ -103,7 +103,7 @@ public sealed class SarifMappingTests
     /// A fourth severity is a failing test, not a silent level.
     /// </summary>
     /// <remarks>
-    /// Not in the phase's manifest, and added for the reason
+    /// Here for the reason
     /// <c>ExitCodeTests.ForVerdict_WithAValueOutsideTheEnum_Throws</c> exists: a
     /// switch over a closed enum needs a final arm to compile, and an arm no
     /// test reaches is an arm nobody knows the behaviour of. The cast is how

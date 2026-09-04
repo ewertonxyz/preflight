@@ -6,13 +6,14 @@ using Preflight.Cli.Services;
 using Preflight.Cli.Storage;
 
 /// <summary>
-/// Fixes the local-overlay table of the local-overlay rule and the
-/// CI detection it depends on.
+/// Fixes when the local overlay applies and when it does not, and the CI
+/// detection that decides it.
 /// </summary>
 /// <remarks>
 /// This is an integrity control, not a convenience: <c>preflight.local.json</c>
 /// is unversioned, nothing stops a <c>"blocking": false</c> from being left in
-/// it, and the local-overlay rule says trusting nobody to forget works until gold week. A
+/// it, and trusting nobody to forget works right up until the week a release
+/// is due. A
 /// defect here does not throw — it quietly relaxes a rule inside CI.
 /// </remarks>
 public sealed class LocalOverlayTests
