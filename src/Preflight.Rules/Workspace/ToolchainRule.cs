@@ -227,7 +227,7 @@ public sealed partial class ToolchainRule : IValidationRule
             Message = $"'{tool.Name}' is outside the accepted version range.",
             Expected = Describe(minimum, maximum),
             Actual = version.ToString(),
-            Remediation = $"Install a '{tool.Name}' inside the accepted range.",
+            Remediation = $"Install '{tool.Name}' at a version inside the accepted range.",
         };
     }
 

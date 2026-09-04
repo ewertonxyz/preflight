@@ -15,7 +15,10 @@
     Every step below stops the run on failure, and the exit code is non-zero so
     the result is usable from another script.
 
-    Written for Windows PowerShell 5.1: no `&&`, no ternary, no null-coalescing.
+    Written for Windows PowerShell 5.1: no `&&`, no ternary, no null-coalescing,
+    and ASCII only. The file carries no byte-order mark, and 5.1 reads a
+    mark-less file in the system code page rather than as UTF-8, so an em dash
+    written here reaches the reader as three wrong characters.
 
 .PARAMETER Configuration
     Build configuration. Defaults to Release.

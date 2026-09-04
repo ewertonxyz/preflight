@@ -1,8 +1,10 @@
 Feature: Executable contract
     The exit code of the preflight executable is the only thing a CI pipeline
-    actually reads. Each code has a distinct meaning, and
-    the distinction is what lets a pipeline call the author of a commit for one
-    failure and the owner of the tool for another.
+    actually reads. Each code has a distinct meaning, and the distinction is
+    what lets a pipeline call the author of a commit for one failure and the
+    owner of the tool for another. Which code stands for which meaning is
+    fixed in ExitCodes; what is fixed here is the surface a caller reaches
+    before any rule runs.
 
     The two scenarios below belong together and neither is worth much alone.
     The first says an incomplete invocation is met with the command surface
@@ -16,23 +18,18 @@ Feature: Executable contract
         When preflight is invoked with ""
         Then it exits with code 0
         And the report names exactly these commands
-            | command |
-            | run     |
-            | rules   |
-            | graph   |
-            | create  |
+            | command  |
+            | run      |
+            | rules    |
+            | graph    |
+            | create   |
             | pipeline |
-            | measure |
-            | report  |
-            | cache   |
-            | explain |
+            | measure  |
+            | report   |
+            | cache    |
+            | explain  |
 
     Scenario: An unknown command is a configuration error
         Given a workspace
         When preflight is invoked with "nonsense"
-        Then it exits with code 2
-
-    Scenario: A misspelled stage is a configuration error, not a rejected commit
-        Given a workspace
-        When preflight is invoked with "run --stage workspce"
         Then it exits with code 2

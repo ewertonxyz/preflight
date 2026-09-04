@@ -325,8 +325,8 @@ public sealed class WorkspaceSteps : IDisposable
     /// needs a content root that exists, and the probe is declared with the
     /// inputs that are required before anything may be cached.
     /// </remarks>
-    [Given("a workspace whose compile probe declares its inputs")]
-    public void GivenAWorkspaceWhoseProbeDeclaresItsInputs()
+    [Given("the workspace's compile probe declares its inputs")]
+    public void GivenTheProbeDeclaresItsInputs()
     {
         Write("preflight.workspace.json", """
             {
@@ -351,10 +351,10 @@ public sealed class WorkspaceSteps : IDisposable
     /// default, and a scenario is the only place the two can be compared as one
     /// behaviour rather than two settings.
     /// </remarks>
-    [Given("a workspace whose compile probe declares nothing")]
-    public void GivenAWorkspaceWhoseProbeDeclaresNothing()
+    [Given("the workspace's compile probe declares nothing")]
+    public void GivenTheProbeDeclaresNothing()
     {
-        GivenAWorkspaceWhoseProbeDeclaresItsInputs();
+        GivenTheProbeDeclaresItsInputs();
 
         Write("preflight.workspace.json", """
             {
@@ -378,7 +378,7 @@ public sealed class WorkspaceSteps : IDisposable
     private static List<string> Split(string arguments)
     {
         var parts = new List<string>();
-        var current = new System.Text.StringBuilder();
+        var current = new StringBuilder();
         var quoted = false;
 
         foreach (var character in arguments)
@@ -433,8 +433,8 @@ public sealed class WorkspaceSteps : IDisposable
 
             // Decoded as UTF-8 whatever the host's console is set to. Without
             // these two, the bytes the child wrote are decoded with the parent's
-            // Console.OutputEncoding - a console code page on a developer
-            // machine, UTF-8 with no console attached on a build agent - so the
+            // Console.OutputEncoding — a console code page on a developer
+            // machine, UTF-8 with no console attached on a build agent — so the
             // same scenario could read differently in two places. It costs
             // nothing today, because no step asserts on a glyph and GlyphSet
             // falls back to ASCII when the encoding does not round-trip; it

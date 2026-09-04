@@ -40,6 +40,16 @@ public static class RunResultFixture
     /// The canonical run: one pass, one failure with a full finding, and one
     /// skip attributed to the failure.
     /// </summary>
+    /// <remarks>
+    /// The finding is a hand-written copy of the one
+    /// <c>core.build.configuration</c> reports for a configuration missing
+    /// <c>contentRoot</c>, and it is a copy on purpose: building it by running
+    /// the rule would tie every reporter golden to which rules happen to exist,
+    /// and the reporters are meant to work for rules nobody has written yet.
+    /// The cost of the copy is that it has to be carried by hand — that rule's
+    /// own test asserts the same four strings exactly, so it fails first and is
+    /// the notice to update this.
+    /// </remarks>
     public static RunResult CanonicalExample() => new()
     {
         RunId = FixedRunId,
@@ -66,7 +76,9 @@ public static class RunResultFixture
                         Location = new FindingLocation("config/build/win64.json"),
                         Expected = "a \"contentRoot\" entry",
                         Actual = "key not present",
-                        Remediation = "add \"contentRoot\" pointing to the packaged content folder",
+                        Remediation =
+                            "Add \"contentRoot\" to the configuration, or ask the pipeline's " +
+                            "author to drop it from 'requiredKeys'.",
                     },
                 ],
             },
