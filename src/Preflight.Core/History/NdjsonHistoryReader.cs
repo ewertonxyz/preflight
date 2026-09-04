@@ -38,6 +38,8 @@ public sealed class NdjsonHistoryReader
 
     public NdjsonHistoryReader(IFileSystem fileSystem)
     {
+        ArgumentNullException.ThrowIfNull(fileSystem);
+
         _fileSystem = fileSystem;
     }
 
@@ -54,6 +56,8 @@ public sealed class NdjsonHistoryReader
         string directory,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(directory);
+
         if (!_fileSystem.DirectoryExists(directory))
         {
             yield break;

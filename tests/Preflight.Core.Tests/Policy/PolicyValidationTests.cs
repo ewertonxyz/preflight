@@ -626,9 +626,10 @@ public sealed class PolicyValidationTests
     /// The former spelling of <c>pipeline</c> still loads.
     /// </summary>
     /// <remarks>
-    /// The schema is strict by design, so removing the key would turn every
-    /// policy file written before ADR-027 into a load-time error — a migration
-    /// wearing a rename's clothes. And the edit distance from
+    /// The schema refuses every key it does not list, so removing this one
+    /// would turn every policy file written before the rename into a load-time
+    /// error — a migration wearing a rename's clothes. And the edit distance
+    /// from
     /// <c>production</c> to <c>pipeline</c> is 8 against a suggestion threshold
     /// of 5, so the author would not even be told what to write instead.
     /// </remarks>
@@ -669,8 +670,9 @@ public sealed class PolicyValidationTests
     }
 
     /// <remarks>
-    /// A key nobody can parse is a block that silently never applies, which is
-    /// the false green of principle 7 written in a policy file. <c>any</c> is
+    /// A key nobody can parse is a block that silently never applies: somebody
+    /// wrote a rule for a platform, the run reports success, and the rule was
+    /// never in force. <c>any</c> is
     /// in the list because it is the word the CLI uses for "no platform given":
     /// a block keyed on it reads as a wildcard and would mean the literal
     /// string.
@@ -710,7 +712,7 @@ public sealed class PolicyValidationTests
     /// <remarks>
     /// Matching is ordinal and case-insensitive, so both apply at the same
     /// specificity and the winner would come from dictionary order — a value
-    /// decided by something nobody wrote down, which principle 1 forbids.
+    /// decided by something nobody wrote down, and different on the next run.
     /// </remarks>
     [Fact]
     public void Validate_WithTwoTargetKeysDifferingOnlyInCase_ReturnsErrorNamingBoth()
@@ -730,6 +732,45 @@ public sealed class PolicyValidationTests
         errors.ShouldHaveSingleItem();
         errors[0].Message.ShouldContain("ps5");
         errors[0].Message.ShouldContain("PS5");
+    }
+
+    /// <summary>
+    /// A target block cannot declare a <c>targets</c> block of its own.
+    /// </summary>
+    /// <remarks>
+    /// The inside of a target is validated as a root scope, which makes
+    /// <c>targets</c> a legal key there — so without this refusal the nested
+    /// block passes validation and is then never applied, because only the
+    /// top-level block is read when the layer resolves. Somebody would have
+    /// written a rule for a platform and watched every run report success
+    /// having never held them to it. The message says the blocks do not nest
+    /// rather than that the key is unknown, because it is not: sending the
+    /// author to hunt for a typo they did not make is its own kind of wrong
+    /// answer.
+    /// </remarks>
+    [Fact]
+    public void Validate_WithATargetsBlockNestedInsideATarget_ReturnsErrorSayingTheyDoNotNest()
+    {
+        var document = Document("projectc.json", """
+            {
+              "schemaVersion": 1,
+              "targets": {
+                "ps5": {
+                  "targets": {
+                    "ps5|Shipping": { "rules": {} }
+                  }
+                }
+              }
+            }
+            """);
+
+        var errors = PolicyValidator.ValidateAll([document], []);
+
+        errors.ShouldHaveSingleItem();
+        errors[0].Message.ShouldContain("ps5");
+        errors[0].Message.ShouldContain("do not nest");
+        errors[0].FilePath.ShouldBe("projectc.json");
+        errors[0].JsonPath.ShouldBe("targets.ps5.targets");
     }
 
     /// <remarks>

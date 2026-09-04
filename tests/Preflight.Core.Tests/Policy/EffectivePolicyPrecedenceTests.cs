@@ -185,7 +185,8 @@ public sealed class EffectivePolicyPrecedenceTests
     /// this file reaches Build directly. That makes an unvalidated severity
     /// string reachable here, and it must fail loudly rather than quietly
     /// resolving to <c>Error</c>: a policy that silently ran at a severity
-    /// nobody wrote is the false green principle 7 forbids.
+    /// nobody wrote reports a verdict nobody asked for, and the report gives
+    /// no sign of it.
     /// </remarks>
     [Fact]
     public void RuleValue_WithASeverityStringOutsideTheDocumentedSet_ThrowsNamingTheValue()

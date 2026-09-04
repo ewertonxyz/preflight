@@ -33,6 +33,9 @@ public sealed class PolicyDocument
 
     public static PolicyDocument Parse(string json, string filePath)
     {
+        ArgumentNullException.ThrowIfNull(json);
+        ArgumentNullException.ThrowIfNull(filePath);
+
         var bytes = Encoding.UTF8.GetBytes(json);
         var lineStarts = ComputeLineStarts(bytes);
 
@@ -44,10 +47,17 @@ public sealed class PolicyDocument
         return new PolicyDocument { FilePath = filePath, Root = root };
     }
 
-    public bool TryGetRaw(string path, out object? value) => TryGetRaw(path.Split('.'), out value);
+    public bool TryGetRaw(string path, out object? value)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+
+        return TryGetRaw(path.Split('.'), out value);
+    }
 
     public bool TryGetRaw(IReadOnlyList<string> path, out object? value)
     {
+        ArgumentNullException.ThrowIfNull(path);
+
         if (Root.TryGetPath(path, out var node) && node is PolicyNode.Leaf leaf)
         {
             value = leaf.Value.Value;
