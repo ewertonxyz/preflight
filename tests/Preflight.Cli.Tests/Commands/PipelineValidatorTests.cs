@@ -1,7 +1,8 @@
 namespace Preflight.Cli.Tests.Commands;
 
-using System.Text;
 using Preflight.Cli.Commands;
+using Preflight.Cli.Pipelines;
+using Preflight.Cli.Storage;
 using Preflight.TestSupport;
 
 /// <summary>
@@ -40,13 +41,6 @@ public sealed class PipelineValidatorTests : IDisposable
         }
     }
 
-    private static void Write(DirectoryInfo directory, string relativePath, string content)
-    {
-        var path = Path.Combine(directory.FullName, relativePath.Replace('/', Path.DirectorySeparatorChar));
-
-        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        File.WriteAllText(path, content, Encoding.UTF8);
-    }
 
     private Task<int> Validate(DirectoryInfo tree) =>
         PipelineValidator.ValidateAsync(
@@ -64,7 +58,7 @@ public sealed class PipelineValidatorTests : IDisposable
     {
         var tree = _root.CreateSubdirectory("six");
 
-        Write(tree, PackageManifest.FileName, """
+        WorkspaceFiles.Write(tree, PackageManifest.FileName, """
             {
               "schemaVersion": 1,
               "name": "projecta",
@@ -76,7 +70,7 @@ public sealed class PipelineValidatorTests : IDisposable
             """);
 
         // 4 and 5: an unknown root key, and a rule id nothing declares.
-        Write(tree, "preflight.projecta.json", """
+        WorkspaceFiles.Write(tree, "preflight.projecta.json", """
             {
               "schemaVersion": 1,
               "notAKey": true,
@@ -85,11 +79,11 @@ public sealed class PipelineValidatorTests : IDisposable
             """);
 
         // 1: a workspace manifest, which pack refuses to ship.
-        Write(tree, "nested/preflight.workspace.json", """{ "tools": [] }""");
+        WorkspaceFiles.Write(tree, "nested/preflight.workspace.json", """{ "tools": [] }""");
 
         // 3: named, present, and not an assembly. 2 is 'rules/absent.dll',
         // which the manifest names and the tree does not hold.
-        Write(tree, "rules/broken.dll", "this is not a PE file");
+        WorkspaceFiles.Write(tree, "rules/broken.dll", "this is not a PE file");
 
         var problems = (await Should.ThrowAsync<PipelineValidationException>(
             () => Validate(tree))).Problems;
@@ -111,7 +105,7 @@ public sealed class PipelineValidatorTests : IDisposable
     {
         var tree = _root.CreateSubdirectory("clean");
 
-        Write(tree, PackageManifest.FileName, $$"""
+        WorkspaceFiles.Write(tree, PackageManifest.FileName, $$"""
             {
               "schemaVersion": 1,
               "name": "projecta",
@@ -122,7 +116,7 @@ public sealed class PipelineValidatorTests : IDisposable
             }
             """);
 
-        Write(tree, "preflight.projecta.json", """
+        WorkspaceFiles.Write(tree, "preflight.projecta.json", """
             {
               "schemaVersion": 1,
               "rules": { "core.workspace.toolchain": { "enabled": true } }
@@ -139,7 +133,7 @@ public sealed class PipelineValidatorTests : IDisposable
     {
         var tree = _root.CreateSubdirectory("no-manifest");
 
-        Write(tree, "preflight.projecta.json", """{ "schemaVersion": 1 }""");
+        WorkspaceFiles.Write(tree, "preflight.projecta.json", """{ "schemaVersion": 1 }""");
 
         (await Should.ThrowAsync<PackageManifestException>(() => Validate(tree)))
             .Message.ShouldContain(PackageManifest.FileName);
@@ -155,7 +149,7 @@ public sealed class PipelineValidatorTests : IDisposable
     {
         var tree = _root.CreateSubdirectory("no-policy");
 
-        Write(tree, PackageManifest.FileName, $$"""
+        WorkspaceFiles.Write(tree, PackageManifest.FileName, $$"""
             {
               "schemaVersion": 1,
               "name": "projecta",
@@ -180,7 +174,7 @@ public sealed class PipelineValidatorTests : IDisposable
     {
         var tree = _root.CreateSubdirectory("bad-contract");
 
-        Write(tree, PackageManifest.FileName, """
+        WorkspaceFiles.Write(tree, PackageManifest.FileName, """
             {
               "schemaVersion": 1,
               "name": "projecta",
@@ -191,7 +185,7 @@ public sealed class PipelineValidatorTests : IDisposable
             }
             """);
 
-        Write(tree, "preflight.projecta.json", """{ "schemaVersion": 1 }""");
+        WorkspaceFiles.Write(tree, "preflight.projecta.json", """{ "schemaVersion": 1 }""");
 
         (await Should.ThrowAsync<PipelineValidationException>(() => Validate(tree)))
             .Message.ShouldContain("latest");
@@ -207,7 +201,7 @@ public sealed class PipelineValidatorTests : IDisposable
     {
         var tree = _root.CreateSubdirectory("bad-policy");
 
-        Write(tree, PackageManifest.FileName, $$"""
+        WorkspaceFiles.Write(tree, PackageManifest.FileName, $$"""
             {
               "schemaVersion": 1,
               "name": "projecta",
@@ -218,7 +212,7 @@ public sealed class PipelineValidatorTests : IDisposable
             }
             """);
 
-        Write(tree, "preflight.projecta.json", "{ this is not json");
+        WorkspaceFiles.Write(tree, "preflight.projecta.json", "{ this is not json");
 
         (await Should.ThrowAsync<PipelineValidationException>(() => Validate(tree)))
             .Problems.ShouldNotBeEmpty();

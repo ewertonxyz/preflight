@@ -3,6 +3,8 @@ namespace Preflight.Cli.Tests.Commands;
 using System.Text;
 using NSubstitute;
 using Preflight.Cli.Commands;
+using Preflight.Cli.Model;
+using Preflight.Cli.Services;
 using Preflight.Rules;
 
 /// <summary>
@@ -18,7 +20,7 @@ using Preflight.Rules;
 /// configuration problem by throwing through the boundary in
 /// <c>PreflightCommandLine.Execute</c>, which is the one place that maps it to
 /// an exit code; the mapping is asserted here so the pairing cannot drift, and
-/// the exit code itself is proved end to end by the specification. See ADR-028.
+/// the exit code itself is proved end to end by the specification.
 /// </remarks>
 public sealed class CreateCommandTests : IDisposable
 {
@@ -81,10 +83,12 @@ public sealed class CreateCommandTests : IDisposable
     /// The command finds out nothing about the project it is run in.
     /// </summary>
     /// <remarks>
-    /// ADR-023 refused inference once already, and a manifest that arrived
-    /// pre-filled is a manifest nobody reads before trusting. The two workspaces
-    /// here differ in everything a detector would look at and must produce
-    /// identical bytes.
+    /// A manifest that arrived pre-filled is a manifest nobody reads before
+    /// trusting, and what it would be filled from is a guess: the tool cannot
+    /// know what a build actually consumes, and the same refusal to infer is
+    /// what keeps the cache from serving a stale pass. What this command writes
+    /// is a commented skeleton, empty of facts. The two workspaces here differ
+    /// in everything a detector would look at and must produce identical bytes.
     /// </remarks>
     [Fact]
     public async Task WorkspaceAsync_InAProjectFullOfSolutionAndUprojectFiles_EmitsNoFactAboutAnyOfThem()

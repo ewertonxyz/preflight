@@ -4,6 +4,9 @@ using System.Globalization;
 using System.Text;
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
+using Preflight.Cli.Parsing;
+using Preflight.Cli.Pipelines;
+using Preflight.Cli.Policy;
 using Preflight.Core;
 
 /// <summary>
@@ -104,10 +107,10 @@ public sealed class ConsoleReporter
     /// The origin is printed only for <see cref="PipelineSource.Checkout"/>,
     /// and that asymmetry is the point rather than an omission: a run
     /// configured by a file nobody passed must not read the same as one that
-    /// was asked for. It is the argument <c>Docs/design.md 6.3</c> makes about
-    /// the local overlay, applied to the layer above it. A flag the user typed
-    /// needs no explanation, so the bytes of every existing report are
-    /// unchanged. See ADR-029.
+    /// was asked for. It is the argument the local overlay already makes —
+    /// the header says when it is in effect — applied to the layer above it. A
+    /// flag the user typed needs no explanation, so the bytes of every report
+    /// written before the checkout key existed are unchanged.
     /// </remarks>
     private static string DescribePipeline(
         RunResult result, PipelineSelection selection, InstalledPipeline? package)

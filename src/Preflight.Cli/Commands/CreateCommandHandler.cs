@@ -2,31 +2,20 @@ namespace Preflight.Cli.Commands;
 
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
+using Preflight.Cli.Model;
+using Preflight.Cli.Pipelines;
+using Preflight.Cli.Policy;
 using Preflight.Core;
 using Preflight.Rules;
-
-/// <summary>
-/// Raised when the file <c>create</c> would write already exists.
-/// </summary>
-/// <remarks>
-/// A configuration error, so it exits 2 through the one mapping that decides
-/// exit codes. 3 would say the tool broke; the tool did exactly what it
-/// promised.
-/// </remarks>
-public sealed class WorkspaceFileExistsException : ConfigurationLoadException
-{
-    public WorkspaceFileExistsException(string message)
-        : base(message)
-    {
-    }
-}
 
 /// <summary>
 /// <c>preflight create workspace</c>, <c>create rule</c> and <c>create policy</c>.
 /// </summary>
 /// <remarks>
-/// <c>Docs/design.md 9.1</c> defines the workspace manifest; ADR-028 records why
-/// a command may write into the workspace when a run may not. The three
+/// A rule never repairs what it finds, which is what keeps a validation run
+/// from quietly changing the workspace it is judging. A person typing
+/// <c>create</c> is applying the correction themselves, which is the other half
+/// of the same rule rather than an exception to it. The three
 /// subcommands share one shape — decide the path, refuse an occupant, write a
 /// commented skeleton — and the sharing is deliberate: a scaffold that behaved
 /// differently from its neighbour would be a second set of promises to learn.
@@ -301,8 +290,7 @@ public static class CreateCommandHandler
     /// Commented, and empty of decisions. The skeleton shows the shape and names
     /// the keys; what the limits should be is the studio's call, and a file that
     /// arrived with plausible numbers in it is a file nobody reads before
-    /// trusting — the argument ADR-023 already made about the workspace
-    /// manifest.
+    /// trusting, and a limit nobody chose is a limit that passes.
     /// </remarks>
     private static string PolicySkeleton(string name) =>
         $$"""
@@ -392,9 +380,10 @@ public static class CreateCommandHandler
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Empty of facts, and deliberately so. ADR-023 refused inference once
-    /// already, and every argument it made applies here with one addition: a
-    /// manifest that arrived pre-filled is a manifest nobody reads before
+    /// Empty of facts, and deliberately so. This tool refuses to infer a
+    /// configuration value anywhere else, and the same argument applies here
+    /// with one addition: a manifest that arrived pre-filled is one nobody reads
+    /// before
     /// trusting, and this file is the one place a workspace states what it
     /// needs.
     /// </para>
@@ -402,9 +391,9 @@ public static class CreateCommandHandler
     /// Two empty arrays rather than an empty object, because the difference
     /// matters to the rules that read it: a manifest declaring no tools is
     /// somebody saying in writing that there is nothing to check, and both
-    /// workspace rules answer <c>n/a</c>. A missing manifest fails
-    /// (<c>Docs/design.md 9.1</c>), and this command exists to move a new
-    /// project from the second state to the first.
+    /// workspace rules answer <c>n/a</c>. A missing manifest fails instead,
+    /// and this command exists to move a new project from the second state to
+    /// the first.
     /// </para>
     /// <para>
     /// Comments and trailing commas are legal here — <c>WorkspaceManifest</c>

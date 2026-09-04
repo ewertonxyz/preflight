@@ -68,8 +68,8 @@ public static class SarifMapping
     /// <remarks>
     /// The SARIF standard requires <c>level</c> to be <c>none</c> whenever
     /// <c>kind</c> is not <c>fail</c>, so the status decides before the
-    /// severity is consulted. That ordering is load-bearing rather than
-    /// pedantic: rules default to <see cref="Severity.Error"/>, so reading the
+    /// severity is consulted. Reversing that order is not a nicety: rules
+    /// default to <see cref="Severity.Error"/>, so reading the
     /// severity first would give every passing rule <c>"level": "error"</c> and
     /// mark a green run red on every code review screen — in a document that
     /// still parses and still validates.

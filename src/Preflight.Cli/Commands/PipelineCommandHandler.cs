@@ -1,18 +1,10 @@
 namespace Preflight.Cli.Commands;
 
 using Preflight.Cli.Interactive;
+using Preflight.Cli.Model;
+using Preflight.Cli.Pipelines;
+using Preflight.Cli.Policy;
 using Preflight.Core;
-
-/// <summary>
-/// Raised when a pipeline command is asked for something it will not do.
-/// </summary>
-public sealed class PipelineCommandException : ConfigurationLoadException
-{
-    public PipelineCommandException(string message)
-        : base(message)
-    {
-    }
-}
 
 /// <summary>
 /// <c>preflight pipeline declare</c>, <c>use</c> and <c>list</c>.
@@ -28,7 +20,7 @@ public sealed class PipelineCommandException : ConfigurationLoadException
 /// </para>
 /// <para>
 /// The asymmetry is deliberate and is pinned by a test on each side, so that a
-/// later refactor which harmonises them breaks loudly. See ADR-035.
+/// later refactor which harmonises them breaks loudly.
 /// </para>
 /// </remarks>
 public static class PipelineCommandHandler
@@ -200,11 +192,11 @@ public static class PipelineCommandHandler
     /// <remarks>
     /// <para>
     /// The pipeline comes from <paramref name="argument"/> when it names one,
-    /// and otherwise from the checkout, which is where ADR-029 put that
-    /// question and where it stays. The picker chooses the <em>version</em>, and
-    /// never the pipeline a run validates against: letting it choose that would
-    /// undo ADR-029 and let a developer and CI diverge with nothing in the
-    /// header saying so.
+    /// and otherwise from the checkout, which is where that question is
+    /// answered and where it stays. The picker chooses the <em>version</em>,
+    /// and never the pipeline a run validates against: a menu answering that
+    /// would let a developer's machine and the build server validate against
+    /// different rules, with nothing in either header saying so.
     /// </para>
     /// <para>
     /// The range the checkout accepts decorates the rows and removes none of
@@ -215,8 +207,13 @@ public static class PipelineCommandHandler
     /// </remarks>
     private static string Ask(CommandEnvironment environment, string? argument)
     {
+        // One read of preflight.base.json, answering both questions below.
+        // This command manages packages, so the dispatch point resolved no
+        // selection for it and there is nothing on the environment to reuse.
+        var checkout = CheckoutDocument.Read(environment.WorkspaceRoot, environment.FileSystem);
+
         var selection = PipelineSelector.Select(
-            environment.WorkspaceRoot, environment.FileSystem, argument, CancellationToken.None);
+            environment.WorkspaceRoot, environment.FileSystem, argument, checkout, CancellationToken.None);
 
         if (selection.Pipeline is not { } name)
         {
@@ -228,9 +225,7 @@ public static class PipelineCommandHandler
         PipelineName.Require(name);
 
         var requirement = PipelineSelector.RequirementOf(
-            environment.WorkspaceRoot,
-            environment.FileSystem,
-            pipelineDeclared: selection.Source is PipelineSource.Checkout);
+            checkout, pipelineDeclared: selection.Source is PipelineSource.Checkout);
 
         environment.MachineState.Pins.TryGetValue(name, out var pinned);
 

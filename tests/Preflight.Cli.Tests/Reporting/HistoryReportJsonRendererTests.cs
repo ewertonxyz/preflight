@@ -1,5 +1,6 @@
 namespace Preflight.Cli.Tests.Reporting;
 
+using Preflight.Cli.Parsing;
 using Preflight.Cli.Reporting;
 using Preflight.TestSupport;
 
