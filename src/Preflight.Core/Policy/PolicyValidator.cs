@@ -526,21 +526,51 @@ public static class PolicyValidator
             }
 
             // The inside of a target is a root scope: the same keys, validated
-            // by the same walk. That means 'targets' is itself an accepted key
-            // here, and nothing below descends into it — so a targets block
-            // nested inside a target block passes validation and is then never
-            // applied, because only the root block is read when the layer
-            // resolves. It is the same defect the unparseable key above is
-            // refused for, and it is not refused. Adding that refusal would
-            // reject a document accepted today, so it is a change of contract
-            // rather than a correction.
+            // by the same walk. That makes 'targets' an accepted key here, so
+            // the nesting has to be refused explicitly — only the root block is
+            // read when the layer resolves, and a nested one would pass
+            // validation and then never apply. That is the same silence the
+            // unparseable key above is refused for.
             ValidateScope(block, PolicyKeySchema.RootKeys, source, $"{jsonPath}.", errors);
+            RefuseNestedTargets(block, key, source, jsonPath, errors);
 
             if (block.Members.GetValueOrDefault("rules") is PolicyNode.ObjectNode rules)
             {
                 ValidateRuleMap(rules, knownRuleIds, source, errors);
             }
         }
+    }
+
+    /// <summary>
+    /// Refuses a <c>targets</c> block declared inside a target block.
+    /// </summary>
+    /// <remarks>
+    /// Only the root <c>targets</c> is read when the layer resolves, so a
+    /// nested one is a block that can never apply however the run is aimed —
+    /// somebody wrote a rule for a platform and the run will report success
+    /// having never held them to it. The key itself is legal at the root, so
+    /// the message says the blocks do not nest rather than that the key is
+    /// unknown, which would send the author looking for a typo they did not
+    /// make.
+    /// </remarks>
+    private static void RefuseNestedTargets(
+        PolicyNode.ObjectNode block,
+        string targetKey,
+        ValidationSource source,
+        string jsonPath,
+        List<PolicyValidationError> errors)
+    {
+        if (!block.Members.TryGetValue("targets", out var nested))
+        {
+            return;
+        }
+
+        errors.Add(new PolicyValidationError(
+            $"Target '{targetKey}' declares its own 'targets' in {source.Description}. " +
+            "Target blocks do not nest; only the top-level 'targets' is applied.",
+            source.FilePath,
+            LineOf(nested),
+            $"{jsonPath}.targets"));
     }
 
     private static void ValidateRuleMap(

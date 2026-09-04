@@ -734,6 +734,45 @@ public sealed class PolicyValidationTests
         errors[0].Message.ShouldContain("PS5");
     }
 
+    /// <summary>
+    /// A target block cannot declare a <c>targets</c> block of its own.
+    /// </summary>
+    /// <remarks>
+    /// The inside of a target is validated as a root scope, which makes
+    /// <c>targets</c> a legal key there — so without this refusal the nested
+    /// block passes validation and is then never applied, because only the
+    /// top-level block is read when the layer resolves. Somebody would have
+    /// written a rule for a platform and watched every run report success
+    /// having never held them to it. The message says the blocks do not nest
+    /// rather than that the key is unknown, because it is not: sending the
+    /// author to hunt for a typo they did not make is its own kind of wrong
+    /// answer.
+    /// </remarks>
+    [Fact]
+    public void Validate_WithATargetsBlockNestedInsideATarget_ReturnsErrorSayingTheyDoNotNest()
+    {
+        var document = Document("projectc.json", """
+            {
+              "schemaVersion": 1,
+              "targets": {
+                "ps5": {
+                  "targets": {
+                    "ps5|Shipping": { "rules": {} }
+                  }
+                }
+              }
+            }
+            """);
+
+        var errors = PolicyValidator.ValidateAll([document], []);
+
+        errors.ShouldHaveSingleItem();
+        errors[0].Message.ShouldContain("ps5");
+        errors[0].Message.ShouldContain("do not nest");
+        errors[0].FilePath.ShouldBe("projectc.json");
+        errors[0].JsonPath.ShouldBe("targets.ps5.targets");
+    }
+
     /// <remarks>
     /// The inside of a target block is a root scope, so an unknown key there is
     /// caught by the same walk that catches one at the root — and a rule id

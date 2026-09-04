@@ -3,6 +3,7 @@ namespace Preflight.Cli.Commands;
 using Preflight.Cli.Model;
 using Preflight.Cli.Policy;
 using Preflight.Core.Caching;
+using Preflight.Core.History;
 
 /// <summary>
 /// <c>preflight cache clear</c>.
@@ -39,9 +40,13 @@ public static class CacheCommandHandler
             CacheSettings.From(resolved.Policy).Path);
 
         // Before anything is deleted. 'cachePath' is a free string that any
-        // policy overlay may set, and "." would turn this command into one that
-        // empties the repository. Exit 2 through the CLI's existing catch.
-        RuleCache.RequireSafeToEmpty(environment.WorkspaceRoot, directory);
+        // policy overlay may set: "." would turn this command into one that
+        // empties the repository, and ".preflight" would take the run history
+        // with it. Exit 2 through the CLI's existing catch.
+        RuleCache.RequireSafeToEmpty(
+            environment.WorkspaceRoot,
+            directory,
+            HistoryPaths.DirectoryFor(environment.WorkspaceRoot, HistorySettings.From(resolved.Policy)));
 
         var removed = environment.Cache.Clear(directory);
 
