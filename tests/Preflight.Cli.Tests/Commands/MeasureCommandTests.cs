@@ -5,6 +5,7 @@ using System.Text.Json;
 using Preflight.Cli.Commands;
 using Preflight.Cli.Model;
 using Preflight.Core;
+using Preflight.Core.Execution;
 using Preflight.Core.History;
 using Preflight.TestSupport;
 

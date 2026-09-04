@@ -3,6 +3,7 @@ namespace Preflight.TestSupport;
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
 using Preflight.Core;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// Builds the runs the reporter and history tests render.

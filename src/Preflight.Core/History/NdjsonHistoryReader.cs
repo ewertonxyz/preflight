@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Services;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// Reads the history back, one line at a time.

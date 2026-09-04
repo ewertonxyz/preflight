@@ -1,4 +1,4 @@
-namespace Preflight.Core;
+namespace Preflight.Core.Changes;
 
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Services;

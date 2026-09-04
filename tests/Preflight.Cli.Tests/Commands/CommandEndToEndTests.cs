@@ -8,6 +8,7 @@ using Preflight.Cli.Commands;
 using Preflight.Cli.Model;
 using Preflight.Cli.Services;
 using Preflight.Core;
+using Preflight.Core.Execution;
 using Preflight.Core.History;
 using Preflight.Core.Policy;
 

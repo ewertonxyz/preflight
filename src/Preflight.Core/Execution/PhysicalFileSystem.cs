@@ -1,4 +1,4 @@
-namespace Preflight.Core;
+namespace Preflight.Core.Execution;
 
 using Preflight.Abstractions.Services;
 

@@ -1,7 +1,8 @@
-namespace Preflight.Core;
+namespace Preflight.Core.Execution;
 
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
+using Preflight.Core.Graph;
 
 /// <summary>
 /// Works out who is skipped, why, and which rule to blame.

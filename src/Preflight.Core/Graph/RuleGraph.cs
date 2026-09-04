@@ -1,4 +1,4 @@
-namespace Preflight.Core;
+namespace Preflight.Core.Graph;
 
 using Preflight.Abstractions.Rules;
 using Preflight.Core.Policy;

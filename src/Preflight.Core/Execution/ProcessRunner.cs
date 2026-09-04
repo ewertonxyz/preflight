@@ -1,4 +1,4 @@
-namespace Preflight.Core;
+namespace Preflight.Core.Execution;
 
 using System.Diagnostics;
 using Preflight.Abstractions.Services;

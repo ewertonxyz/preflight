@@ -8,6 +8,8 @@ using Preflight.Cli.Parsing;
 using Preflight.Cli.Policy;
 using Preflight.Cli.Reporting;
 using Preflight.Core;
+using Preflight.Core.Execution;
+using Preflight.Core.Graph;
 using Preflight.Core.Policy;
 
 /// <summary>

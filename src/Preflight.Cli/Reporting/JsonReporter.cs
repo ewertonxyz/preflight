@@ -2,6 +2,7 @@ namespace Preflight.Cli.Reporting;
 
 using System.Text.Json;
 using Preflight.Core;
+using Preflight.Core.Execution;
 using Preflight.Core.History;
 
 /// <summary>

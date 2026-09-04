@@ -2,6 +2,7 @@ namespace Preflight.Core.History;
 
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
+using Preflight.Core.Execution;
 
 /// <summary>
 /// Folds the history into the numbers <c>preflight report</c> prints.
