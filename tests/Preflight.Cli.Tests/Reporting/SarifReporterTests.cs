@@ -195,11 +195,15 @@ public sealed class SarifReporterTests
             .GetProperty("text")
             .GetString()!;
 
+        // The three labels rather than the three values. What this test is
+        // about is the order the fold puts them in, and a rule is free to
+        // reword any of its four strings — pinning the values here would make
+        // that rewording look like a defect in this reporter.
         text.ShouldContain("Missing platform configuration entry.");
-        text.IndexOf("a \"contentRoot\" entry", StringComparison.Ordinal)
-            .ShouldBeLessThan(text.IndexOf("key not present", StringComparison.Ordinal));
-        text.IndexOf("key not present", StringComparison.Ordinal)
-            .ShouldBeLessThan(text.IndexOf("add \"contentRoot\"", StringComparison.Ordinal));
+        text.IndexOf("expected: ", StringComparison.Ordinal)
+            .ShouldBeLessThan(text.IndexOf("actual: ", StringComparison.Ordinal));
+        text.IndexOf("actual: ", StringComparison.Ordinal)
+            .ShouldBeLessThan(text.IndexOf("fix: ", StringComparison.Ordinal));
 
         rendered.ShouldNotContain("\"fixes\"");
         rendered.ShouldNotContain("\"properties\"");

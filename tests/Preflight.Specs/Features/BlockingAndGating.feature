@@ -1,15 +1,17 @@
 Feature: Blocking and gating
     These are two independent axes, and the whole point is that they answer
-    different questions. `blocking` decides the
-    verdict; `gating` decides whether the rules after this one are worth running.
-    Collapsing them into one flag is the mistake this separation prevents, and
-    a run where only one of the two took effect looks correct from either side
-    alone.
+    different questions. `blocking` decides the verdict; `gating` decides
+    whether the rules after this one are worth running. Collapsing them into
+    one flag is the mistake this separation prevents, and a run where only one
+    of the two took effect looks correct from either side alone.
 
-    Every scenario asserts both halves — the verdict *and* whether the dependent
-    executed — because that is the only pair that distinguishes the four
-    quadrants from each other. The function's own tests live in Core.Tests; these observe the same four combinations through the executable,
-    where the observable is an exit code and a line of report.
+    Every scenario asserts both halves — the verdict *and* whether the
+    dependent executed — because that is the only pair that distinguishes the
+    four quadrants from each other. Each axis has unit tests of its own in
+    Core.Tests: the aggregation that reads `blocking`, and the skip propagation
+    that reads `gating`. What neither can show is the two taking effect at once
+    in a real process, where the observable is an exit code and a line of
+    report.
 
     The lever is core.workspace.toolchain: the only root of the workspace stage,
     with core.workspace.dependencies depending on it. A version nothing

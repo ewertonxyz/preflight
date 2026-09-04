@@ -86,7 +86,9 @@ public sealed class BuildConfigurationRule : IValidationRule
                 Message = "The build configuration is not valid JSON.",
                 Location = new FindingLocation(relativePath, LineOf(exception)),
                 Actual = exception.Message,
-                Remediation = "Fix the syntax.",
+                Remediation =
+                    "Fix the syntax, or ask the pipeline's author to point 'path' " +
+                    "at the right file.",
             });
         }
 
@@ -118,12 +120,18 @@ public sealed class BuildConfigurationRule : IValidationRule
         .Replace("{configuration}", target.Configuration, StringComparison.Ordinal);
 
     /// <remarks>
-    /// The four strings below are pinned twice: by this project's tests, and
-    /// again by the console reporter's golden file, which renders exactly this
-    /// finding — a configuration missing <c>contentRoot</c> — as its worked
-    /// example of a report. Rewording one of them here without the golden
-    /// leaves that example describing a tool that no longer says it, so the two
-    /// are meant to fail together.
+    /// The four strings below are the ones the console, JSON and SARIF worked
+    /// examples put in front of a reader — a configuration missing
+    /// <c>contentRoot</c> is the finding all three render. Those goldens hold a
+    /// hand-written copy of it in the reporter fixture rather than calling this
+    /// rule, and nothing links the two: a fixture that built its example by
+    /// running a rule would decide what a reporter can be tested with, and the
+    /// reporters are meant to work for rules that do not exist yet.
+    ///
+    /// What does link them is this project's own test, which asserts all four
+    /// exactly and is therefore the one that fails when they change. Carry the
+    /// change into that copy when it does, or the worked example goes on
+    /// quoting a sentence the tool no longer produces.
     /// </remarks>
     private static void Complete(
         RuleContext context,
@@ -144,7 +152,9 @@ public sealed class BuildConfigurationRule : IValidationRule
                     Location = new FindingLocation(relativePath),
                     Expected = $"a \"{key}\" entry",
                     Actual = "key not present",
-                    Remediation = $"add \"{key}\" pointing to the packaged content folder",
+                    Remediation =
+                        $"Add \"{key}\" to the configuration, or ask the pipeline's author " +
+                        "to drop it from 'requiredKeys'.",
                 });
             }
         }

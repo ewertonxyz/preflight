@@ -1,9 +1,8 @@
 Feature: Exit codes
-    Each exit code has a distinct meaning, and the
-    distinction is the tool's contract with a pipeline: 2 calls the owner of the
-    tool, 1 calls the author of the commit. A defect that returns the wrong one
-    does not look like a defect — it routes an incident to the wrong person,
-    quietly, every time.
+    Each exit code has a distinct meaning, and the distinction is the tool's
+    contract with a pipeline: 2 calls the owner of the tool, 1 calls the author
+    of the commit. A defect that returns the wrong one does not look like a
+    defect — it routes an incident to the wrong person, quietly, every time.
 
     Every scenario here shapes the six real rules through policy rather than
     through fakes. A fake rule proves the tool, and the tool already has
@@ -32,8 +31,8 @@ Feature: Exit codes
         Then it exits with code 0
         And the report says "Passed with warnings"
 
-    # --fail-on-warning is applied after aggregation, as a last
-    # transformation. The same run, one flag apart, is what makes that visible.
+    # --fail-on-warning is applied after aggregation, as a last transformation.
+    # The same run, one flag apart, is what makes that visible.
     Scenario: The same warning under --fail-on-warning exits one
         Given a workspace
         And the workspace declares a dependency that was never restored
@@ -73,10 +72,10 @@ Feature: Exit codes
         When preflight is invoked with "run --stage workspace --format Json"
         Then it exits with code 2
 
-    # A rule that throws is Errored, which is a defect in the rule
-    # and not in the workspace. A settings value of the wrong type is the
-    # cheapest way to provoke one, because the schema leaves settings uninspected
-    # on purpose — the validator cannot catch it at load time.
+    # A rule that throws is Errored, which is a defect in the rule and not in
+    # the workspace. A settings value of the wrong type is the cheapest way to
+    # provoke one, because the schema leaves settings uninspected on purpose —
+    # the validator cannot catch it at load time.
     Scenario: A rule that errors exits three
         Given a workspace
         And the workspace needs git "2.0.0" or newer

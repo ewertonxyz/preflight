@@ -191,6 +191,14 @@ public sealed class ToolchainRuleTests
         outcome.Status.ShouldBe(accepted ? RuleStatus.Passed : RuleStatus.Failed);
     }
 
+    /// <remarks>
+    /// The remediation has to name the tool, and asserting that it is merely
+    /// non-empty would not have said so. A workspace declaring six tools with
+    /// three of them out of range produces three findings, each rendered with a
+    /// <c>fix</c> line of its own — and three lines reading "install a version
+    /// inside the accepted range" leave the reader matching them back to their
+    /// findings by position.
+    /// </remarks>
     [Fact]
     public async Task ExecuteAsync_WhenOutOfRange_ReportsBothTheRangeAndTheVersionFound()
     {
@@ -201,7 +209,7 @@ public sealed class ToolchainRuleTests
         finding.Expected.ShouldNotBeNull().ShouldContain("10.0.0");
         finding.Expected.ShouldNotBeNull().ShouldContain("11.0.0");
         finding.Actual.ShouldNotBeNull().ShouldContain("9.0.400");
-        finding.Remediation.ShouldNotBeNullOrWhiteSpace();
+        finding.Remediation.ShouldNotBeNull().ShouldContain(".NET SDK");
     }
 
     [Theory]

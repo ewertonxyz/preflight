@@ -23,6 +23,12 @@
     Written for Windows PowerShell 5.1, so it runs in the default shell without
     installing anything: no `&&`, no ternary, no null-coalescing.
 
+    Kept to ASCII for the same reason, and this is the part that surprises
+    people. The file carries no byte-order mark, and 5.1 reads a mark-less file
+    in the system code page rather than as UTF-8, so an em dash written here
+    reaches the reader as three wrong characters. The C# in this repository uses
+    em dashes freely and is right to; a script this shell parses cannot.
+
 .PARAMETER Configuration
     Build configuration. Defaults to Release.
 
@@ -84,18 +90,23 @@ foreach ($project in $testProjects) {
 
     Write-Host "cover $($project.Name)"
 
-    # --threshold is intentionally absent. At the time of writing the tool has
-    # no code, so any threshold would be either vacuous or a guaranteed failure.
-    # It is turned on once there is something to measure - see the note at the
-    # bottom of this file.
+    # --threshold is intentionally absent, and the reason has changed since it
+    # was first left out. The suite now reaches every line, every branch and
+    # every method, so a threshold below that measures nothing and one set at
+    # 100% only repeats what the report already prints. What it would add is a
+    # number to negotiate on the first afternoon it is inconvenient, and a
+    # threshold that has been lowered once is worse than no threshold at all,
+    # because after that nobody believes any of the numbers. The two guards
+    # further down are the ones that earn their place: every test project
+    # measured, and at least one assembly instrumented.
     #
     # samples/Sample.Production.Rules is excluded for a different reason from the
-    # three above it. It is not test code: it is the worked example of
-    # the worked example, and it is documentation that happens to compile. It
-    # has tests, in Preflight.Rules.Tests, and they are there because a reader
-    # will copy it. What it must not have is a shape decided by a coverage
-    # target - the moment a branch is added or removed to move this number, the
-    # example stops being the thing anyone should copy.
+    # three above it. It is not test code: it is the worked example of how a
+    # production writes rules of its own, and it is documentation that happens
+    # to compile. It has tests, in Preflight.Rules.Tests, and they are there
+    # because a reader will copy it. What it must not have is a shape decided by
+    # a coverage target: the moment a branch is added or removed to move this
+    # number, the example stops being the thing anyone should copy.
     dotnet coverlet $assembly `
         --target dotnet `
         --targetargs $assembly `
@@ -114,7 +125,7 @@ foreach ($project in $testProjects) {
     $collected++
 }
 
-# Zero was the wrong bar. The skip above is deliberately quiet — an assembly that
+# Zero was the wrong bar. The skip above is deliberately quiet: an assembly that
 # is not on disk prints one line and the loop moves on - so three test projects
 # out of four used to arrive here with $collected non-zero, publish a plausible
 # percentage, and hide the missing one in a log nobody reads. The count of test
@@ -166,11 +177,3 @@ if ($assemblies -eq 0) {
 }
 
 Write-Host "HTML report: $reportDir\index.html"
-
-# Turning on a threshold, later:
-#
-#   Add --threshold N --threshold-type line --threshold-stat total to the coverlet
-#   invocation above. Pick N from what the code actually reaches, not from a
-#   round number that feels respectable. A threshold set above what
-#   the suite honestly achieves gets lowered under deadline pressure, and after
-#   that nobody believes any of the numbers.

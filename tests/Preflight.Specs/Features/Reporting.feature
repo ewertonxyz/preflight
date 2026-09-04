@@ -1,9 +1,9 @@
 Feature: Reporting formats
-    run, graph and report each take a --format flag, and the same input produces
-    the same bytes in every one of them. The
-    scenarios here are the rules of the system that the unit tests state in the
-    language of a mapping: which format a caller gets, and what the tool says
-    about itself when one of its own rules is defective.
+    run, graph and report each take a --format flag, and the same input
+    produces the same bytes in every one of them. The unit tests state that as
+    a mapping from a flag to a reporter; the scenarios here state it as what a
+    caller actually gets — which format arrives, and what the tool says about
+    itself when one of its own rules is defective.
 
     Every scenario shapes the six real rules through policy rather than through
     fakes, for the reason the rest of this suite does: a fake rule proves the
@@ -23,17 +23,17 @@ Feature: Reporting formats
         Then it exits with code 3
         And the report says "toolExecutionNotifications"
 
-    # The 2-versus-1 distinction: a format the tool
-    # does not implement is a broken invocation, which calls the owner of the
-    # tool, and not a rejected commit, which calls its author.
+    # Exit 2 and not exit 1: a format the tool does not implement is a broken
+    # invocation, which calls the owner of the tool, and not a rejected commit,
+    # which calls its author.
     Scenario: An unknown report format is a configuration error, not a rejected commit
         Given a workspace
         And the workspace needs git "2.0.0" or newer
         When preflight is invoked with "run --stage workspace --format bogus"
         Then it exits with code 2
 
-    # Both arms of graph --format. text is the default and
-    # its output is what the command printed before the flag existed.
+    # Both arms of graph --format. text is the default, and its output is what
+    # the command printed before the flag existed.
     Scenario: The graph renders as text by default and as DOT on request
         Given a workspace
         When preflight is invoked with "graph"

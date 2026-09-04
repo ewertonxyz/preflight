@@ -7,7 +7,7 @@ policy  base → atlas                                  local overlay not applie
        at  config/build/win64.json
        expected  a "contentRoot" entry
        actual    key not present
-       fix       add "contentRoot" pointing to the packaged content folder
+       fix       Add "contentRoot" to the configuration, or ask the pipeline's author to drop it from 'requiredKeys'.
   ⊘  core.build.compile-probe                         skipped
      blocked by  core.build.configuration   (failed, gating)
 
