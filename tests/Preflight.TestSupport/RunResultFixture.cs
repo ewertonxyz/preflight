@@ -40,7 +40,7 @@ public static class RunResultFixture
     /// The canonical run: one pass, one failure with a full finding, and one
     /// skip attributed to the failure.
     /// </summary>
-    public static RunResult DocumentedExample() => new()
+    public static RunResult CanonicalExample() => new()
     {
         RunId = FixedRunId,
         StartedAt = FixedStart,
@@ -79,7 +79,7 @@ public static class RunResultFixture
     };
 
     public static RunResult With(params RuleExecution[] executions) =>
-        DocumentedExample() with { Executions = executions };
+        CanonicalExample() with { Executions = executions };
 
     public static RuleExecution Execution(string id, RuleStatus status, double seconds) => new()
     {

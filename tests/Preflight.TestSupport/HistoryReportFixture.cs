@@ -28,7 +28,7 @@ public static class HistoryReportFixture
     /// <summary>
     /// The canonical screen: 142 runs, a measured build, and a ceiling.
     /// </summary>
-    public static HistoryReport DocumentedExample() => new()
+    public static HistoryReport CanonicalExample() => new()
     {
         Window = TimeSpan.FromDays(30),
         RunCount = 142,

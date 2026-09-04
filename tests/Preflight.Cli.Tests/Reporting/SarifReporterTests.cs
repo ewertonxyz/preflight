@@ -25,7 +25,7 @@ public sealed class SarifReporterTests
     {
         var output = new StringWriter();
 
-        new SarifReporter(output).Report(result, descriptors ?? RuleDescriptorFixture.ForDocumentedExample());
+        new SarifReporter(output).Report(result, descriptors ?? RuleDescriptorFixture.ForCanonicalExample());
 
         return output.ToString();
     }
@@ -149,7 +149,7 @@ public sealed class SarifReporterTests
     [Fact]
     public void Report_WritesOneDriverRulePerExecutionInPresentationOrderAndAStableRuleIndex()
     {
-        var rendered = Render(RunResultFixture.DocumentedExample());
+        var rendered = Render(RunResultFixture.CanonicalExample());
 
         var rules = Run(rendered)
             .GetProperty("tool")
@@ -189,7 +189,7 @@ public sealed class SarifReporterTests
     [Fact]
     public void Report_ForAFullyPopulatedFinding_FoldsExpectedActualAndFixIntoTheMessageInThatOrder()
     {
-        var rendered = Render(RunResultFixture.DocumentedExample());
+        var rendered = Render(RunResultFixture.CanonicalExample());
         var text = ResultFor(rendered, "core.build.configuration")
             .GetProperty("message")
             .GetProperty("text")
@@ -355,7 +355,7 @@ public sealed class SarifReporterTests
     [Fact]
     public void Report_WritesTheRunIdAndTheTimestampsAndNothingElseThatVaries()
     {
-        var rendered = Render(RunResultFixture.DocumentedExample());
+        var rendered = Render(RunResultFixture.CanonicalExample());
 
         Run(rendered)
             .GetProperty("automationDetails")
@@ -384,7 +384,7 @@ public sealed class SarifReporterTests
     public void Report_WithNothingExecuted_WritesAnEmptyResultsArrayRatherThanOmittingIt()
     {
         var rendered = Render(
-            RunResultFixture.DocumentedExample() with
+            RunResultFixture.CanonicalExample() with
             {
                 Executions = [],
                 Verdict = RunVerdict.Passed,
@@ -403,7 +403,7 @@ public sealed class SarifReporterTests
     [Fact]
     public void Report_RepeatedOverTheSameResult_ProducesIdenticalBytes()
     {
-        var result = RunResultFixture.DocumentedExample();
+        var result = RunResultFixture.CanonicalExample();
         var first = Render(result);
 
         for (var attempt = 0; attempt < 20; attempt++)
@@ -421,7 +421,7 @@ public sealed class SarifReporterTests
     [Fact]
     public void Report_WritesASingleParseableDocument()
     {
-        var rendered = Render(RunResultFixture.DocumentedExample());
+        var rendered = Render(RunResultFixture.CanonicalExample());
 
         Should.NotThrow(() => JsonDocument.Parse(rendered));
 
@@ -432,8 +432,8 @@ public sealed class SarifReporterTests
     }
 
     [Fact]
-    public Task Report_ForTheDocumentedExample_MatchesTheGolden() =>
-        Verify(Render(RunResultFixture.DocumentedExample()));
+    public Task Report_ForTheCanonicalExample_MatchesTheGolden() =>
+        Verify(Render(RunResultFixture.CanonicalExample()));
 
     /// <summary>
     /// Every status in one document.

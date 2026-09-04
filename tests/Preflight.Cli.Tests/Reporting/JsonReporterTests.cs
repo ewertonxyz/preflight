@@ -45,8 +45,8 @@ public sealed class JsonReporterTests
             })));
 
     [Fact]
-    public Task Report_ForTheDocumentedExample_MatchesTheGolden() =>
-        Verify(Render(RunResultFixture.DocumentedExample()));
+    public Task Report_ForTheCanonicalExample_MatchesTheGolden() =>
+        Verify(Render(RunResultFixture.CanonicalExample()));
 
     /// <summary>
     /// Enums are names, never ordinals.
@@ -60,7 +60,7 @@ public sealed class JsonReporterTests
     [Fact]
     public void Report_WritesEnumsAsNames()
     {
-        var rendered = Render(RunResultFixture.DocumentedExample());
+        var rendered = Render(RunResultFixture.CanonicalExample());
 
         rendered.ShouldContain("\"verdict\": \"Blocked\"");
         rendered.ShouldContain("\"stage\": \"BuildReadiness\"");
@@ -77,7 +77,7 @@ public sealed class JsonReporterTests
     [Fact]
     public void Report_PreservesTheOrderOfExecutions()
     {
-        var rendered = Render(RunResultFixture.DocumentedExample());
+        var rendered = Render(RunResultFixture.CanonicalExample());
 
         var toolchain = rendered.IndexOf("core.workspace.toolchain", StringComparison.Ordinal);
         var configuration = rendered.IndexOf("core.build.configuration", StringComparison.Ordinal);
@@ -108,7 +108,7 @@ public sealed class JsonReporterTests
     [Fact]
     public void Report_WithNothingExecuted_SaysSoAsANumber()
     {
-        Render(RunResultFixture.DocumentedExample() with { Executions = [] })
+        Render(RunResultFixture.CanonicalExample() with { Executions = [] })
             .ShouldContain("\"executedCount\": 0");
     }
 
@@ -156,7 +156,7 @@ public sealed class JsonReporterTests
     [Fact]
     public void Report_RepeatedOverTheSameResult_ProducesIdenticalBytes()
     {
-        var result = RunResultFixture.DocumentedExample();
+        var result = RunResultFixture.CanonicalExample();
         var first = Render(result);
 
         for (var attempt = 0; attempt < 20; attempt++)
@@ -174,7 +174,7 @@ public sealed class JsonReporterTests
     [Fact]
     public void Report_WritesASingleParseableDocument()
     {
-        var rendered = Render(RunResultFixture.DocumentedExample());
+        var rendered = Render(RunResultFixture.CanonicalExample());
 
         Should.NotThrow(() => System.Text.Json.JsonDocument.Parse(rendered));
     }

@@ -31,7 +31,7 @@ public sealed class NdjsonHistoryWriterTests
         await Writer().WriteRunAsync(
             Workspace,
             new HistorySettings(".preflight/history", mode),
-            RunResultFixture.DocumentedExample(),
+            RunResultFixture.CanonicalExample(),
             TestContext.Current.CancellationToken);
 
         _store.Appended.ShouldHaveSingleItem().Path.ShouldBe(
@@ -50,7 +50,7 @@ public sealed class NdjsonHistoryWriterTests
         await Writer().WriteRunAsync(
             Workspace,
             new HistorySettings(share, HistoryMode.PerProcess),
-            RunResultFixture.DocumentedExample(),
+            RunResultFixture.CanonicalExample(),
             TestContext.Current.CancellationToken);
 
         _store.Appended.ShouldHaveSingleItem().Path.ShouldBe(
@@ -68,12 +68,12 @@ public sealed class NdjsonHistoryWriterTests
         var writer = Writer();
 
         await writer.WriteRunAsync(
-            Workspace, settings, RunResultFixture.DocumentedExample(), TestContext.Current.CancellationToken);
+            Workspace, settings, RunResultFixture.CanonicalExample(), TestContext.Current.CancellationToken);
 
         _clock.Advance(TimeSpan.FromDays(7));
 
         await writer.WriteRunAsync(
-            Workspace, settings, RunResultFixture.DocumentedExample(), TestContext.Current.CancellationToken);
+            Workspace, settings, RunResultFixture.CanonicalExample(), TestContext.Current.CancellationToken);
 
         _store.Appended.Select(entry => Path.GetFileName(entry.Path))
             .ShouldBe(["2026-08.WKS-1234.ndjson", "2026-09.WKS-1234.ndjson"]);
@@ -85,7 +85,7 @@ public sealed class NdjsonHistoryWriterTests
         await Writer().WriteRunAsync(
             Workspace,
             new HistorySettings(".preflight/history", HistoryMode.Shared),
-            RunResultFixture.DocumentedExample(),
+            RunResultFixture.CanonicalExample(),
             TestContext.Current.CancellationToken);
 
         var line = _store.Appended.ShouldHaveSingleItem().Line;
