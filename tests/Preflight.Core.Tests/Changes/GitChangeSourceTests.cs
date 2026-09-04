@@ -218,7 +218,7 @@ public sealed class GitChangeSourceTests
     }
 
     /// <remarks>
-    /// The CLI refuses this first, but the engine is hostable
+    /// The CLI refuses this first, but Preflight.Core is hostable
     /// without the CLI. Returning an empty list here would make every
     /// pre-submit rule report <c>NotApplicable</c> and the run go green having
     /// examined nothing.

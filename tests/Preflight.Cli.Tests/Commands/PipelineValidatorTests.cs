@@ -167,7 +167,7 @@ public sealed class PipelineValidatorTests : IDisposable
     /// <remarks>
     /// Not a compatibility failure but a spelling one, and the two produce
     /// different sentences. "Not a contract version" sends the author to the
-    /// manifest; "this build provides" sends them to the engine.
+    /// manifest; "this build provides" sends them to the tool.
     /// </remarks>
     [Fact]
     public async Task Validate_WithAContractVersionThatIsNotAVersion_SaysSoRatherThanComparingIt()

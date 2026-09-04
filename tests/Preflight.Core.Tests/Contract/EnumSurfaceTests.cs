@@ -8,7 +8,7 @@ using Preflight.Abstractions.Rules;
 /// </summary>
 /// <remarks>
 /// <c>ValidationStage</c> is closed to plugins: a plugin cannot add a stage,
-/// because the stage determines the shape of <c>RuleContext</c> and the engine
+/// because the stage determines the shape of <c>RuleContext</c> and the tool
 /// has no way to populate one it does not know about. Removing or renaming an
 /// enum member is a breaking change to the plugin contract, and pinning the
 /// current set here is what turns that change into a failing test instead of a

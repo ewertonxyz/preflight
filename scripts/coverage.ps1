@@ -84,7 +84,7 @@ foreach ($project in $testProjects) {
 
     Write-Host "cover $($project.Name)"
 
-    # --threshold is intentionally absent. At the time of writing the engine has
+    # --threshold is intentionally absent. At the time of writing the tool has
     # no code, so any threshold would be either vacuous or a guaranteed failure.
     # It is turned on once there is something to measure - see the note at the
     # bottom of this file.

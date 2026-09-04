@@ -58,7 +58,7 @@ public abstract record PluginLoadError
     }
 
     /// <summary>
-    /// A plugin built against a contract this engine does not provide.
+    /// A plugin built against a contract this tool does not provide.
     /// </summary>
     public sealed record IncompatibleAbstractions(string Path, Version Plugin, Version Host) : PluginLoadError
     {
@@ -68,7 +68,7 @@ public abstract record PluginLoadError
 
     /// <summary>
     /// A type that implements an <c>IValidationRule</c> from a different
-    /// <c>Preflight.Abstractions</c> than the engine's.
+    /// <c>Preflight.Abstractions</c> than the tool's.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -95,7 +95,7 @@ public abstract record PluginLoadError
         public override string Message =>
             $"Type '{TypeName}' in plugin assembly '{Path}' implements " +
             $"'{AbstractionsCompatibility.AssemblyName}.{nameof(IValidationRule)}' from '{PluginContract}', " +
-            $"but this engine's contract is '{HostContract}'. The two are different types to the runtime, so " +
+            $"but this tool's contract is '{HostContract}'. The two are different types to the runtime, so " +
             "the rule would be silently ignored. Reference " +
             $"{AbstractionsCompatibility.AssemblyName} with Private=false so the plugin does not ship its own copy.";
     }
@@ -105,7 +105,7 @@ public abstract record PluginLoadError
     /// </summary>
     /// <remarks>
     /// Carries the assembly as well as the reason. <see cref="RuleDiscovery"/>
-    /// names the type, which is enough when the types came from the engine's
+    /// names the type, which is enough when the types came from the tool's
     /// own assembly and is not enough when a directory held four plugins.
     /// </remarks>
     public sealed record RuleTypeRejected(string Path, string Reason) : PluginLoadError

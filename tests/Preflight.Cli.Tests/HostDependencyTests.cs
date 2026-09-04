@@ -3,7 +3,8 @@ namespace Preflight.Cli.Tests;
 using System.Reflection;
 
 /// <summary>
-/// Guards the direction of the dependency between the engine and its host.
+/// Guards the direction of the dependency between Preflight.Core and the
+/// command line that hosts it.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -39,7 +40,7 @@ public sealed class HostDependencyTests
             .ToArray();
 
         offenders.ShouldBeEmpty(
-            "The engine must stay hostable outside this executable.");
+            "The tool must stay hostable outside this executable.");
     }
 
     [Fact]

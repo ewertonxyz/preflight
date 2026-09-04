@@ -7,7 +7,7 @@ using Preflight.Core.Policy;
 
 /// <summary>
 /// Parses a <c>--set</c> argument into the already-typed
-/// <see cref="PolicySetOverride"/> the engine merges.
+/// <see cref="PolicySetOverride"/> the tool merges.
 /// </summary>
 /// <remarks>
 /// Two forms are accepted and one of them exists only as a convenience:

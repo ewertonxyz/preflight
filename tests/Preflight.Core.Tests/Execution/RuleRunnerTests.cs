@@ -203,7 +203,7 @@ public sealed class RuleRunnerTests
     }
 
     /// <remarks>
-    /// The outcome contract reserves <c>Skipped</c> and <c>Errored</c> for the engine, and
+    /// The outcome contract reserves <c>Skipped</c> and <c>Errored</c> for the tool, and
     /// offers a rule no factory for either — but <c>RuleOutcome.Status</c> is a
     /// public init property, so a rule can still claim one. Passing it through
     /// would put a <c>skipped</c> in the report with no cause attached, which is

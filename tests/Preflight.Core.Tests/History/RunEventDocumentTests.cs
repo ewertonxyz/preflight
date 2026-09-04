@@ -26,13 +26,13 @@ public sealed class RunEventDocumentTests
     [Fact]
     public void For_WithoutAPipelineVersion_OmitsTheMember() =>
         JsonSerializer.Serialize(
-            RunEventDocument.For(RunResultFixture.DocumentedExample()), RunEventDocument.SingleLine)
+            RunEventDocument.For(RunResultFixture.CanonicalExample()), RunEventDocument.SingleLine)
             .ShouldNotContain("pipelineVersion");
 
     [Fact]
     public void For_WithAPipelineVersion_WritesIt() =>
         JsonSerializer.Serialize(
-            RunEventDocument.For(RunResultFixture.DocumentedExample() with
+            RunEventDocument.For(RunResultFixture.CanonicalExample() with
             {
                 PipelineVersion = "1.4.0",
             }),
@@ -48,7 +48,7 @@ public sealed class RunEventDocumentTests
     public void Truncated_KeepsThePipelineAndItsVersion()
     {
         var json = JsonSerializer.Serialize(
-            RunEventDocument.Truncated(RunResultFixture.DocumentedExample() with
+            RunEventDocument.Truncated(RunResultFixture.CanonicalExample() with
             {
                 PipelineVersion = "1.4.0",
             }),
@@ -61,7 +61,7 @@ public sealed class RunEventDocumentTests
     [Fact]
     public void Indented_AndSingleLine_DifferOnlyInIndentation()
     {
-        var run = RunResultFixture.DocumentedExample();
+        var run = RunResultFixture.CanonicalExample();
 
         var single = JsonSerializer.Serialize(RunEventDocument.For(run), RunEventDocument.SingleLine);
         var indented = JsonSerializer.Serialize(RunEventDocument.For(run), RunEventDocument.Indented);
@@ -90,7 +90,7 @@ public sealed class RunEventDocumentTests
     public void For_WritesEnumsByName()
     {
         var json = JsonSerializer.Serialize(
-            RunEventDocument.For(RunResultFixture.DocumentedExample()),
+            RunEventDocument.For(RunResultFixture.CanonicalExample()),
             RunEventDocument.SingleLine);
 
         json.ShouldContain("\"verdict\":\"Blocked\"");

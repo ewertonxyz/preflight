@@ -27,7 +27,7 @@
 
     <!--
       For BuiltInRuleDescriptorsTests.Discovered(), which finds the six rules
-      the way the engine does. Duplicating that reflection here would give the
+      the way the tool does. Duplicating that reflection here would give the
       end-to-end tests their own idea of what "the built-in rules" are, and the
       two would drift the first time a rule was added.
     -->

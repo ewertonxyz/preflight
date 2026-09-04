@@ -5,7 +5,7 @@ namespace Preflight.Core.Execution;
 /// </summary>
 /// <remarks>
 /// Lives here rather than in <c>Preflight.Abstractions</c> because no rule ever
-/// produces one — only the engine does, and only the Abstractions surface is
+/// produces one — only the tool does, and only the Abstractions surface is
 /// versioned as a plugin contract.
 /// </remarks>
 public enum SkipReason

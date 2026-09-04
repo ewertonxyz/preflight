@@ -7,7 +7,7 @@ using Preflight.Core.Policy;
 /// <summary>
 /// Fixes the enumeration <c>preflight explain</c> is built on: every effective
 /// value for one rule, in a fixed order, including the <c>settings</c> keys
-/// whose names nothing in the engine knows in advance.
+/// whose names nothing in the tool knows in advance.
 /// </summary>
 /// <remarks>
 /// the explain command for the output this feeds, the policy schema for why

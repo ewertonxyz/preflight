@@ -11,7 +11,7 @@ using Preflight.TestSupport;
 /// <remarks>
 /// Here rather than in <c>Cli.Tests</c> because the document lives in
 /// <c>Preflight.Core</c>: it is data, not rendering, and the project layering keeps
-/// output formatting out of the engine. The renderer that writes it lives in the
+/// output formatting out of the tool. The renderer that writes it lives in the
 /// CLI, and the architecture guard depends on that separation holding.
 /// </remarks>
 public sealed class HistoryReportDocumentTests
@@ -33,7 +33,7 @@ public sealed class HistoryReportDocumentTests
     [Fact]
     public void For_SerialisedWithTheRunEventOptions_WritesCamelCaseAndEnumNames()
     {
-        var json = Serialise(HistoryReportFixture.DocumentedExample());
+        var json = Serialise(HistoryReportFixture.CanonicalExample());
 
         json.ShouldContain("\"runCount\"");
         json.ShouldContain("\"stage\": \"BuildReadiness\"");
@@ -58,7 +58,7 @@ public sealed class HistoryReportDocumentTests
     [Fact]
     public void For_WithAP95TheSampleCannotSupport_OmitsItRatherThanWritingZero()
     {
-        var json = Serialise(HistoryReportFixture.DocumentedExample());
+        var json = Serialise(HistoryReportFixture.CanonicalExample());
 
         var measured = JsonDocument.Parse(json).RootElement.GetProperty("measured")[0];
 
@@ -76,7 +76,7 @@ public sealed class HistoryReportDocumentTests
     [Fact]
     public void For_WritesEveryDurationAsMilliseconds()
     {
-        var json = Serialise(HistoryReportFixture.DocumentedExample());
+        var json = Serialise(HistoryReportFixture.CanonicalExample());
         var root = JsonDocument.Parse(json).RootElement;
 
         root.GetProperty("preflightDuration").GetProperty("p50Ms").GetInt64().ShouldBe(18400);
@@ -108,7 +108,7 @@ public sealed class HistoryReportDocumentTests
     [Fact]
     public void For_WritesErroredAsItsOwnCountSoTheBreakdownClosesWithTheTotal()
     {
-        var json = Serialise(HistoryReportFixture.DocumentedExample() with
+        var json = Serialise(HistoryReportFixture.CanonicalExample() with
         {
             ErroredCount = 3,
             RunCount = 145,
@@ -134,7 +134,7 @@ public sealed class HistoryReportDocumentTests
     [Fact]
     public void For_WritesTheUnreadableAndIgnoredLineCounts()
     {
-        var json = Serialise(HistoryReportFixture.DocumentedExample() with
+        var json = Serialise(HistoryReportFixture.CanonicalExample() with
         {
             UnreadableLineCount = 3,
             IgnoredLineCount = 1,
@@ -156,7 +156,7 @@ public sealed class HistoryReportDocumentTests
     [Fact]
     public void For_WritesThePartialRunCountAndTheContrastRunCount()
     {
-        var json = Serialise(HistoryReportFixture.DocumentedExample() with
+        var json = Serialise(HistoryReportFixture.CanonicalExample() with
         {
             PartialRunCount = 2,
             ContrastRunCount = 9,

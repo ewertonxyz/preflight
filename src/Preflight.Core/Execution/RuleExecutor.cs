@@ -14,7 +14,7 @@ using Preflight.Core.Policy;
 /// A level is exactly the set of rules whose dependencies are all already
 /// placed, so no rule in one can depend on another in the same one, and the
 /// parallelism needs no coordination beyond the level boundary. That holds
-/// provided the rules honour the concurrency contract, which the engine does
+/// provided the rules honour the concurrency contract, which the tool does
 /// not police beyond running each one inside its own try/catch. Serialising
 /// everything to defend against a badly written rule would throw away the only
 /// reason per-level parallelism exists.
@@ -199,7 +199,7 @@ public sealed class RuleExecutor
     /// <para>
     /// <c>cachePath</c> is read here rather than in the CLI for the same reason
     /// <c>maxDegreeOfParallelism</c> is: it is a resolved policy value, and the
-    /// engine is what holds the resolved policy. The CLI decides
+    /// tool is what holds the resolved policy. The CLI decides
     /// <em>whether</em> to cache; policy decides <em>where</em>.
     /// </para>
     /// <para>

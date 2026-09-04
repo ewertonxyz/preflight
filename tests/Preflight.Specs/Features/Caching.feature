@@ -11,7 +11,7 @@ Feature: Incremental cache
 
     The safe default gets a scenario of its own. A probe that has not declared
     its inputs is never cached, because there is no approximate
-    fingerprint and the engine cannot work out what a compiler reads.
+    fingerprint and the tool cannot work out what a compiler reads.
 
     Scenario: A second run over an unchanged workspace reuses the result
         Given a workspace

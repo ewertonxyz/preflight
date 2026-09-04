@@ -61,7 +61,7 @@ internal sealed class FakeRule : IValidationRule
     public static FakeRule WithFindings(string id, params Finding[] findings) =>
         Returning(id, RuleOutcome.Warned(findings), []);
 
-    /// <summary>A rule that declares a status only the engine may produce.</summary>
+    /// <summary>A rule that declares a status only the tool may produce.</summary>
     public static FakeRule SelfDeclaring(string id, RuleStatus status) =>
         Returning(id, new RuleOutcome { Status = status }, []);
 

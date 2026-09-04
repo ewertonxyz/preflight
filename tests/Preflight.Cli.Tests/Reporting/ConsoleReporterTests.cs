@@ -70,8 +70,8 @@ public sealed class ConsoleReporterTests
     }
 
     [Fact]
-    public Task Report_ForTheDocumentedExample_MatchesTheGolden() =>
-        Verify(Render(RunResultFixture.DocumentedExample()));
+    public Task Report_ForTheCanonicalExample_MatchesTheGolden() =>
+        Verify(Render(RunResultFixture.CanonicalExample()));
 
     /// <remarks>
     /// The regression that matters most in this phase. A run that never met a
@@ -82,24 +82,24 @@ public sealed class ConsoleReporterTests
     /// </remarks>
     [Fact]
     public void Report_WithoutAPackage_LeavesTheHeaderExactlyAsItWas() =>
-        Render(RunResultFixture.DocumentedExample())
+        Render(RunResultFixture.CanonicalExample())
             .ShouldContain(" atlas ");
 
     [Fact]
     public Task Report_WithAPackageFromTheCheckoutRange_SaysNameAtVersionAndWhy() =>
         Verify(Render(
-            RunResultFixture.DocumentedExample() with { PipelineVersion = "1.4.0" },
+            RunResultFixture.CanonicalExample() with { PipelineVersion = "1.4.0" },
             package: Resolved(PipelineVersionSource.Requirement)));
 
     [Fact]
     public Task Report_WithAPinnedPackage_SaysPinned() =>
         Verify(Render(
-            RunResultFixture.DocumentedExample() with { PipelineVersion = "1.4.0" },
+            RunResultFixture.CanonicalExample() with { PipelineVersion = "1.4.0" },
             package: Resolved(PipelineVersionSource.Pin)));
 
     [Fact]
     public Task Report_WithTheAsciiVariant_MatchesTheGolden() =>
-        Verify(Render(RunResultFixture.DocumentedExample(), GlyphSet.Ascii));
+        Verify(Render(RunResultFixture.CanonicalExample(), GlyphSet.Ascii));
 
     /// <summary>
     /// A result that did not come from this run says so.
@@ -142,7 +142,7 @@ public sealed class ConsoleReporterTests
     [Fact]
     public void Report_WithTheAsciiVariant_ContainsNothingOutsideAscii()
     {
-        var rendered = Render(RunResultFixture.DocumentedExample(), GlyphSet.Ascii);
+        var rendered = Render(RunResultFixture.CanonicalExample(), GlyphSet.Ascii);
 
         var offenders = rendered.Where(character => character > 127).Distinct().ToArray();
 
@@ -159,13 +159,13 @@ public sealed class ConsoleReporterTests
     [Fact]
     public Task Report_WithTheLocalOverlayApplied_SaysSoInTheHeader() =>
         Verify(Render(
-            RunResultFixture.DocumentedExample(),
+            RunResultFixture.CanonicalExample(),
             overlay: new LocalOverlayDecision(true, null, LocalOverlaySuppression.None)));
 
     [Fact]
     public Task Report_InsideCi_NamesTheDetectedVariable() =>
         Verify(Render(
-            RunResultFixture.DocumentedExample(),
+            RunResultFixture.CanonicalExample(),
             overlay: new LocalOverlayDecision(false, "TEAMCITY_VERSION", LocalOverlaySuppression.CiDetected)));
 
     /// <remarks>
@@ -256,7 +256,7 @@ public sealed class ConsoleReporterTests
     /// </summary>
     /// <remarks>
     /// <c>SkipReason</c> is nullable while <c>SkippedBecauseOf</c> is not, so
-    /// the shape is legal even though the engine never produces it. The failure
+    /// the shape is legal even though the tool never produces it. The failure
     /// this guards is cosmetic and permanent: a formatter that assumed a reason
     /// was always present would print <c>blocked by  x   ()</c> forever, and
     /// nobody would trace it back to a null on a record.
@@ -283,7 +283,7 @@ public sealed class ConsoleReporterTests
     [Fact]
     public Task Report_WithTheOverlayDisabledByFlag_SaysSoRatherThanJustNotApplied() =>
         Verify(Render(
-            RunResultFixture.DocumentedExample(),
+            RunResultFixture.CanonicalExample(),
             overlay: new LocalOverlayDecision(false, null, LocalOverlaySuppression.ExplicitlyDisabled)));
 
     /// <remarks>
@@ -315,7 +315,7 @@ public sealed class ConsoleReporterTests
     [InlineData(RunVerdict.Errored, "Errored")]
     public void Report_NamesTheVerdictInTheSummary(RunVerdict verdict, string expected)
     {
-        Render(RunResultFixture.DocumentedExample() with { Verdict = verdict })
+        Render(RunResultFixture.CanonicalExample() with { Verdict = verdict })
             .ShouldContain("  " + expected + " ");
     }
 
@@ -328,13 +328,13 @@ public sealed class ConsoleReporterTests
     public void Report_WithAVerdictOutsideTheEnum_Throws()
     {
         Should.Throw<ArgumentOutOfRangeException>(() =>
-            Render(RunResultFixture.DocumentedExample() with { Verdict = (RunVerdict)99 }));
+            Render(RunResultFixture.CanonicalExample() with { Verdict = (RunVerdict)99 }));
     }
 
     /// <remarks>The line has to be greppable.</remarks>
     [Fact]
     public Task Report_WithNothingExecuted_SaysSoRatherThanReadingAsAnOrdinarySuccess() =>
-        Verify(Render(RunResultFixture.DocumentedExample() with
+        Verify(Render(RunResultFixture.CanonicalExample() with
         {
             Executions = [],
             Verdict = RunVerdict.Passed,
@@ -346,15 +346,15 @@ public sealed class ConsoleReporterTests
     /// </remarks>
     [Fact]
     public Task Report_WithNoSkipInEffect_SaysSoInTheHeader() =>
-        Verify(Render(RunResultFixture.DocumentedExample() with { NoSkip = true }));
+        Verify(Render(RunResultFixture.CanonicalExample() with { NoSkip = true }));
 
     [Fact]
     public Task Report_WithFailOnWarningInEffect_SaysSoInTheHeader() =>
-        Verify(Render(RunResultFixture.DocumentedExample() with { FailOnWarning = true }));
+        Verify(Render(RunResultFixture.CanonicalExample() with { FailOnWarning = true }));
 
     [Fact]
     public Task Report_WithNoPipelineAndNoPolicyFiles_SaysDefaultsOnly() =>
-        Verify(Render(RunResultFixture.DocumentedExample() with
+        Verify(Render(RunResultFixture.CanonicalExample() with
         {
             Pipeline = null,
             PolicyChain = [],
@@ -374,7 +374,7 @@ public sealed class ConsoleReporterTests
     [Fact]
     public Task Report_WithAPipelineSelectedFromTheCheckout_SaysWhereItCameFrom() =>
         Verify(Render(
-            RunResultFixture.DocumentedExample(),
+            RunResultFixture.CanonicalExample(),
             selection: new PipelineSelection("atlas", PipelineSource.Checkout)));
 
     [Fact]
@@ -404,7 +404,7 @@ public sealed class ConsoleReporterTests
     [Fact]
     public void Report_WhenOutputIsRedirected_EmitsNoAnsiEscapes()
     {
-        Render(RunResultFixture.DocumentedExample(), isInteractive: false)
+        Render(RunResultFixture.CanonicalExample(), isInteractive: false)
             .ShouldNotContain("\u001b[");
     }
 
@@ -417,7 +417,7 @@ public sealed class ConsoleReporterTests
     [Fact]
     public void Report_WhenOutputIsInteractive_EmitsAnsiEscapes()
     {
-        Render(RunResultFixture.DocumentedExample(), isInteractive: true)
+        Render(RunResultFixture.CanonicalExample(), isInteractive: true)
             .ShouldContain("\u001b[");
     }
 
@@ -451,7 +451,7 @@ public sealed class ConsoleReporterTests
     [Fact]
     public void Report_FormatsDurationsWithADotDecimalSeparator()
     {
-        var rendered = Render(RunResultFixture.DocumentedExample());
+        var rendered = Render(RunResultFixture.CanonicalExample());
 
         rendered.ShouldContain("0.4s");
         rendered.ShouldNotContain("0,4s");
@@ -466,7 +466,7 @@ public sealed class ConsoleReporterTests
     [Fact]
     public void Report_RepeatedOverTheSameResult_ProducesIdenticalBytes()
     {
-        var result = RunResultFixture.DocumentedExample();
+        var result = RunResultFixture.CanonicalExample();
         var first = Render(result);
 
         for (var attempt = 0; attempt < 20; attempt++)

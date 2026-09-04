@@ -51,7 +51,7 @@ public static class RuleDescriptorFixture
 
     /// <summary>
     /// The three descriptors of the run
-    /// <see cref="RunResultFixture.DocumentedExample"/> renders, in the order
+    /// <see cref="RunResultFixture.CanonicalExample"/> renders, in the order
     /// that run executes them.
     /// </summary>
     /// <remarks>
@@ -61,7 +61,7 @@ public static class RuleDescriptorFixture
     /// dependency is the one the run's skip attribution already claims:
     /// <c>compile-probe</c> was skipped because <c>configuration</c> failed.
     /// </remarks>
-    public static RuleDescriptor[] ForDocumentedExample() =>
+    public static RuleDescriptor[] ForCanonicalExample() =>
     [
         Documented("core.workspace.toolchain", "https://wiki/preflight/rules/toolchain"),
         Rule("core.build.configuration"),

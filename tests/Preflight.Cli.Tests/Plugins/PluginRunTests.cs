@@ -91,7 +91,7 @@ public sealed class PluginRunTests : IDisposable
     /// <remarks>
     /// The worked example's closing claim, end to end: another production sets a
     /// different limit in its own policy and uses the same DLL. Nothing in the
-    /// rule knows which production it is running for, and nothing in the engine
+    /// rule knows which production it is running for, and nothing in the tool
     /// treats a plugin's settings differently from a built-in's.
     /// </remarks>
     [Fact]

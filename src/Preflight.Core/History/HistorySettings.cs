@@ -8,7 +8,7 @@ using Preflight.Core.Policy;
 /// </summary>
 /// <remarks>
 /// Both keys already exist in <see cref="PolicyKeySchema"/> and already have
-/// engine defaults, because the schema declared them before the history
+/// tool defaults, because the schema declared them before the history
 /// existed. This type is the one place that reads them, so a command never
 /// spells the key name itself.
 /// </remarks>

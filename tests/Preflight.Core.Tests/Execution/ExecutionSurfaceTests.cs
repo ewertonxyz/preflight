@@ -9,7 +9,7 @@ using Preflight.Core.Execution;
 /// <remarks>
 /// <see cref="RunVerdict"/> and <see cref="SkipReason"/> live in
 /// <c>Preflight.Core</c> rather than in <c>Preflight.Abstractions</c>: no rule
-/// ever produces either, only the engine's own records use them, and the plugin
+/// ever produces either, only the tool's own records use them, and the plugin
 /// version contract versions only the Abstractions surface.
 /// <c>EnumSurfaceTests</c> pins the Abstractions enums as an exact set, so
 /// putting them there would have broken that test — which was the signal that

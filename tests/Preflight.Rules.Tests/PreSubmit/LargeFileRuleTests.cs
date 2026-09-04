@@ -207,8 +207,8 @@ public sealed class LargeFileRuleTests
 
     /// <remarks>
     /// Checking the token inside the loop is what a rule author owes the
-    /// engine. A pre-submit rule can receive tens of thousands of entries, and
-    /// one that never checks cannot be stopped: the timeout fires, the engine
+    /// tool. A pre-submit rule can receive tens of thousands of entries, and
+    /// one that never checks cannot be stopped: the timeout fires, the tool
     /// records the run as over, and the thread keeps measuring files nobody is
     /// waiting for.
     /// </remarks>

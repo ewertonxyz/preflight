@@ -12,14 +12,14 @@ using Preflight.Core.Graph;
 /// <remarks>
 /// <para>
 /// the rule interface: a rule needs a public parameterless constructor,
-/// and the engine instantiates it with <c>Activator.CreateInstance</c> — no
+/// and the tool instantiates it with <c>Activator.CreateInstance</c> — no
 /// container involved.
 /// </para>
 /// <para>
 /// Discovery takes the types or assemblies to scan rather than resolving them
 /// itself. It has to: <c>Preflight.Core</c> must never reference
 /// <c>Preflight.Rules</c>, so "the internal assembly" cannot be named from
-/// inside the engine. The side effect is what makes these tests possible at
+/// inside the tool. The side effect is what makes these tests possible at
 /// all — deliberately broken types can live in the test assembly.
 /// </para>
 /// </remarks>
@@ -35,7 +35,7 @@ public sealed class RuleDiscoveryTests
     }
 
     /// <remarks>
-    /// None of these declared an intent to be a rule that the engine could
+    /// None of these declared an intent to be a rule that the tool could
     /// honour: an abstract class and an interface cannot be instantiated by
     /// anyone, an open generic has no closed form to construct, a non-public
     /// type was not offered, and the last one simply is not a rule.
@@ -152,7 +152,7 @@ public sealed class RuleDiscoveryTests
     /// </para>
     /// <para>
     /// The type name rather than the rule id, in every one of those cases: the
-    /// engine cannot read a descriptor off a rule it could not build, so the
+    /// tool cannot read a descriptor off a rule it could not build, so the
     /// type is all it knows to name — and it is what the person fixing it needs
     /// anyway.
     /// </para>

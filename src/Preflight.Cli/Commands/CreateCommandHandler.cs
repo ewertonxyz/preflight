@@ -34,7 +34,7 @@ public static class CreateCommandHandler
     /// wrong by doing nothing — the default copies
     /// <c>Preflight.Abstractions.dll</c> beside the plugin, the load context
     /// finds that copy, and the interface the rule implements stops being the
-    /// interface the engine knows. Every plugin written from a wrong scaffold
+    /// interface the tool knows. Every plugin written from a wrong scaffold
     /// inherits that bug, which is why the same assertion guards this and the
     /// worked sample.
     /// </para>
@@ -204,7 +204,7 @@ public static class CreateCommandHandler
     /// The comment inside it is longer than the markup, and stays. That single
     /// attribute is the one a plugin author is most likely to delete while
     /// tidying, and the failure it causes — an <c>IValidationRule</c> that is
-    /// not the engine's <c>IValidationRule</c> — reads like nothing at all.
+    /// not the tool's <c>IValidationRule</c> — reads like nothing at all.
     /// </remarks>
     public static string RuleProject { get; } =
         """
@@ -219,14 +219,14 @@ public static class CreateCommandHandler
             <!--
               Private="false" is the line this whole file exists for. The default
               copies Preflight.Abstractions.dll into the output; the plugin then
-              ships its own copy of the contract, the engine's load context finds
+              ships its own copy of the contract, the tool's load context finds
               that copy sitting beside the plugin, and the IValidationRule this
-              rule implements is a different type from the one the engine knows.
+              rule implements is a different type from the one the tool knows.
               The rule is then silently not a rule.
 
               Point Include at wherever Preflight.Abstractions lives for you: a
               checkout, or the published contract. Nothing else belongs in this
-              project — a rule sees the contracts and the BCL, and the engine has
+              project — a rule sees the contracts and the BCL, and the tool has
               a test that says so.
             -->
             <ProjectReference Include="..\Preflight.Abstractions\Preflight.Abstractions.csproj"
@@ -299,7 +299,7 @@ public static class CreateCommandHandler
 
           // The '{{name}}' pipeline's policy. Everything here overrides a rule
           // descriptor's own default and nothing else: a key absent from this
-          // file is the engine's default, not a zero.
+          // file is the tool's default, not a zero.
 
           // Comments and trailing commas are legal. Say why a limit is what it
           // is, beside the limit — the next person to raise it is the one who

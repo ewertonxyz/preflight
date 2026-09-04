@@ -10,7 +10,7 @@ using Preflight.Abstractions.Services;
 /// <para>
 /// The part of a production rule that is about the production's own file
 /// formats rather than about Preflight. It is separate from the rule for the
-/// reason every rule in this repository is separate from the engine: the rule
+/// reason every rule in this repository is separate from the tool: the rule
 /// then has one thing to test — the policy limit and the verdict — and this has
 /// one thing to test, which is bytes.
 /// </para>

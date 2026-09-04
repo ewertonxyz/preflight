@@ -176,7 +176,7 @@ public sealed class PipelineInstallerRefusalTests : IDisposable
     /// <remarks>
     /// Not an incompatible contract version but an unparseable one, and the two
     /// deserve different sentences: "is not a contract version" sends the author
-    /// to their manifest, "this build provides" sends them to the engine.
+    /// to their manifest, "this build provides" sends them to the tool.
     /// </remarks>
     [Fact]
     public async Task Install_WithAContractVersionThatIsNotAVersion_RefusesBeforeComparingIt()

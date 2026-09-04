@@ -55,7 +55,7 @@ public static class CommandEnvironments
         new(() => Directory.CreateTempSubdirectory("preflight-install-root-"));
 
     /// <summary>The machine the history file names are asserted against.</summary>
-    public static EngineEnvironment Machine { get; } = new()
+    public static MachineEnvironment Machine { get; } = new()
     {
         ProcessorCount = 8,
         MachineName = "WKS-1234",

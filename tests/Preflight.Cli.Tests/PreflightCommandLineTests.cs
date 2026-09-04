@@ -267,7 +267,7 @@ public sealed class PreflightCommandLineTests
     /// Exit 2 here would mean the parser rejected it; anything else means it was
     /// understood. The run itself is a workspace with nothing in it, so the
     /// interesting part is the parse rather than the verdict — what the flag
-    /// then does to the engine is asserted where the engine is, in
+    /// then does to the tool is asserted where the tool is, in
     /// <c>RunCacheTests</c>.
     /// </remarks>
     [Fact]

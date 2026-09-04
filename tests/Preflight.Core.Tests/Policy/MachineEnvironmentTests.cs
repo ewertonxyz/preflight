@@ -5,19 +5,19 @@ using Preflight.Abstractions.Rules;
 using Preflight.Core.Policy;
 
 /// <summary>
-/// Fixes the one engine default that is derived from the machine rather than
+/// Fixes the one tool default that is derived from the machine rather than
 /// written down.
 /// </summary>
 /// <remarks>
 /// policy precedence lists <c>maxDegreeOfParallelism</c> as a root key
-/// whose engine default is the processor count, and the explain command prints
+/// whose tool default is the processor count, and the explain command prints
 /// effective values with their origin. With no way to inject the machine facts,
 /// any golden file covering that output asserts the core count of whoever
 /// recorded it.
 /// </remarks>
-public sealed class EngineEnvironmentTests
+public sealed class MachineEnvironmentTests
 {
-    private static readonly EngineEnvironment SevenCores = new()
+    private static readonly MachineEnvironment SevenCores = new()
     {
         ProcessorCount = 7,
         MachineName = "WKS-1234",
@@ -94,8 +94,8 @@ public sealed class EngineEnvironmentTests
     [Fact]
     public void Current_ReportsTheRealMachine()
     {
-        EngineEnvironment.Current.ProcessorCount.ShouldBe(Environment.ProcessorCount);
-        EngineEnvironment.Current.MachineName.ShouldBe(Environment.MachineName);
-        EngineEnvironment.Current.ProcessId.ShouldBe(Environment.ProcessId);
+        MachineEnvironment.Current.ProcessorCount.ShouldBe(Environment.ProcessorCount);
+        MachineEnvironment.Current.MachineName.ShouldBe(Environment.MachineName);
+        MachineEnvironment.Current.ProcessId.ShouldBe(Environment.ProcessId);
     }
 }

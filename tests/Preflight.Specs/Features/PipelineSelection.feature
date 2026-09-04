@@ -1,5 +1,5 @@
 Feature: Choosing the pipeline without typing the flag
-    In a studio running three games on one engine, nobody types `--pipeline`
+    In a studio running three games on one tool, nobody types `--pipeline`
     correctly every day. The checkout declares which pipeline it is, and the
     flag still wins when somebody needs to validate against another one.
 

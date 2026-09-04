@@ -14,7 +14,7 @@ using Preflight.Core.Policy;
 /// This does not re-test the merge itself (see
 /// <c>EffectivePolicyPrecedenceTests</c>) — only that the reader obtained from
 /// <c>EffectivePolicy.ReaderFor</c> actually enforces the scoping, including
-/// against a rule trying to read its own engine fields or another rule's data.
+/// against a rule trying to read its own tool fields or another rule's data.
 /// </remarks>
 public sealed class ScopedPolicyReaderTests
 {

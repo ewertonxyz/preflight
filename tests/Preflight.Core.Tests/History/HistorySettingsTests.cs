@@ -8,7 +8,7 @@ using Preflight.Core.Policy;
 /// </summary>
 public sealed class HistorySettingsTests
 {
-    private static readonly EngineEnvironment Machine = new()
+    private static readonly MachineEnvironment Machine = new()
     {
         ProcessorCount = 8,
         MachineName = "WKS-1234",

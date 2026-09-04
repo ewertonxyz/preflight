@@ -6,7 +6,7 @@ Feature: Exit codes
     quietly, every time.
 
     Every scenario here shapes the six real rules through policy rather than
-    through fakes. A fake rule proves the engine, and the engine already has
+    through fakes. A fake rule proves the tool, and the tool already has
     unit tests; what has no other test is whether the shipped rules, the policy
     chain and the exit codes agree with each other when a real process runs
     them.

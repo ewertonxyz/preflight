@@ -9,7 +9,7 @@
     Preflight.Abstractions.dll into the output; the plugin then ships its own
     copy of the contract, the load context finds it sitting beside the plugin,
     and the IValidationRule the rule implements is a different type from the one
-    the engine knows. That is one of the most irritating bugs in
+    the tool knows. That is one of the most irritating bugs in
     .NET plugin systems. PluginSampleIntegrationTests asserts the DLL is absent
     from this project's output, so the attribute cannot be lost silently.
 

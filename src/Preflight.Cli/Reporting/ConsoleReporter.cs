@@ -321,7 +321,7 @@ public sealed class ConsoleReporter
     };
 
     /// <remarks>
-    /// Every cause is printed, in the order the engine gave them — by
+    /// Every cause is printed, in the order the tool gave them — by
     /// topological level, so the most likely root comes first; printing only
     /// the first element would throw the ordering away, and re-sorting it
     /// alphabetically to look tidy would undo the whole point of attributing a

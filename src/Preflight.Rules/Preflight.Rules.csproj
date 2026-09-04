@@ -5,7 +5,7 @@
 
     This project references Abstractions and NOTHING ELSE. In particular it must
     never reference Preflight.Core. If the internal rules had
-    privileged access to the engine, every gap in the Abstractions surface would
+    privileged access to the tool, every gap in the Abstractions surface would
     be silently worked around here and would only be discovered by the first
     external plugin author, who has no such escape hatch.
   -->

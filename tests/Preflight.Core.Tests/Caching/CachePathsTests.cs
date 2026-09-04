@@ -29,7 +29,7 @@ public sealed class CachePathsTests
 
     private static readonly Guid AnotherRuleAssembly = new("22222222-2222-2222-2222-222222222222");
 
-    private static readonly EngineEnvironment Machine = new()
+    private static readonly MachineEnvironment Machine = new()
     {
         ProcessorCount = 8,
         MachineName = "WKS-1234",
@@ -65,7 +65,7 @@ public sealed class CachePathsTests
     /// same sources at <c>--platform ps5</c> can legitimately produce a different
     /// answer from the same sources at <c>win64</c>. Leaving them out makes that
     /// a wrong result rather than a lost hit, and it leans on every rule author
-    /// remembering to fold them into a fingerprint the engine could fold in for
+    /// remembering to fold them into a fingerprint the tool could fold in for
     /// certain.
     /// </remarks>
     [Fact]

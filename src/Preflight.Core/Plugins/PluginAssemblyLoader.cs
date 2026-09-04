@@ -17,7 +17,7 @@ using System.Runtime.Loader;
 /// <para>
 /// The delegation is the whole point and the reason this class exists at all.
 /// Without it, the <c>IValidationRule</c> a plugin implements is a different
-/// type from the one the engine knows, <c>IsAssignableFrom</c> is false, and
+/// type from the one the tool knows, <c>IsAssignableFrom</c> is false, and
 /// the rule is discarded in silence. It is one of the most irritating bugs in
 /// .NET plugin systems, and the reason it is irritating is that everything
 /// looks fine.

@@ -122,7 +122,7 @@ public sealed record CommandEnvironment
     public required IRuleCacheStore Cache { get; init; }
 
     /// <summary>The machine facts that name a history file.</summary>
-    public required EngineEnvironment Machine { get; init; }
+    public required MachineEnvironment Machine { get; init; }
 
     /// <summary>
     /// The only thing here that writes inside the workspace.

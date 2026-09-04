@@ -4,11 +4,11 @@ using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Services;
 
 /// <summary>
-/// Everything a rule receives from the engine to do its work.
+/// Everything a rule receives from the tool to do its work.
 /// </summary>
 /// <remarks>
 /// Exactly four services, and deliberately no <see cref="IChangeSource"/> among
-/// them: it populates <see cref="ChangedFiles"/> for the engine, it is never
+/// them: it populates <see cref="ChangedFiles"/> for the tool, it is never
 /// delivered to the rule itself.
 /// </remarks>
 public sealed class RuleContext

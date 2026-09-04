@@ -32,7 +32,7 @@ public sealed class RuleRunner
     /// Null rather than a no-op instance, and defaulted so that the majority of
     /// this class's tests — which are about isolation and have nothing to say
     /// about caching — read the same as they did before the cache existed. The
-    /// engine never decides whether to cache; it is handed a cache or it is
+    /// tool never decides whether to cache; it is handed a cache or it is
     /// not, and <c>--no-cache</c> is the CLI declining to hand one over.
     /// </remarks>
     public RuleRunner(TimeProvider timeProvider, RuleCache? cache = null)
@@ -186,7 +186,7 @@ public sealed class RuleRunner
 
     /// <remarks>
     /// The contract reserves <see cref="RuleStatus.Skipped"/> and
-    /// <see cref="RuleStatus.Errored"/> for the engine and gives a rule no
+    /// <see cref="RuleStatus.Errored"/> for the tool and gives a rule no
     /// factory for either — but <c>RuleOutcome.Status</c> is a public init
     /// property, so a rule can still claim one. Passing that through would put
     /// a skip in the report with no cause attached — and a skip whose cause
@@ -205,8 +205,8 @@ public sealed class RuleRunner
             return Errored(
                 policy,
                 duration,
-                $"The rule declared status '{outcome.Status}', which only the engine may produce. " +
-                "Skipped and Errored are produced by the engine, never by a rule.");
+                $"The rule declared status '{outcome.Status}', which only the tool may produce. " +
+                "Skipped and Errored are produced by the tool, never by a rule.");
         }
 
         return Base(policy, duration) with

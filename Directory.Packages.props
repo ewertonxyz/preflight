@@ -102,7 +102,7 @@
       Reqnroll, the open-source successor to SpecFlow after Tricentis
       discontinued it.
 
-      Scoped deliberately: it covers engine behaviour that a production owner
+      Scoped deliberately: it covers tool behaviour that a production owner
       would recognise as a rule of the system — verdict aggregation, the
       blocking-by-gating matrix, skip attribution to the root
       cause. Those read well as scenarios because they are policy, not code.
