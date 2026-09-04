@@ -3,6 +3,9 @@ namespace Preflight.Cli.Commands;
 using System.Globalization;
 using System.Text;
 using Preflight.Abstractions.Rules;
+using Preflight.Cli.Model;
+using Preflight.Cli.Parsing;
+using Preflight.Cli.Policy;
 using Preflight.Cli.Reporting;
 using Preflight.Core;
 using Preflight.Core.Policy;
@@ -205,6 +208,7 @@ public static class InspectionCommandHandlers
             environment.Environment,
             descriptors,
             options,
+            environment.Selection,
             cancellationToken,
             environment.ResolvedPackage);
 
@@ -294,9 +298,10 @@ public static class InspectionCommandHandlers
     /// <remarks>
     /// Public because <c>InspectionCommandHandlersTests</c> enumerates
     /// <see cref="PolicyOrigin"/> by reflection and asserts that every variant
-    /// renders distinctly — see the note on the discard below. ADR-017 already
-    /// settled that the CLI's surface is public rather than reached through
-    /// <c>InternalsVisibleTo</c>.
+    /// renders distinctly — see the note on the discard below. What a test
+    /// exercises is public in this project; there is no
+    /// <c>InternalsVisibleTo</c> anywhere in it, because a contract reached
+    /// through one is a contract that reads as private and behaves as public.
     /// </remarks>
     public static string DescribeOrigin(PolicyOrigin origin) => origin switch
     {
@@ -310,7 +315,7 @@ public static class InspectionCommandHandlers
         // it wraps does not exist in the checkout: a reader who sees
         // "acme.json:8" goes looking in the workspace and finds nothing. The
         // package and version go in front, where the reader meets them before
-        // the file name. See ADR-034.
+        // the file name.
         PolicyOrigin.FromPackage package =>
             $"{package.Pipeline}@{package.Version}/{DescribeOrigin(package.Source)}",
         PolicyOrigin.DescriptorDefault => "RuleDescriptor default",
@@ -325,7 +330,7 @@ public static class InspectionCommandHandlers
         // default, silently and with no test failing — so the guard lives in
         // InspectionCommandHandlersTests, which walks the hierarchy by
         // reflection. The switch stays honest about coverage; the test stays
-        // honest about the hierarchy. See ADR-030.
+        // honest about the hierarchy.
         _ => "engine default",
     };
 }

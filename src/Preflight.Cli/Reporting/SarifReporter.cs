@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
+using Preflight.Cli.Model;
 using Preflight.Core;
 using Preflight.Core.History;
 

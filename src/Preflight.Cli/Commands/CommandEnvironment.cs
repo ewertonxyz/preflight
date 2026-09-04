@@ -3,6 +3,10 @@ namespace Preflight.Cli.Commands;
 using Preflight.Abstractions.Rules;
 using Preflight.Abstractions.Services;
 using Preflight.Cli.Interactive;
+using Preflight.Cli.Pipelines;
+using Preflight.Cli.Reporting;
+using Preflight.Cli.Services;
+using Preflight.Cli.Storage;
 using Preflight.Core.Caching;
 using Preflight.Core.History;
 using Preflight.Core.Plugins;
@@ -14,8 +18,8 @@ using Preflight.Core.Policy;
 /// <remarks>
 /// <para>
 /// One record rather than a dozen parameters, because every command needs most
-/// of it and a test needs to replace any of it. Constructed once in
-/// <c>Program</c> from the real machine.
+/// of it and a test needs to replace any of it. Constructed once by
+/// <see cref="PreflightCommandLine.RealEnvironment"/> from the real machine.
 /// </para>
 /// <para>
 /// Properties rather than a positional record, and the change was made when four
@@ -40,9 +44,11 @@ public sealed record CommandEnvironment
     /// How <c>measure</c> starts a child process and gets out of its way.
     /// </summary>
     /// <remarks>
-    /// A separate seam from <see cref="Processes"/>: one buffers and returns,
-    /// the other streams and propagates, and they are not the same contract
-    /// wearing two names.
+    /// Injected separately from <see cref="Processes"/>, which buffers both
+    /// streams into strings and hands them back when the child exits. That is
+    /// right for a rule reading a compiler's error list and wrong for a
+    /// wrapper: a build that takes half an hour would print nothing until it
+    /// finished, and a string is not a byte.
     /// </remarks>
     public required IChildProcessLauncher Children { get; init; }
 
@@ -60,7 +66,7 @@ public sealed record CommandEnvironment
     /// </summary>
     /// <remarks>
     /// Only <c>measure</c> uses it, and only because it propagates the child's
-    /// output is propagated. A <see cref="TextWriter"/> cannot express that: it
+    /// output unchanged. A <see cref="TextWriter"/> cannot express that: it
     /// decodes and re-encodes, which changes the bytes of the command being
     /// measured.
     /// </remarks>
@@ -119,18 +125,28 @@ public sealed record CommandEnvironment
     public required EngineEnvironment Machine { get; init; }
 
     /// <summary>
-    /// The one seam that writes inside the workspace.
+    /// The only thing here that writes inside the workspace.
     /// </summary>
     /// <remarks>
-    /// Separate from <see cref="FileSystem"/>, which is read-only by
-    /// construction and is handed to every rule. See ADR-028.
+    /// A type of its own rather than a method on <see cref="FileSystem"/>,
+    /// which declares reads and no writes and is handed to every rule that
+    /// runs. Adding a write to it so that one command could scaffold a file
+    /// would hand that capability to every rule at the same time, and a
+    /// validation run that can edit the workspace it is judging is no longer
+    /// judging it.
     /// </remarks>
     public required IWorkspaceFileWriter WorkspaceWriter { get; init; }
 
     /// <summary>Where installed pipeline packages live on this machine.</summary>
     /// <remarks>
-    /// A machine fact, resolved once in <c>Program</c> from the environment, and
-    /// never from the workspace. See ADR-032.
+    /// A machine fact, resolved once by
+    /// <see cref="PreflightCommandLine.RealEnvironment"/> from the environment
+    /// and never from the workspace: <c>PREFLIGHT_HOME</c> if it is set to
+    /// something, otherwise the local application data directory. Neither
+    /// available is a refusal naming both, never a path assembled around a
+    /// null, and a root that contains or equals the workspace is exit 2 —
+    /// packages installed inside the tree under validation would be scanned by
+    /// the rules validating it.
     /// </remarks>
     public required PipelineInstallRoot InstallRoot { get; init; }
 
@@ -169,11 +185,39 @@ public sealed record CommandEnvironment
     /// Writes inside the install root.
     /// </summary>
     /// <remarks>
-    /// The third write seam, and deliberately not the workspace one: that
-    /// refuses to replace a file, and this replaces a whole version directory.
-    /// See ADR-033.
+    /// The third writer, and deliberately not the workspace one. Three coexist
+    /// and none of them may be merged into another: the workspace writer
+    /// refuses to replace a file, the machine state store always replaces, and
+    /// this one swaps a whole version directory. Each has a test pinning the
+    /// outcome the other two would produce, so a later harmonisation fails
+    /// loudly instead of quietly adopting one rule for all three.
     /// </remarks>
     public required IInstallRootWriter InstallWriter { get; init; }
+
+    /// <summary>
+    /// Which pipeline this invocation uses, and what decided it.
+    /// </summary>
+    /// <remarks>
+    /// Resolved once at the dispatch point and carried, because two consumers
+    /// need the same answer: package resolution, which turns the name into an
+    /// installed version, and policy resolution, which turns it into a file to
+    /// read. Selecting twice means reading <c>preflight.base.json</c> twice and
+    /// enumerating the workspace root twice, and the two reads can disagree if
+    /// anything edits the file in between — the same argument the install root
+    /// is resolved once for.
+    /// </remarks>
+    public PipelineSelection Selection { get; init; } = PipelineSelection.None;
+
+    /// <summary>
+    /// The checkout's base document, parsed once.
+    /// </summary>
+    /// <remarks>
+    /// Carried beside <see cref="Selection"/> because it is what the selection
+    /// was derived from, and because package resolution needs a second answer
+    /// out of the same file — the version range the checkout accepts. Opening
+    /// it twice is two answers to one question.
+    /// </remarks>
+    public CheckoutDocument Checkout { get; init; } = CheckoutDocument.Absent;
 
     /// <summary>
     /// The package this invocation resolved to, or <see langword="null"/> when

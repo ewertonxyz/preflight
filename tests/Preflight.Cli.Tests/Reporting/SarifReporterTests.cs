@@ -347,9 +347,9 @@ public sealed class SarifReporterTests
     /// run id and the durations. This reporter does not emit a duration at all,
     /// so its variation is narrower than the other two reporters': the run id
     /// and the two invocation timestamps. <c>partialFingerprints</c> stays out
-    /// for the reason <c>Finding.Rank</c> was refused — a concept with no
-    /// consumer is dead weight — and waits in <c>IDEAS.md</c> for the CI
-    /// pipeline that would read it.
+    /// for the same reason <c>Finding.Rank</c> was refused: a field no consumer
+    /// reads is a field that can be wrong for years without anyone noticing. It
+    /// is worth adding on the day something reads it, and not before.
     /// </remarks>
     [Fact]
     public void Report_WritesTheRunIdAndTheTimestampsAndNothingElseThatVaries()

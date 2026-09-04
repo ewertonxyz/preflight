@@ -3,6 +3,7 @@ namespace Preflight.Cli.Tests.Interactive;
 using NSubstitute;
 using Preflight.Cli.Commands;
 using Preflight.Cli.Interactive;
+using Preflight.Cli.Services;
 using Preflight.Cli.Tests.Commands;
 
 /// <summary>
@@ -10,9 +11,11 @@ using Preflight.Cli.Tests.Commands;
 /// </summary>
 /// <remarks>
 /// The refusals are the point. A prompt that falls back to a default is a
-/// selection nobody made deciding what gets validated, which is what ADR-029
-/// spent a whole decision refusing one floor up; ADR-035 refuses it again here.
-/// Every row below is a state in which there is nobody to answer.
+/// selection nobody made deciding what gets validated — the same thing the
+/// pipeline selection refuses one floor up when it declines to adopt a single
+/// candidate, and it is refused again here. Every row below is a state in which
+/// there is nobody to answer, and the answer in all of them is exit 2 naming the
+/// non-interactive alternative, never a prompt resolving to a default.
 /// </remarks>
 public sealed class PipelinePickerTests : IDisposable
 {

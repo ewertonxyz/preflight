@@ -2,6 +2,7 @@ namespace Preflight.Cli.Reporting;
 
 using System.Globalization;
 using System.Text;
+using Preflight.Cli.Parsing;
 using Preflight.Core.History;
 
 /// <summary>

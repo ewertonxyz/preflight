@@ -45,7 +45,8 @@ public static class PluginLoading
         // The resolved package's own rules, added as one more probe path rather
         // than through a second discovery mechanism. A second path would be a
         // second load order, and an id colliding across the two would be
-        // resolved by whichever ran first — which is the rule ADR-025 refuses.
+        // resolved by whichever ran first, which is a load order deciding
+        // which rule wins.
         // Coming in here, a collision between a package rule and one from
         // --rules-path is the ordinary collision, reported with both assemblies
         // named and nobody winning.
@@ -95,9 +96,9 @@ public static class PluginLoading
 
         var directory = Path.Combine(package.Root.FullName, PluginPathResolution.ImplicitDirectoryName);
 
-        // Through the seam, like every other directory question this file asks.
-        // A direct File.Exists here would be the one read that a substituted
-        // file system could not answer for.
+        // Through the injected file system, like every other directory
+        // question this file asks. A direct File.Exists here would be the one
+        // read a substituted file system could not answer for.
         return environment.FileSystem.DirectoryExists(directory) ? directory : null;
     }
 }
