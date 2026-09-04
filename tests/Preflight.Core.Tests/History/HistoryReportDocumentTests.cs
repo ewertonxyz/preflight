@@ -127,8 +127,8 @@ public sealed class HistoryReportDocumentTests
     }
 
     /// <remarks>
-    /// Publishing percentiles over an unknown fraction of the sample is
-    /// principle 7 pointed at the instrumentation. The counts are how a machine
+    /// Publishing percentiles over an unknown fraction of the sample is a
+    /// measurement dressed as a fact. The counts are how a machine
     /// consumer discovers the fraction it did not get.
     /// </remarks>
     [Fact]
@@ -148,7 +148,8 @@ public sealed class HistoryReportDocumentTests
 
     /// <remarks>
     /// A cancelled run counts towards the verdicts and stays out of the
-    /// percentiles; a <c>--no-skip</c> run reports more failures by design.
+    /// percentiles; a <c>--no-skip</c> run reports more failures because that is
+    /// what it is for.
     /// The flag is recorded on every run so that a report can say it was in
     /// force, and a reader who cannot see it cannot explain the number.
     /// </remarks>

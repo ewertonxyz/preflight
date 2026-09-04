@@ -46,6 +46,8 @@ public static class HistoryLine
     /// </summary>
     public static string ForRun(RunResult result)
     {
+        ArgumentNullException.ThrowIfNull(result);
+
         var full = JsonSerializer.Serialize(RunEventDocument.For(result), RunEventDocument.SingleLine);
 
         return Encoding.UTF8.GetByteCount(full) <= MaxBytes
@@ -60,6 +62,10 @@ public static class HistoryLine
     /// No cap, because there is nothing here that grows: a label, two instants
     /// and a command line. The 64 KB limit exists for a finding list.
     /// </remarks>
-    public static string ForExternal(ExternalMeasurement measurement) =>
-        JsonSerializer.Serialize(ExternalEventDocument.For(measurement), RunEventDocument.SingleLine);
+    public static string ForExternal(ExternalMeasurement measurement)
+    {
+        ArgumentNullException.ThrowIfNull(measurement);
+
+        return JsonSerializer.Serialize(ExternalEventDocument.For(measurement), RunEventDocument.SingleLine);
+    }
 }

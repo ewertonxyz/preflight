@@ -1,19 +1,18 @@
-namespace Preflight.Core.Tests;
+namespace Preflight.Core.Tests.Contract;
 
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
 
 /// <summary>
-/// Pins the exact member set of each closed enum in the rule-id contract
-/// and 5.4.
+/// Pins the exact member set of every closed enum a plugin can see.
 /// </summary>
 /// <remarks>
-/// <c>ValidationStage</c> is closed by design — a
-/// plugin cannot add a stage, because the stage determines the shape of
-/// <c>RuleContext</c> and the engine has no way to populate a stage it does not
-/// know about. the plugin version contract treats removing or renaming an enum
-/// member as a breaking surface change; pinning the current set here is what
-/// turns that change into a failing test instead of a silent one.
+/// <c>ValidationStage</c> is closed to plugins: a plugin cannot add a stage,
+/// because the stage determines the shape of <c>RuleContext</c> and the engine
+/// has no way to populate one it does not know about. Removing or renaming an
+/// enum member is a breaking change to the plugin contract, and pinning the
+/// current set here is what turns that change into a failing test instead of a
+/// silent one.
 /// </remarks>
 public sealed class EnumSurfaceTests
 {

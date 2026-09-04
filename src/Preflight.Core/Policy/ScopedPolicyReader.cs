@@ -23,14 +23,22 @@ public sealed class ScopedPolicyReader : IPolicyReader
 
     public ScopedPolicyReader(PolicyNode.ObjectNode settings)
     {
+        ArgumentNullException.ThrowIfNull(settings);
+
         _settings = settings;
     }
 
     public T GetValue<T>(string key, T fallback) =>
         TryGetValue<T>(key, out var value) ? value : fallback;
 
+    // The guard is on TryGetValue alone. GetValue reaches it on both of its
+    // paths, so a second one here would repeat a check the call below already
+    // makes, on the hottest read in the engine.
+
     public bool TryGetValue<T>(string key, [MaybeNullWhen(false)] out T value)
     {
+        ArgumentNullException.ThrowIfNull(key);
+
         if (!_settings.TryGetPath(key, out var node) || node is not PolicyNode.Leaf leaf)
         {
             value = default;

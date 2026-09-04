@@ -2,6 +2,7 @@ namespace Preflight.Core.Caching;
 
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
+using Preflight.Core.History;
 using Preflight.Core.Policy;
 
 /// <summary>
@@ -63,7 +64,13 @@ public sealed class RuleCache
     {
         ArgumentNullException.ThrowIfNull(workspaceRoot);
 
-        RequireSafeToEmpty(workspaceRoot, _directory);
+        // The history location comes from the same resolved policy the cache
+        // location came from, so the two can never be compared against
+        // different runs' configuration.
+        RequireSafeToEmpty(
+            workspaceRoot,
+            _directory,
+            HistoryPaths.DirectoryFor(workspaceRoot, HistorySettings.From(_policy)));
 
         return _store.Clear(_directory);
     }
@@ -82,33 +89,71 @@ public sealed class RuleCache
     /// </para>
     /// <para>
     /// The check is on the resolved path, not on the string, so <c>"a/.."</c>
-    /// and <c>"."</c> are the same refusal. What it refuses is exactly one
-    /// thing: a directory that contains the workspace root, or is it.
+    /// and <c>"."</c> are the same refusal.
     /// </para>
     /// <para>
-    /// It does <b>not</b> refuse a path that would take the history with it.
-    /// <c>"cachePath": ".preflight"</c> resolves to the parent of the default
-    /// history directory and is accepted here, and the history survives only
-    /// because <see cref="Clear"/> deletes the cache's own extension and a
-    /// history file carries a different one. That is a narrow escape rather
-    /// than a guarantee: give the two the same extension and this method would
-    /// hand <c>preflight cache clear</c> a month of instrumentation to delete.
+    /// Two things must survive <see cref="Clear"/>, and each gets its own
+    /// refusal because the remedies differ. The workspace is the obvious one.
+    /// The history is the one that hid: <c>"cachePath": ".preflight"</c>
+    /// resolves to the parent of the default history directory, and before
+    /// this refusal existed it was accepted — the history survived only because
+    /// <see cref="Clear"/> matches the cache's own extension and a history file
+    /// carries a different one. That was a coincidence of two constants, not a
+    /// guarantee, and it would have ended the day either one changed.
+    /// </para>
+    /// <para>
+    /// Only containment in that direction is refused. A history directory that
+    /// contains the cache — <c>historyPath</c> at <c>.preflight</c> and
+    /// <c>cachePath</c> at <c>.preflight/cache</c> — is the ordinary layout and
+    /// loses nothing, because emptying the cache never walks upwards.
     /// </para>
     /// </remarks>
-    public static void RequireSafeToEmpty(DirectoryInfo workspaceRoot, string directory)
+    /// <param name="workspaceRoot">The workspace the run is validating.</param>
+    /// <param name="directory">The resolved <c>cachePath</c>, the directory that would be emptied.</param>
+    /// <param name="historyDirectory">The resolved <c>historyPath</c>, which must not be inside it.</param>
+    public static void RequireSafeToEmpty(
+        DirectoryInfo workspaceRoot,
+        string directory,
+        string historyDirectory)
     {
         ArgumentNullException.ThrowIfNull(workspaceRoot);
         ArgumentNullException.ThrowIfNull(directory);
+        ArgumentNullException.ThrowIfNull(historyDirectory);
 
-        var resolved = Path.TrimEndingDirectorySeparator(Path.GetFullPath(directory));
-        var root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(workspaceRoot.FullName));
+        var resolved = Resolve(directory);
 
-        if (string.Equals(resolved, root, StringComparison.OrdinalIgnoreCase) ||
-            root.StartsWith(resolved + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+        RequireDoesNotContain(
+            resolved,
+            Resolve(workspaceRoot.FullName),
+            "the workspace",
+            "point it at a directory of its own");
+
+        RequireDoesNotContain(
+            resolved,
+            Resolve(historyDirectory),
+            $"the history from '{HistorySettings.PathKey}'",
+            "give the cache and the history separate directories");
+    }
+
+    private static string Resolve(string path) =>
+        Path.TrimEndingDirectorySeparator(Path.GetFullPath(path));
+
+    /// <summary>
+    /// Refuses when <paramref name="candidate"/> is <paramref name="protectedPath"/>
+    /// or holds it somewhere below.
+    /// </summary>
+    private static void RequireDoesNotContain(
+        string candidate,
+        string protectedPath,
+        string description,
+        string remedy)
+    {
+        if (string.Equals(candidate, protectedPath, StringComparison.OrdinalIgnoreCase) ||
+            protectedPath.StartsWith(candidate + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
         {
             throw new UnsafeCachePathException(
-                $"'{CacheSettings.PathKey}' resolves to '{resolved}', which contains the workspace. " +
-                "Refusing to empty it: point it at a directory of its own.");
+                $"'{CacheSettings.PathKey}' resolves to '{candidate}', which contains {description}. " +
+                $"Refusing to empty it: {remedy}.");
         }
     }
 

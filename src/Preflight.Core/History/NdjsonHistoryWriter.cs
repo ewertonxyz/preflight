@@ -24,6 +24,10 @@ public sealed class NdjsonHistoryWriter
     /// <param name="clock">Decides which month the file belongs to.</param>
     public NdjsonHistoryWriter(IHistoryStore store, EngineEnvironment machine, TimeProvider clock)
     {
+        ArgumentNullException.ThrowIfNull(store);
+        ArgumentNullException.ThrowIfNull(machine);
+        ArgumentNullException.ThrowIfNull(clock);
+
         _store = store;
         _machine = machine;
         _clock = clock;
@@ -34,16 +38,26 @@ public sealed class NdjsonHistoryWriter
         DirectoryInfo workspaceRoot,
         HistorySettings settings,
         RunResult result,
-        CancellationToken cancellationToken) =>
-        AppendAsync(workspaceRoot, settings, HistoryLine.ForRun(result), cancellationToken);
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(workspaceRoot);
+        ArgumentNullException.ThrowIfNull(settings);
+
+        return AppendAsync(workspaceRoot, settings, HistoryLine.ForRun(result), cancellationToken);
+    }
 
     /// <summary>Records one measured child process.</summary>
     public Task WriteExternalAsync(
         DirectoryInfo workspaceRoot,
         HistorySettings settings,
         ExternalMeasurement measurement,
-        CancellationToken cancellationToken) =>
-        AppendAsync(workspaceRoot, settings, HistoryLine.ForExternal(measurement), cancellationToken);
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(workspaceRoot);
+        ArgumentNullException.ThrowIfNull(settings);
+
+        return AppendAsync(workspaceRoot, settings, HistoryLine.ForExternal(measurement), cancellationToken);
+    }
 
     private Task AppendAsync(
         DirectoryInfo workspaceRoot,

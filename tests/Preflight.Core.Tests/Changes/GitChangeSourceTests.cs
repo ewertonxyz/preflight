@@ -111,7 +111,7 @@ public sealed class GitChangeSourceTests
     /// Anything unrecognised is an error, not a silent drop.
     /// </summary>
     /// <remarks>
-    /// This is the false green of the whole block. A file quietly missing from
+    /// This is the quiet failure the whole block guards. A file quietly missing from
     /// the changed set makes <c>core.presubmit.large-file</c> report <c>n/a</c>
     /// on a commit that had something to check — and the built-in rule set already calls
     /// <c>n/a</c> for something unexamined the honest answer, which is exactly

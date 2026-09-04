@@ -28,6 +28,8 @@ public sealed class PolicyLoader
 
     public PolicyLoader(IFileSystem fileSystem)
     {
+        ArgumentNullException.ThrowIfNull(fileSystem);
+
         _fileSystem = fileSystem;
     }
 
@@ -46,6 +48,8 @@ public sealed class PolicyLoader
     /// </remarks>
     public async Task<PolicyLoadResult> LoadAsync(string entryPath, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(entryPath);
+
         var chain = new List<string>();
         var documents = new List<PolicyDocument>();
         var document = await LoadChainAsync(entryPath, chain, documents, cancellationToken);
