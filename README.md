@@ -214,6 +214,7 @@ Every layer in order, with package, file and line, including the value it replac
 | `preflight graph` | The dependency graph, optionally as Graphviz DOT |
 | `preflight measure --label build -- <cmd>` | Times a command and records it, so cost is measured rather than claimed |
 | `preflight report --since 30d` | Durations, percentiles, failure rates |
+| `preflight pipeline list` | Which pipelines and versions this machine has installed, and which is pinned |
 | `preflight cache clear` | Empties the incremental cache |
 
 ---
@@ -385,6 +386,11 @@ The script fails if it measured zero assemblies. A coverage run reporting succes
 measured nothing is the same defect this tool exists to prevent, aimed at its own
 instrumentation.
 
+The suite holds **100% line, branch and method coverage** — 5,404 lines, 1,784 branches and
+616 methods, all covered. That is a floor the reports are checked against, not an aspiration:
+where a branch is genuinely unreachable it is either removed, folded into a real case, or
+excluded with the reason written at the exclusion. It is never covered by a fabricated test.
+
 The badge at the top is the number Codecov computes from those same four reports.
 
 ---
@@ -404,6 +410,25 @@ fixtures/                  Workspaces, good and broken, the tests run against.
 
 `Preflight.Rules` referencing `Preflight.Core` would make the plugin model fiction, so a test
 enforces the boundary. The built-in rules see exactly what an external plugin sees.
+
+Inside `Preflight.Cli`, a folder answers *what a file is* rather than which command it serves,
+because a type is reached from the outside by what it does and not by who asked for it:
+
+```text
+Preflight.Cli/
+  Model/        The vocabulary — exit codes, run options, output formats.
+  Parsing/      Strings to values: --set overrides, --since windows, stages.
+  Policy/       Resolving the effective policy, and the local overlay decision.
+  Pipelines/    Package identity — names, versions, manifests, selection.
+  Storage/      What touches the outside world — disk, archives, environment, child processes.
+  Services/     The interfaces Storage/ implements, so a command is testable without any of it.
+  Commands/     A handler per command, plus the work it orchestrates and the options it takes.
+  Reporting/    The renderers — console, JSON, SARIF and Graphviz DOT.
+  Interactive/  The pipeline picker, and the refusal when there is no terminal to ask.
+```
+
+Four files stay at the root: the entry point, the command surface, the dispatcher that reads
+it back, and the one place their shared option names are spelled.
 
 | Built-in rule | Stage | Depends on |
 |---|---|---|
@@ -445,8 +470,9 @@ line.
 | Platform | Windows today; nothing in the design is Windows-specific |
 
 The tool works end to end. What is happening now is a review, subsystem by subsystem, each on
-its own branch with the full suite green before it lands. The plugin contract and the
-built-in rules have been through it; the rest has not.
+its own branch with the full suite green before it lands. The plugin contract, the built-in
+rules and the command line have been through it. The engine — graph, execution, policy,
+history and cache — has not, and is next.
 
 ---
 
