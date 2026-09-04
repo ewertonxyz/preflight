@@ -50,8 +50,9 @@ public static class HistoryReportDocument
 
             promotedBlockCount = report.PromotedBlockCount,
 
-            // A contrast run reports more failures by design, and a
-            // cancelled one contributes a verdict but no percentile. A consumer
+            // A contrast run reports more failures because that is what it is
+            // for, and a cancelled one contributes a verdict but no
+            // percentile. A consumer
             // that cannot see either number is computing a rate over a sample it
             // does not know the shape of.
             contrastRunCount = report.ContrastRunCount,
@@ -83,10 +84,10 @@ public static class HistoryReportDocument
             }),
             mostFrequentFailuresNotShown = report.MostFrequentFailuresNotShown,
 
-            // Absent when there is no median build to multiply by. The report
-            // calls the assumption paragraph part of the design rather than a
-            // footnote, and a ceiling computed from a number that does not exist
-            // is the fiction that paragraph prevents.
+            // Absent when there is no median build to multiply by. The number
+            // is a ceiling under a stated assumption, never a saving, and one
+            // computed from a median that does not exist would be an invention
+            // a machine consumer has no way to spot.
             upperBoundNotSpentMs = Milliseconds(report.UpperBoundNotSpent),
         };
     }
@@ -106,9 +107,10 @@ public static class HistoryReportDocument
 
     /// <remarks>
     /// Nullable all the way to the serializer, which is configured to omit a
-    /// null rather than write one. Coalescing to zero here would be the exact
-    /// false green this exists to refuse, one line before the option that
-    /// prevents it.
+    /// null rather than write one. Coalescing to zero here would publish a
+    /// measurement nobody took, one line before the option that exists to
+    /// prevent exactly that — and a machine consumer sums a zero without ever
+    /// looking at it.
     /// </remarks>
     private static long? Milliseconds(TimeSpan? value) =>
         value is { } present ? Milliseconds(present) : null;

@@ -127,7 +127,7 @@ public sealed class PluginAssemblyLoader : IAssemblyLoader
     /// abort-on-failure rule exists to prevent.
     /// </para>
     /// <para>
-    /// Excluded from coverage, and this is the phase's only exclusion. Reaching
+    /// Excluded from coverage rather than tested into the green. Reaching
     /// the catch needs an assembly whose transitive dependency is absent from
     /// the machine, and every way to obtain one is worse than the branch:
     /// committing a deliberately broken binary puts an unreviewable file in the
@@ -136,7 +136,7 @@ public sealed class PluginAssemblyLoader : IAssemblyLoader
     /// What this code decides — that an unreadable assembly is exit 2, named,
     /// and never a partial load — is asserted through
     /// <see cref="IAssemblyLoader"/> in <c>PluginLoaderTests</c>, which is the
-    /// seam that exists for it.
+    /// substitution point that exists for it.
     /// </para>
     /// </remarks>
     [ExcludeFromCodeCoverage]

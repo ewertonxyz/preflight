@@ -145,9 +145,10 @@ public sealed class RuleRunner
         }
         catch (Exception exception)
         {
-            // Deliberately broad, and deliberately not rethrown: this is the
-            // isolation of 8.2, and its whole point is that no rule can end the
-            // run for everybody else.
+            // Deliberately broad, and deliberately not rethrown. A rule runs
+            // isolated so that no rule can end the run for everybody else, and
+            // narrowing this catch would decide which third-party defects are
+            // allowed to take the build down.
             return Errored(policy, Elapsed(startedAt), exception.ToString());
         }
     }
@@ -188,8 +189,9 @@ public sealed class RuleRunner
     /// <see cref="RuleStatus.Errored"/> for the engine and gives a rule no
     /// factory for either — but <c>RuleOutcome.Status</c> is a public init
     /// property, so a rule can still claim one. Passing that through would put
-    /// a skip in the report with no cause attached, which is what 7.3 exists to
-    /// prevent, so it is reported as the contract violation it is.
+    /// a skip in the report with no cause attached — and a skip whose cause
+    /// nobody can name is the one the reader cannot act on, so it is reported
+    /// as the contract violation it is.
     /// </remarks>
     private static RuleExecution Complete(RuleOutcome outcome, RulePolicySnapshot policy, TimeSpan duration)
     {

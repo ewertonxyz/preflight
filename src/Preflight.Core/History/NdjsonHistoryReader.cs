@@ -21,9 +21,10 @@ using Preflight.Core.Execution;
 /// into one.
 /// </para>
 /// <para>
-/// Reading needs no seam of its own: <see cref="IFileSystem"/> already exposes
-/// exactly the three members this wants, and a fourth would cost a major
-/// version. Writing is the direction that needed a new interface.
+/// Reading needs no interface of its own: <see cref="IFileSystem"/> already
+/// exposes exactly the three members this wants, and adding a fourth to a
+/// contract plugins compile against would oblige every one of them to be
+/// rebuilt. Writing is the direction that needed a new interface.
 /// </para>
 /// <para>
 /// Files are visited in ordinal order of their full path. <c>EnumerateFiles</c>

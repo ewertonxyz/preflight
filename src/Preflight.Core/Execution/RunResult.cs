@@ -34,7 +34,9 @@ public sealed record RunResult
     /// predates packages keeps compiling and keeps meaning what it meant. The
     /// default has to be <see langword="null"/> for the same reason it is not
     /// required: a site nobody updated would otherwise claim a package that does
-    /// not exist, which is a false green aimed at the provenance itself.
+    /// not exist — a record that lies about where it came from, which is the
+    /// same defect as a green run over a check that never happened, aimed at
+    /// the provenance instead of at the verdict.
     /// </para>
     /// <para>
     /// The version travels here and <c>PipelineVersionSource</c> does not,
@@ -43,7 +45,7 @@ public sealed record RunResult
     /// NDJSON and in <c>--format json</c>; <em>why</em> that version was chosen
     /// is an explanation for the person reading the header, and it reaches the
     /// reporter beside the result, exactly as the pipeline's own selection
-    /// source already does. See ADR-034.
+    /// source already does.
     /// </para>
     /// </remarks>
     public string? PipelineVersion { get; init; }
@@ -64,7 +66,8 @@ public sealed record RunResult
     /// </summary>
     /// <remarks>
     /// Recorded for the same reason <see cref="FailOnWarning"/> is. A contrast
-    /// run reports more failures than a normal one by design, and a
+    /// run reports more failures than a normal one because that is what it is
+    /// for, and a
     /// <c>report</c> over thirty days of history that cannot tell the two apart
     /// inflates the failure count — the metric that overstates the tool, which
     /// is the error the whole history exists to avoid making.

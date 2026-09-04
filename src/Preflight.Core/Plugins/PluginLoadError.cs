@@ -76,14 +76,14 @@ public abstract record PluginLoadError
     /// the load context delegates the contract assembly to the default one.
     /// Without this case the symptom is an assembly that loads, contributes
     /// nothing, and says nothing — indistinguishable from an empty directory,
-    /// and a green run missing the rules a production declared.
+    /// and a green run missing the rules a pipeline declared.
     /// </para>
     /// <para>
     /// Both identities are named because neither alone is actionable. The usual
     /// cause is a <c>Preflight.Abstractions.dll</c> shipped alongside the
-    /// plugin, which is what <c>Private=false</c> in 11.1 exists to prevent,
-    /// and the person reading the message needs to see two of them to believe
-    /// it.
+    /// plugin, which is what a plugin's project file sets
+    /// <c>Private=false</c> to prevent, and the person reading the message
+    /// needs to see two of them to believe it.
     /// </para>
     /// </remarks>
     public sealed record ForeignAbstractions(

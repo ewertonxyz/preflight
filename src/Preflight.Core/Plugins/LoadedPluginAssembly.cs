@@ -6,7 +6,7 @@ namespace Preflight.Core.Plugins;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The seam between "an assembly was opened" and "these rules exist".
+/// The boundary between "an assembly was opened" and "these rules exist".
 /// Reflection over a real file is the one part of plugin loading that cannot be
 /// exercised without a real file, so it is kept behind
 /// <see cref="IAssemblyLoader"/> and reduced to this record — three facts, all of

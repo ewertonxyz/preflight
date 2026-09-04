@@ -27,8 +27,9 @@ public abstract record GraphValidationError
     /// started from.
     /// </summary>
     /// <remarks>
-    /// 7.1 is explicit that "cycle detected" is not an acceptable message: a
-    /// seven-node cycle described that way costs whoever fixes it half an hour.
+    /// "Cycle detected" is not an acceptable message: a seven-node cycle
+    /// described that way costs whoever fixes it half an hour of reading
+    /// descriptors to find the edge they have to cut.
     /// </remarks>
     public sealed record CycleDetected(IReadOnlyList<RuleId> Path) : GraphValidationError
     {
@@ -41,8 +42,9 @@ public abstract record GraphValidationError
     /// </summary>
     /// <remarks>
     /// Kept apart from <see cref="CycleDetected"/> rather than folded in as its
-    /// one-node case, because 7.1 asks for a message that says what this almost
-    /// always is: the wrong id pasted into <c>DependsOn</c>.
+    /// one-node case, so that the message can say what this almost always is:
+    /// the wrong id pasted into <c>DependsOn</c>. Folded in, it would be
+    /// reported as a cycle of length one and read as something exotic.
     /// </remarks>
     public sealed record SelfDependency(RuleId RuleId) : GraphValidationError
     {

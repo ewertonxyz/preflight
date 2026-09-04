@@ -40,8 +40,9 @@ public sealed record RulePolicySnapshot
             Gating = policy.RuleValue<bool>(ruleId, "gating").Value,
             EffectiveSeverity = policy.RuleValue<Severity>(ruleId, "severity").Value,
 
-            // Read, never re-derived: the root cascade of 6.1 already resolved
-            // this, and a second derivation here would be a second answer.
+            // Read, never re-derived: the cascade that fills a rule's missing
+            // timeout from the root default has already run, and a second
+            // derivation here would be a second answer to one question.
             Timeout = TimeSpan.FromSeconds(policy.RuleValue<long>(ruleId, "timeoutSeconds").Value),
         };
     }

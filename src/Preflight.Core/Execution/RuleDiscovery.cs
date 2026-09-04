@@ -73,8 +73,9 @@ public static class RuleDiscovery
     /// <remarks>
     /// A public type that writes <c>: IValidationRule</c> has declared an
     /// intent the engine is obliged to honour or to reject out loud. Dropping
-    /// it silently would leave the rule missing from a green report, which is
-    /// the false green principle 7 forbids.
+    /// it silently would leave the rule missing from a green report, and a
+    /// green report over a check that never ran is the one outcome this tool
+    /// must never produce.
     /// </remarks>
     private static IValidationRule Instantiate(Type type)
     {
