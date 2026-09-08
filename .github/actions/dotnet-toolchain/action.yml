@@ -1,0 +1,36 @@
+name: .NET toolchain
+description: Installs the SDK that global.json pins, and restores the NuGet package cache.
+
+# The two steps every workflow in this repository starts with, written once.
+# They were copied into all three, cache key included, and a copied key is a key
+# that gets updated in one file and left behind in the other two - which fails
+# nothing at all. It simply stops matching, and the cost arrives as an
+# unexplained extra minute on two of the three jobs rather than as an error.
+#
+# The repository must already be checked out when this runs: the action is read
+# out of the workspace, and the hash below is taken over the project files
+# sitting there.
+runs:
+  using: composite
+  steps:
+    # global-json-file, not dotnet-version. global.json pins 10.0.400 with
+    # rollForward: latestFeature, which accepts 10.0.4xx and above only. A
+    # version input here could install a band that pin refuses, and the
+    # resulting "SDK not found" reads as a broken runner rather than a
+    # misconfigured workflow.
+    - name: Set up .NET
+      uses: actions/setup-dotnet@v6
+      with:
+        global-json-file: global.json
+
+    # The key covers everything that can change what a restore resolves: the
+    # central package versions, the SDK band, the local tool manifest and every
+    # project file. On a miss, the prefix key starts from the last cache built
+    # for this runner instead of from an empty packages folder.
+    - name: Cache NuGet packages
+      uses: actions/cache@v6
+      with:
+        path: ~/.nuget/packages
+        key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', 'global.json', '.config/dotnet-tools.json', '**/*.csproj') }}
+        restore-keys: |
+          nuget-${{ runner.os }}-
