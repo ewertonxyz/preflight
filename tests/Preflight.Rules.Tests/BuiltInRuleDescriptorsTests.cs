@@ -3,6 +3,7 @@ namespace Preflight.Rules.Tests;
 using System.Reflection;
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
+using Preflight.Core.Execution;
 using Preflight.Rules;
 
 /// <summary>
@@ -24,18 +25,14 @@ public sealed class BuiltInRuleDescriptorsTests
     /// them.
     /// </summary>
     /// <remarks>
-    /// By reflection over the assembly rather than a hand-written list, so a
-    /// rule added without a row in the table below fails the count instead of
-    /// quietly joining the set. A hand-written list would have to be edited to
-    /// notice the new rule, which is exactly the edit whoever forgot the row
-    /// also forgot.
+    /// The product's own discovery, called rather than reimplemented. A copy of
+    /// the walk written here asserts the set as the <em>test</em> computes it,
+    /// which is a different set the moment the two disagree about a filter —
+    /// and the copy that used to live here did disagree, silently.
     /// </remarks>
     public static IReadOnlyList<IValidationRule> Discovered() =>
     [
-        .. typeof(BuiltInRuleIds).Assembly
-            .GetTypes()
-            .Where(type => typeof(IValidationRule).IsAssignableFrom(type) && !type.IsAbstract && type.IsVisible)
-            .Select(type => (IValidationRule)Activator.CreateInstance(type)!)
+        .. RuleDiscovery.FromAssemblies(typeof(BuiltInRuleIds).Assembly)
             .OrderBy(rule => rule.Descriptor.Id.Value, StringComparer.Ordinal),
     ];
 
@@ -48,9 +45,15 @@ public sealed class BuiltInRuleDescriptorsTests
         Discovered().Select(rule => rule.Descriptor.Id.Value).ShouldBe([
             "core.build.compile-probe",
             "core.build.configuration",
+            "core.build.platform-sdk",
+            "core.presubmit.companion-file",
             "core.presubmit.forbidden-paths",
             "core.presubmit.large-file",
+            "core.presubmit.lfs-pointer",
+            "core.presubmit.path-portability",
+            "core.workspace.approved-dependencies",
             "core.workspace.dependencies",
+            "core.workspace.free-space",
             "core.workspace.toolchain",
         ]);
     }
@@ -70,6 +73,17 @@ public sealed class BuiltInRuleDescriptorsTests
     [InlineData("core.presubmit.large-file", ValidationStage.PreSubmit, "", true, false)]
     [InlineData("core.build.configuration", ValidationStage.BuildReadiness, "core.workspace.toolchain", true, true)]
     [InlineData("core.build.compile-probe", ValidationStage.BuildReadiness, "core.build.configuration", true, false)]
+    [InlineData("core.presubmit.lfs-pointer", ValidationStage.PreSubmit, "", true, false)]
+    [InlineData("core.presubmit.path-portability", ValidationStage.PreSubmit, "", true, false)]
+    [InlineData("core.presubmit.companion-file", ValidationStage.PreSubmit, "", true, false)]
+    [InlineData("core.workspace.free-space", ValidationStage.Workspace, "core.workspace.toolchain", true, false)]
+    [InlineData(
+        "core.workspace.approved-dependencies",
+        ValidationStage.Workspace,
+        "core.workspace.toolchain",
+        true,
+        false)]
+    [InlineData("core.build.platform-sdk", ValidationStage.BuildReadiness, "core.workspace.toolchain", true, false)]
     public void Descriptor_DeclaresItsStageDependencyBlockingAndGating(
         string id,
         ValidationStage stage,
@@ -97,14 +111,14 @@ public sealed class BuiltInRuleDescriptorsTests
     /// The shape the descriptors add up to.
     /// </summary>
     /// <remarks>
-    /// Two independent roots at pre-submit, and a chain three deep ending at
+    /// Five independent roots at pre-submit, and a chain three deep ending at
     /// the expensive rule. Asserted separately from the table above because the
     /// two are one fact stated twice, and either can be edited without the
     /// other: a dependency moved one row up still produces a table that reads
     /// fine and a graph that no longer defers the compile.
     /// </remarks>
     [Fact]
-    public void Descriptors_ProduceTwoPreSubmitRootsAndAChainEndingAtTheProbe()
+    public void Descriptors_ProduceFivePreSubmitRootsAndAChainEndingAtTheProbe()
     {
         var descriptors = Discovered().Select(rule => rule.Descriptor).ToArray();
 
@@ -114,8 +128,11 @@ public sealed class BuiltInRuleDescriptorsTests
             .Order(StringComparer.Ordinal);
 
         roots.ShouldBe([
+            "core.presubmit.companion-file",
             "core.presubmit.forbidden-paths",
             "core.presubmit.large-file",
+            "core.presubmit.lfs-pointer",
+            "core.presubmit.path-portability",
             "core.workspace.toolchain",
         ]);
 

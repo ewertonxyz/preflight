@@ -163,6 +163,7 @@ public static class PreflightCommandLine
             InstallWriter = new InstallRootWriter(),
             FileSystem = new PhysicalFileSystem(),
             Processes = new ProcessRunner(),
+            Volumes = new PhysicalVolumeProbe(),
             Children = new ChildProcessLauncher(),
             Environment = reader,
             Console = ConsoleCapabilities.Detect() with { Output = output },

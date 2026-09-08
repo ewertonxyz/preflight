@@ -401,7 +401,7 @@ The badge at the top is the number Codecov computes from those same four reports
 src/
   Preflight.Abstractions   The plugin contract — Rules/, Services/, Model/. BCL only.
   Preflight.Core           Graph, execution, policy, history, cache, plugin loading.
-  Preflight.Rules          The six built-in rules.
+  Preflight.Rules          The twelve built-in rules.
   Preflight.Cli            Argument parsing, reporters, exit codes, packaging.
 tests/                     Core, Rules, Cli, Specs (Gherkin), TestSupport.
 samples/                   A worked plugin: one rule, one project reference.
@@ -449,13 +449,25 @@ it back, and the one place their shared option names are spelled.
 |---|---|---|
 | `core.workspace.toolchain` | workspace | — |
 | `core.workspace.dependencies` | workspace | toolchain |
+| `core.workspace.free-space` | workspace | toolchain |
+| `core.workspace.approved-dependencies` | workspace | toolchain |
 | `core.presubmit.forbidden-paths` | pre-submit | — |
 | `core.presubmit.large-file` | pre-submit | — |
+| `core.presubmit.lfs-pointer` | pre-submit | — |
+| `core.presubmit.path-portability` | pre-submit | — |
+| `core.presubmit.companion-file` | pre-submit | — |
 | `core.build.configuration` | build-readiness | toolchain |
+| `core.build.platform-sdk` | build-readiness | toolchain |
 | `core.build.compile-probe` | build-readiness | configuration |
 
-Six is deliberate. The set demonstrates the model rather than trying to be exhaustive — the
-interesting rules for any given project are the ones that project writes.
+The set is still deliberately not exhaustive — the interesting rules for any given project are
+the ones that project writes. What is here is the set that needs no knowledge of an asset
+format or a studio's conventions: a binary that could open a `.uasset` would have stopped being
+an orchestrator.
+
+All but one check nothing until somebody configures them, so a repository that was green stays
+green. `core.presubmit.path-portability` is the exception — it ships with real limits and will
+report on a repository nobody has checked for them.
 
 ---
 
@@ -480,14 +492,20 @@ line.
 
 | | |
 |---|---|
-| Version | 0.1.1 — below 1.0 deliberately; nothing is published under a stability promise |
+| Version | 0.2.0 — below 1.0 deliberately; nothing is published under a stability promise |
 | Target | .NET 10, nullable enabled, warnings as errors, analysers at `latest-recommended` |
 | Platform | Windows today; nothing in the design is Windows-specific |
 
-The tool works end to end. What is happening now is a review, subsystem by subsystem, each on
-its own branch with the full suite green before it lands. Every subsystem has been through it:
-the plugin contract, the built-in rules, the command line, and the core — graph, execution,
-policy, history and cache — along with the test suites that hold them.
+The tool works end to end, and every subsystem has been through a review of its own — the
+plugin contract, the built-in rules, the command line, and the core (graph, execution, policy,
+history and cache), along with the test suites that hold them.
+
+The contract moved from 0.1.1 to 0.2.0 to make room for reading free space on a volume, which
+none of the four services on a rule's context could answer. It arrived as a new optional
+interface rather than a member on the file-system interface, because a member added to
+something every plugin implements breaks every compiled plugin while a new type breaks none.
+Plugins built against 0.1.x must be recompiled; the loader refuses an older one by naming both
+versions rather than letting it fail later as a type load error.
 
 ---
 

@@ -60,6 +60,17 @@ public sealed record WorkspaceManifest
     public CompileProbe? CompileProbe { get; init; }
 
     /// <summary>
+    /// The volumes this workspace needs room on, and how much.
+    /// </summary>
+    /// <remarks>
+    /// In the manifest rather than in policy, like the tools and the
+    /// dependencies beside it: how much room a build needs is a fact about this
+    /// repository, not a decision about how strictly it is validated.
+    /// </remarks>
+    [JsonPropertyName("freeSpace")]
+    public IReadOnlyList<FreeSpaceRequirement> FreeSpace { get; init; } = [];
+
+    /// <summary>
     /// Reads and parses the manifest.
     /// </summary>
     /// <returns>

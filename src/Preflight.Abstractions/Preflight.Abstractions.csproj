@@ -27,11 +27,19 @@
       the day they need to, without a reader having to work out which of the
       two a given number meant.
 
-      0.1.1, and the leading zero is doing work: while the major is 0, SemVer
-      makes the minor the breaking axis, so a plugin built against 0.1.x runs
-      on a 0.1.y host and is refused on 0.2.0. The loader and the cache key
+      0.2.0, and the leading zero is doing work: while the major is 0, SemVer
+      makes the minor the breaking axis, so a plugin built against 0.2.x runs
+      on a 0.2.y host and is refused on 0.1.x. The loader and the cache key
       both get that rule from AbstractionsCompatibility.GenerationOf rather
       than reimplementing it.
+
+      The move from 0.1.1 is a minor and not a patch even though the change is
+      purely additive — a new interface, a new record, and one optional
+      property. What decides compatibility is the generation, and the
+      generation of 0.1.1 is 0.1: a plugin compiled against the new surface and
+      published as 0.1.2 would load on a 0.1.1 host that has none of those
+      types, and fail later as a type load far from the cause. Raising the
+      minor refuses it early, in a message that names both versions.
 
       Nothing is published under a stability promise yet. The grouping of the
       contract into Rules, Services and Model would have cost a major on a 1.x
@@ -45,7 +53,7 @@
       first two rows of the compatibility table into "always loads". Guarded by
       AbstractionsDependencyTests.
     -->
-    <Version>0.1.1</Version>
+    <Version>0.2.0</Version>
   </PropertyGroup>
 
 </Project>

@@ -15,6 +15,15 @@ using Preflight.Cli.Parsing;
 /// </remarks>
 public sealed class SetOverrideParserTests
 {
+    /// <summary>
+    /// A set of ids for the parser to recognise, and nothing more.
+    /// </summary>
+    /// <remarks>
+    /// Example data rather than an assertion about the built-in set. The parser
+    /// takes whatever ids it is handed — including a plugin's — so a list that
+    /// tracked the shipped rules would be pinning something this file does not
+    /// test, while going quietly out of date and reading as if it did.
+    /// </remarks>
     private static readonly IReadOnlyList<RuleId> KnownIds =
     [
         new("core.workspace.toolchain"),

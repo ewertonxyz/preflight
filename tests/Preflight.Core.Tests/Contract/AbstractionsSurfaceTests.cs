@@ -109,6 +109,40 @@ public sealed class AbstractionsSurfaceTests
         MethodNamesOf<IProcessRunner>().ShouldBe(["RunAsync"]);
     }
 
+    /// <summary>
+    /// The volume probe stays one member wide.
+    /// </summary>
+    /// <remarks>
+    /// It exists as a separate interface precisely because a member added to
+    /// one every plugin implements breaks every compiled plugin. That argument
+    /// is worth nothing if this one grows instead: the next capability is
+    /// another new type, not a second method here.
+    /// </remarks>
+    [Fact]
+    public void IVolumeProbe_ExposesExactlyProbeAsync()
+    {
+        MethodNamesOf<IVolumeProbe>().ShouldBe(["ProbeAsync"]);
+
+        typeof(IFileSystem).IsAssignableFrom(typeof(IVolumeProbe)).ShouldBeFalse(
+            "Reading a volume is a capability a host may offer, not a kind of file system.");
+    }
+
+    /// <remarks>
+    /// A record and not a struct. It is returned through a nullable reference —
+    /// "no measurement" is a specified answer the rule branches on — and a
+    /// nullable value type would box on every call to say so.
+    /// </remarks>
+    [Fact]
+    public void VolumeSpace_CarriesExactlyItsThreeMembers()
+    {
+        PropertyNamesOf<VolumeSpace>().ShouldBe(
+            ["VolumeName", "TotalBytes", "AvailableBytes"],
+            ignoreOrder: true);
+
+        typeof(VolumeSpace).IsValueType.ShouldBeFalse();
+        typeof(VolumeSpace).GetMethod("<Clone>$").ShouldNotBeNull("VolumeSpace is a record.");
+    }
+
     [Fact]
     public void IChangeSource_ExposesExactlyNameAndGetChangesAsync()
     {

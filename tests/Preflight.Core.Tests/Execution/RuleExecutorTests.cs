@@ -50,6 +50,29 @@ public sealed class RuleExecutorTests
         alpha.SeenContext.Logger.ShouldNotBeSameAs(bravo.SeenContext.Logger);
     }
 
+    /// <summary>
+    /// The volume probe reaches the rule.
+    /// </summary>
+    /// <remarks>
+    /// The one link in the chain a compiler cannot check. Every property from
+    /// the command line down to this request is required, so a host that
+    /// forgot the probe does not build — but the line that copies it into the
+    /// context is an ordinary assignment, and leaving it out would compile
+    /// perfectly and leave the free-space rule reporting that it checked
+    /// nothing, on every run, forever.
+    /// </remarks>
+    [Fact]
+    public async Task ExecuteAsync_DeliversTheVolumeProbeFromTheRequestToTheRule()
+    {
+        var rule = FakeRule.Passing("core.a.alpha");
+        var request = Request([rule]);
+
+        await Execute(request);
+
+        rule.SeenContext.ShouldNotBeNull();
+        rule.SeenContext!.Volumes.ShouldBeSameAs(request.Volumes);
+    }
+
     [Fact]
     public async Task ExecuteAsync_WithNoRules_IsPassedWithNoExecutions()
     {

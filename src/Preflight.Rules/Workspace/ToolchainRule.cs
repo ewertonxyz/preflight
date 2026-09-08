@@ -1,6 +1,5 @@
 namespace Preflight.Rules;
 
-using System.Text.RegularExpressions;
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
 using Preflight.Abstractions.Services;
@@ -14,27 +13,8 @@ using Preflight.Abstractions.Services;
 /// whose failure makes everything downstream pointless: nothing else can be
 /// true about a build if the compiler that would produce it is not there.
 /// </remarks>
-public sealed partial class ToolchainRule : IValidationRule
+public sealed class ToolchainRule : IValidationRule
 {
-    /// <summary>
-    /// The leading numeric run of a version-looking token, at most four
-    /// components long.
-    /// </summary>
-    /// <remarks>
-    /// Four, because <see cref="Version"/> holds four and a fifth makes
-    /// <see cref="Version.TryParse(string, out Version)"/> fail. A tool that
-    /// prints five is not describing something this comparison needs to
-    /// distinguish.
-    ///
-    /// Generated at compile time rather than built with
-    /// <see cref="RegexOptions.Compiled"/>. That option emits IL on the first
-    /// match, and this process lives for seconds against one match per declared
-    /// tool — a cost that never amortises. The generator pays it at build time
-    /// instead.
-    /// </remarks>
-    [GeneratedRegex(@"^\d+(\.\d+){0,3}", RegexOptions.CultureInvariant)]
-    private static partial Regex LeadingVersion { get; }
-
     /// <remarks>
     /// Enough for a version banner and the first line of an error, and short
     /// enough that a report listing several missing tools still fits a
@@ -57,6 +37,20 @@ public sealed partial class ToolchainRule : IValidationRule
         DefaultGating = true,
     };
 
+    /// <summary>
+    /// Reads a version out of whatever a tool printed.
+    /// </summary>
+    /// <param name="output">Everything the tool wrote to standard output.</param>
+    /// <returns>The version, or <see langword="null"/> when there is none.</returns>
+    /// <remarks>
+    /// Delegates to the collaborator that now owns running a tool and reading
+    /// its answer, so that this rule and the platform SDK rule cannot drift
+    /// into disagreeing about what a version is. Kept here because it was
+    /// already part of this type's surface, and a second implementation is
+    /// exactly what the extraction removed.
+    /// </remarks>
+    public static Version? ParseVersion(string output) => ToolProbe.ParseVersion(output);
+
     public async Task<RuleOutcome> ExecuteAsync(RuleContext context, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -78,7 +72,7 @@ public sealed partial class ToolchainRule : IValidationRule
             return RuleOutcome.Failed(new Finding
             {
                 Message = "The workspace manifest is missing.",
-                Location = new FindingLocation(read.ManifestPath),
+                Location = new FindingLocation(read.RelativePath),
                 Expected = "a manifest declaring the tools this workspace needs",
                 Actual = "no file at that path",
                 Remediation =
@@ -109,105 +103,40 @@ public sealed partial class ToolchainRule : IValidationRule
         return findings.Count > 0 ? RuleOutcome.Failed([.. findings]) : RuleOutcome.Passed();
     }
 
-    /// <summary>
-    /// Reads a version out of whatever the tool printed.
-    /// </summary>
-    /// <remarks>
-    /// <para>
-    /// The leading numeric run of the first number-looking token on the first
-    /// line, capped at four components. Real tools do not print bare versions:
-    /// <c>dotnet --version</c> gives <c>10.0.100</c>, a preview install gives
-    /// <c>10.0.100-preview.3.25</c>, and <c>git --version</c> on Windows gives
-    /// <c>git version 2.51.0.windows.1</c> — five components, the last two of
-    /// which are not numbers at all.
-    /// </para>
-    /// <para>
-    /// Taking the leading run rather than the whole token is what makes all
-    /// three readable. The alternative, refusing anything that is not exactly a
-    /// version, reports a machine that has the tool as having none — and this
-    /// was found by a fixture, not by inspection.
-    /// </para>
-    /// </remarks>
-    public static Version? ParseVersion(string output)
-    {
-        var firstLine = output.Split('\n', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.Trim();
-
-        if (string.IsNullOrEmpty(firstLine))
-        {
-            return null;
-        }
-
-        var token = firstLine.Split(' ', StringSplitOptions.RemoveEmptyEntries)
-            .FirstOrDefault(candidate => char.IsDigit(candidate[0]));
-
-        if (token is null)
-        {
-            return null;
-        }
-
-        // Match, not TryMatch-and-check. The token was selected because its
-        // first character is a digit, and the pattern needs exactly one — so a
-        // failed match is a state no input can produce, and testing for it
-        // would be a branch nothing can take.
-        var leading = LeadingVersion.Match(token).Value;
-
-        return Version.TryParse(leading, out var version) ? version : null;
-    }
-
     private static async Task<Finding?> CheckAsync(
         RuleContext context,
         ToolRequirement tool,
         CancellationToken cancellationToken)
     {
-        ProcessResult result;
-
-        try
-        {
-            result = await context.Processes.RunAsync(
-                new ProcessRequest
-                {
-                    FileName = tool.Command,
-                    Arguments = tool.Arguments,
-                    WorkingDirectory = context.WorkspaceRoot.FullName,
-                },
-                cancellationToken);
-        }
-        catch (OperationCanceledException)
-        {
-            // Not swallowed. A timeout is Errored — a defect in the rule or in
-            // the environment, and the tool's verdict to give. A rule that
-            // caught its own cancellation would report Failed instead, telling
-            // the reader the workspace is broken when what happened is that the
-            // tool ran past a deadline.
-            throw;
-        }
-        catch (Exception exception) when (exception is not OperationCanceledException)
-        {
-            // Every other way starting a process fails means the tool is not
-            // installed, which is exactly what this rule exists to say.
-            return Missing(tool, exception.Message);
-        }
-
-        if (result.ExitCode != 0)
-        {
-            return Missing(tool, result.StandardError.Trim());
-        }
-
-        var version = ParseVersion(result.StandardOutput);
-
-        if (version is null)
-        {
-            return new Finding
+        var probe = await ToolProbe.RunAsync(
+            context.Processes,
+            new ProcessRequest
             {
-                Message = $"Could not read a version from '{tool.Name}'.",
-                Expected = "a version number on the first line of output",
-                Actual = FindingText.Truncate(result.StandardOutput, VersionBannerLimit),
-                Remediation = $"Check that '{tool.Command} {string.Join(' ', tool.Arguments)}' prints a version.",
-            };
-        }
+                FileName = tool.Command,
+                Arguments = tool.Arguments,
+                WorkingDirectory = context.WorkspaceRoot.FullName,
+            },
+            cancellationToken);
 
-        return OutOfRange(tool, version);
+        return probe.Status switch
+        {
+            ToolProbeStatus.Unavailable => Missing(tool, probe.Detail),
+            ToolProbeStatus.Unreadable => Unreadable(tool, probe.Detail),
+
+            // Found, and the version is non-null on that arm by construction of
+            // the result. The discard carries it rather than a fourth arm,
+            // because a fourth arm would be a branch no input can take.
+            _ => OutOfRange(tool, probe.Version!),
+        };
     }
+
+    private static Finding Unreadable(ToolRequirement tool, string output) => new()
+    {
+        Message = $"Could not read a version from '{tool.Name}'.",
+        Expected = "a version number on the first line of output",
+        Actual = FindingText.Truncate(output, VersionBannerLimit),
+        Remediation = $"Check that '{tool.Command} {string.Join(' ', tool.Arguments)}' prints a version.",
+    };
 
     private static Finding? OutOfRange(ToolRequirement tool, Version version)
     {

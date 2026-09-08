@@ -112,6 +112,7 @@ public static class CommandEnvironments
             InstallWriter = installWriter ?? new InstallRootWriter(),
             FileSystem = new PhysicalFileSystem(),
             Processes = new ProcessRunner(),
+            Volumes = new PhysicalVolumeProbe(),
             Children = children ?? new ChildProcessLauncher(),
             Environment = reader ?? NoCi(),
             Console = new ConsoleCapabilities(

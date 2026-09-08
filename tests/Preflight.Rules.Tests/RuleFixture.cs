@@ -10,9 +10,9 @@ using Preflight.Abstractions.Services;
 /// </summary>
 /// <remarks>
 /// <para>
-/// <see cref="RuleContext"/> has eight required members and most rule tests care
-/// about one or two. Without this, every test would open with a dozen lines of
-/// arrange in which the line that matters is invisible.
+/// <see cref="RuleContext"/> has nine properties, eight of them required, and
+/// most rule tests care about one or two. Without this, every test would open
+/// with a dozen lines of arrange in which the line that matters is invisible.
 /// </para>
 /// <para>
 /// The services are substituted and left unconfigured on purpose. A rule that
@@ -32,6 +32,7 @@ internal static class RuleFixture
         IPolicyReader? policy = null,
         IFileSystem? fileSystem = null,
         IProcessRunner? processes = null,
+        IVolumeProbe? volumes = null,
         ValidationStage stage = ValidationStage.PreSubmit,
         BuildTarget? target = null,
         DirectoryInfo? workspaceRoot = null) => new()
@@ -44,6 +45,13 @@ internal static class RuleFixture
             Logger = Substitute.For<IRuleLogger>(),
             FileSystem = fileSystem ?? Substitute.For<IFileSystem>(),
             Processes = processes ?? Substitute.For<IProcessRunner>(),
+
+            // Null, and not a substitute like the four above it. A host that
+            // offers no volume probe is a specified input with a specified
+            // answer, and defaulting to a substitute would make that case
+            // reachable only by a test that opts out of the default — which is
+            // the test nobody writes.
+            Volumes = volumes,
         };
 
     /// <summary>
@@ -57,6 +65,18 @@ internal static class RuleFixture
 
     public static IPolicyReader PolicyWith(string key, object? value) =>
         new StubPolicy(new Dictionary<string, object?> { [key] = value });
+
+    /// <summary>
+    /// A policy carrying several keys at once.
+    /// </summary>
+    /// <remarks>
+    /// A rule whose configuration is several dotted keys — the platform SDK's
+    /// command, its arguments and its bounds — cannot be arranged one key at a
+    /// time, and chaining single-key builders would build a policy that
+    /// remembers only the last one.
+    /// </remarks>
+    public static IPolicyReader PolicyWith(IReadOnlyDictionary<string, object?> values) =>
+        new StubPolicy(values);
 
     public static ChangedFile Added(string path) => new(path, ChangeKind.Added);
 

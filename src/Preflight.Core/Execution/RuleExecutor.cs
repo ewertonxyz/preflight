@@ -230,5 +230,6 @@ public sealed class RuleExecutor
         Logger = _loggers.ForRule(ruleId),
         FileSystem = request.FileSystem,
         Processes = request.Processes,
+        Volumes = request.Volumes,
     };
 }

@@ -40,6 +40,15 @@ public sealed record CommandEnvironment
     /// <summary>How a rule starts a child process and reads what it printed.</summary>
     public required IProcessRunner Processes { get; init; }
 
+    /// <summary>How a rule reads free space on a volume.</summary>
+    /// <remarks>
+    /// Required here and optional on the rule context, and the asymmetry is
+    /// deliberate: every link of the chain from the command line down to the
+    /// rule is mandatory except the last, and the last is the one a plugin
+    /// author has to be able to leave out.
+    /// </remarks>
+    public required IVolumeProbe Volumes { get; init; }
+
     /// <summary>
     /// How <c>measure</c> starts a child process and gets out of its way.
     /// </summary>

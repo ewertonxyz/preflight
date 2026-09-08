@@ -29,6 +29,7 @@ using Preflight.Abstractions.Rules;
 /// </remarks>
 internal sealed record WorkspaceManifestRead(
     string ManifestPath,
+    string RelativePath,
     WorkspaceManifest? Manifest,
     Finding? Malformed)
 {
@@ -45,20 +46,24 @@ internal sealed record WorkspaceManifestRead(
         RuleContext context,
         CancellationToken cancellationToken)
     {
-        var manifestPath = Path.Combine(
-            context.WorkspaceRoot.FullName,
-            context.Policy.GetValue("manifestPath", WorkspaceManifest.DefaultFileName));
+        var relativePath = context.Policy.GetValue("manifestPath", WorkspaceManifest.DefaultFileName);
+        var manifestPath = Path.Combine(context.WorkspaceRoot.FullName, relativePath);
 
         try
         {
             return new WorkspaceManifestRead(
                 manifestPath,
+                relativePath,
                 await WorkspaceManifest.LoadAsync(context.FileSystem, manifestPath, cancellationToken),
                 Malformed: null);
         }
         catch (JsonException exception)
         {
-            return new WorkspaceManifestRead(manifestPath, Manifest: null, NotValidJson(manifestPath, exception));
+            return new WorkspaceManifestRead(
+                manifestPath,
+                relativePath,
+                Manifest: null,
+                NotValidJson(relativePath, exception));
         }
     }
 
@@ -68,6 +73,11 @@ internal sealed record WorkspaceManifestRead(
     /// sometimes not the manifest at all, but a policy pointing
     /// <c>manifestPath</c> at some other JSON file that was never meant to be
     /// one.
+    ///
+    /// The path is the one relative to the workspace root, like every other
+    /// rule's. An absolute path carries the name of the account that ran the
+    /// tool, and this message reaches a build log that many more people read
+    /// than ran it.
     /// </remarks>
     private static Finding NotValidJson(string manifestPath, JsonException exception) => new()
     {
