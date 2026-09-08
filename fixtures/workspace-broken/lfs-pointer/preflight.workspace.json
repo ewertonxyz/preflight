@@ -1,0 +1,30 @@
+{
+  // The tool this workspace is built with. Two explicit bounds, no range
+  // grammar.
+  "tools": [
+    {
+      "name": "git",
+      "command": "git",
+      "arguments": ["--version"],
+      "minimumVersion": "2.0.0"
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "Serilog",
+      "version": "3.1.1",
+      "restoredMarker": "packages/serilog"
+    }
+  ],
+
+  // A floor of one byte, which is true of any machine able to run the suite at
+  // all. A realistic number would be a fixture whose verdict depends on the
+  // size of the disk it happens to run on: it fails everywhere today and passes
+  // in silence on the first machine with a bigger array.
+  "freeSpace": [
+    {
+      "path": ".",
+      "minimumBytes": 1
+    }
+  ]
+}

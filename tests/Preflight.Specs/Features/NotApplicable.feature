@@ -24,7 +24,29 @@ Feature: Not applicable is not passed
     # finds an overlay that disabled everything.
     Scenario: Every rule of the stage disabled succeeds, out loud
         Given the workspace needs git "2.0.0" or newer
-        When preflight is invoked with "run --stage workspace --set core.workspace.toolchain:enabled=false --set core.workspace.dependencies:enabled=false"
+        When preflight is invoked with "run --stage workspace --set core.workspace.toolchain:enabled=false --set core.workspace.dependencies:enabled=false --set core.workspace.free-space:enabled=false --set core.workspace.approved-dependencies:enabled=false"
         Then it exits with code 0
         And the report says "0 rules executed"
         And the report says "disabled by policy"
+
+    # The only place free space is proved end to end, in a real process where
+    # the observable is an exit code. Every layer below this one substitutes the
+    # probe, so all of them stay green with the shipped one never handed to a
+    # rule at all — and the rule that never receives it reports that it checked
+    # nothing, forever, in silence.
+    #
+    # The floor is larger than any volume that exists, which is what makes the
+    # verdict independent of the disk the suite happens to run on. A realistic
+    # number would fail everywhere today and pass on the first machine with a
+    # bigger array.
+    Scenario: A free-space floor no volume can meet blocks the run
+        Given the file "preflight.workspace.json" contains
+            """
+            {
+              "tools": [],
+              "freeSpace": [{ "path": ".", "minimumBytes": 9000000000000000000 }]
+            }
+            """
+        When preflight is invoked with "run --stage workspace"
+        Then it exits with code 1
+        And the report says "core.workspace.free-space"

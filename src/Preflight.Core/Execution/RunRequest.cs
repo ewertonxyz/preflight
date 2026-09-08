@@ -33,6 +33,19 @@ public sealed record RunRequest
     public required IProcessRunner Processes { get; init; }
 
     /// <summary>
+    /// Reads free space on the volumes the workspace declares.
+    /// </summary>
+    /// <remarks>
+    /// Required here and optional on the rule context, and the asymmetry is the
+    /// point. The context is the plugin contract and cannot demand a new member
+    /// without breaking every author who builds one in a test; this record is
+    /// assembled only by whoever hosts the tool, so requiring it makes a host
+    /// that forgot the probe fail to compile rather than serve "not applicable"
+    /// forever.
+    /// </remarks>
+    public required IVolumeProbe Volumes { get; init; }
+
+    /// <summary>
     /// Where cached results live, or <see langword="null"/> for no caching.
     /// </summary>
     /// <remarks>

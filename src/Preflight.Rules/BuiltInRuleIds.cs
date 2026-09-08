@@ -25,4 +25,16 @@ public static class BuiltInRuleIds
     public static readonly RuleId BuildConfiguration = new("core.build.configuration");
 
     public static readonly RuleId CompileProbe = new("core.build.compile-probe");
+
+    public static readonly RuleId LfsPointer = new("core.presubmit.lfs-pointer");
+
+    public static readonly RuleId PathPortability = new("core.presubmit.path-portability");
+
+    public static readonly RuleId CompanionFile = new("core.presubmit.companion-file");
+
+    public static readonly RuleId FreeSpace = new("core.workspace.free-space");
+
+    public static readonly RuleId ApprovedDependencies = new("core.workspace.approved-dependencies");
+
+    public static readonly RuleId PlatformSdk = new("core.build.platform-sdk");
 }

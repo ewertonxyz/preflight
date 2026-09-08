@@ -1,0 +1,26 @@
+{
+  // The same tool the good fixture declares, so nothing else in this directory
+  // fails for a second reason.
+  "tools": [
+    {
+      "name": "git",
+      "command": "git",
+      "arguments": ["--version"],
+      "minimumVersion": "2.0.0"
+    }
+  ],
+
+  // The break. The test's policy approves Serilog and nothing else, and this
+  // workspace declares a second dependency nobody agreed to.
+  "dependencies": [
+    { "id": "Serilog", "version": "3.1.1" },
+    { "id": "Newtonsoft.Json", "version": "13.0.3" }
+  ],
+
+  "freeSpace": [
+    {
+      "path": ".",
+      "minimumBytes": 1
+    }
+  ]
+}

@@ -1,7 +1,9 @@
 namespace Preflight.Core.Tests.Plugins;
 
+using System.Xml.Linq;
 using Preflight.Abstractions.Rules;
 using Preflight.Core.Plugins;
+using Preflight.TestSupport;
 
 /// <summary>
 /// The refusal table of the plugin version contract, row by row.
@@ -103,16 +105,41 @@ public sealed class AbstractionsCompatibilityTests
     }
 
     /// <summary>
-    /// The version the tool advertises is the one its contract assembly
-    /// carries.
+    /// The host version is the number the contract project declares.
     /// </summary>
     /// <remarks>
-    /// Read once and cached, so a defect here is a refusal table computed
-    /// against the wrong number for the life of the process rather than for one
-    /// call.
+    /// Against the csproj rather than against the loaded assembly. Comparing it
+    /// with the assembly it is read from asserts that a value equals itself:
+    /// the test cannot fail, whatever either side says. The declaration is the
+    /// independent statement of the same fact, and it is the one a person edits
+    /// when the contract moves.
     /// </remarks>
     [Fact]
-    public void HostVersion_IsTheVersionOfTheContractAssembly() =>
-        AbstractionsCompatibility.HostVersion
-            .ShouldBe(typeof(IValidationRule).Assembly.GetName().Version!);
+    public void HostVersion_IsTheVersionDeclaredInTheContractCsproj() =>
+        AbstractionsCompatibility.HostVersion.ShouldBe(DeclaredContractVersion());
+
+    /// <summary>
+    /// The <c>&lt;Version&gt;</c> the contract project declares, as a version.
+    /// </summary>
+    /// <remarks>
+    /// A three-part version declared in the csproj becomes a four-part assembly
+    /// version with a zero revision, so the comparison is made on the same
+    /// shape rather than on the text.
+    /// </remarks>
+    internal static Version DeclaredContractVersion()
+    {
+        var csproj = XDocument.Load(
+            RepositoryLayout.PathFromRoot(
+                "src",
+                AbstractionsCompatibility.AssemblyName,
+                $"{AbstractionsCompatibility.AssemblyName}.csproj"));
+
+        var declared = Version.Parse(csproj.Descendants("Version").Single().Value);
+
+        return new Version(
+            declared.Major,
+            declared.Minor,
+            Math.Max(declared.Build, 0),
+            Math.Max(declared.Revision, 0));
+    }
 }

@@ -1,6 +1,7 @@
 namespace Preflight.Cli.Tests.Commands;
 
 using System.Text;
+using System.Text.RegularExpressions;
 using NSubstitute;
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
@@ -14,7 +15,7 @@ using Preflight.Core.Policy;
 
 /// <summary>
 /// Runs the four commands of the command surface end to end, against a real
-/// workspace on disk and the six real rules.
+/// workspace on disk and the twelve real rules.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -178,7 +179,9 @@ public sealed class CommandEndToEndTests : IDisposable
               "schemaVersion": 1,
               "rules": {
                 "core.workspace.toolchain": { "enabled": false },
-                "core.workspace.dependencies": { "enabled": false }
+                "core.workspace.dependencies": { "enabled": false },
+                "core.workspace.free-space": { "enabled": false },
+                "core.workspace.approved-dependencies": { "enabled": false }
               }
             }
             """);
@@ -684,7 +687,7 @@ public sealed class CommandEndToEndTests : IDisposable
     }
 
     /// <summary>
-    /// <c>--format dot</c> writes a digraph over the six real rules.
+    /// <c>--format dot</c> writes a digraph over the twelve real rules.
     /// </summary>
     /// <remarks>
     /// The count of distinct quoted identifiers rather than a containment
@@ -704,12 +707,66 @@ public sealed class CommandEndToEndTests : IDisposable
         rendered.ShouldContain("rankdir=LR");
         rendered.ShouldContain("\"core.build.compile-probe\"");
 
-        System.Text.RegularExpressions.Regex
+        Regex
             .Matches(rendered, "\"(?<id>[a-z0-9.-]+)\"")
             .Select(match => match.Groups["id"].Value)
             .Distinct(StringComparer.Ordinal)
             .Count()
             .ShouldBe(Preflight.Rules.Tests.BuiltInRuleDescriptorsTests.Discovered().Count);
+    }
+
+    /// <summary>
+    /// The three rules added off the toolchain hang off the toolchain.
+    /// </summary>
+    /// <remarks>
+    /// The count assertions above adjust themselves to whatever the graph turns
+    /// out to be, so every one of them stays green with a new edge pointing at
+    /// the wrong parent. This names the parent. Hanging the platform SDK off the
+    /// build configuration instead would let a missing configuration file hide a
+    /// missing SDK — two independent facts reported as one.
+    /// </remarks>
+    [Fact]
+    public void Graph_HangsTheThreeNewWorkspaceAndBuildRulesOffTheToolchain()
+    {
+        Invoke("graph").ShouldBe(0);
+
+        var printed = _output.ToString();
+
+        foreach (var id in NewRulesHangingOffTheToolchain)
+        {
+            // The whole line, with the arrow, rather than the two ids
+            // separately. A containment check on each would pass while the edge
+            // pointed somewhere else entirely.
+            printed.ShouldMatch($@"{Regex.Escape(id)}\s+<- core\.workspace\.toolchain");
+        }
+    }
+
+    private static readonly string[] NewRulesHangingOffTheToolchain =
+    [
+        "core.workspace.free-space",
+        "core.workspace.approved-dependencies",
+        "core.build.platform-sdk",
+    ];
+
+    /// <summary>
+    /// A rule added in this set explains itself.
+    /// </summary>
+    /// <remarks>
+    /// <c>explain</c> is the screen that answers "where did this number come
+    /// from", and a rule the command does not know reports "unknown rule" —
+    /// which reads as the rule not existing rather than as the command not
+    /// having been told about it.
+    /// </remarks>
+    [Fact]
+    public void Explain_ForARuleAddedInThisSet_PrintsItsDescriptorAndSettings()
+    {
+        Invoke("explain", "core.workspace.free-space").ShouldBe(0);
+
+        var printed = _output.ToString();
+
+        printed.ShouldContain("core.workspace.free-space");
+        printed.ShouldContain("workspace", Case.Insensitive);
+        printed.ShouldContain("core.workspace.toolchain");
     }
 
     /// <remarks>

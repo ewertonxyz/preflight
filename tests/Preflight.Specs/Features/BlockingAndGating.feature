@@ -14,7 +14,8 @@ Feature: Blocking and gating
     report.
 
     The lever is core.workspace.toolchain: the only root of the workspace stage,
-    with core.workspace.dependencies depending on it. A version nothing
+    with core.workspace.dependencies, core.workspace.free-space and
+    core.workspace.approved-dependencies all depending on it. A version nothing
     satisfies fails it on demand, with no compiler and no SDK involved.
 
     Background:

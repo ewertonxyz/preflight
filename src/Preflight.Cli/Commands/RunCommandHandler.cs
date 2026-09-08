@@ -61,6 +61,7 @@ public static class RunCommandHandler
                     WorkspaceRoot = environment.WorkspaceRoot,
                     FileSystem = environment.FileSystem,
                     Processes = environment.Processes,
+                    Volumes = environment.Volumes,
                     ChangedFiles = changed,
                     PolicyChain = resolved.Chain,
                     Pipeline = resolved.Selection.Pipeline,

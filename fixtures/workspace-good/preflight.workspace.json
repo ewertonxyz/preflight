@@ -15,5 +15,30 @@
       "version": "3.1.1",
       "restoredMarker": "packages/serilog"
     }
-  ]
+  ],
+
+  // A floor of one byte, which is true of any machine able to run the suite at
+  // all. A realistic number would be a fixture whose verdict depends on the
+  // size of the disk it happens to run on: it fails everywhere today and passes
+  // in silence on the first machine with a bigger array.
+  "freeSpace": [
+    {
+      "path": ".",
+      "minimumBytes": 1
+    }
+  ],
+
+  // A probe that succeeds and does nothing else, mirroring the failing one in
+  // the broken fixture beside it. A real compiler here would tie the fixture to
+  // whatever happens to be installed, and the rule's job is to read a compiler's
+  // verdict rather than to own a toolchain.
+  //
+  // It is declared at all so that every rule reaches its own positive path
+  // against this directory. Without it the probe reports that it checked
+  // nothing, which reads as success in a summary and is the opposite of what a
+  // fixture named "good" is for.
+  "compileProbe": {
+    "command": "cmd",
+    "arguments": ["/c", "exit 0"]
+  }
 }

@@ -107,11 +107,19 @@ public sealed class CachePathsTests
         Key(ruleId: new RuleId("core.a.ab"), fingerprint: new CacheFingerprint("c"))
             .ShouldNotBe(Key(ruleId: new RuleId("core.a.a"), fingerprint: new CacheFingerprint("bc")));
 
+    /// <summary>
+    /// The generation the cache directory is named after.
+    /// </summary>
+    /// <remarks>
+    /// A literal, and deliberately not computed from the loaded assembly. The
+    /// computed form asserts that a value equals itself and cannot fail — while
+    /// this number changing orphans every cached result on every machine, which
+    /// is a deliberate and visible event rather than something that should
+    /// happen because somebody edited a csproj.
+    /// </remarks>
     [Fact]
-    public void AbstractionsGeneration_IsTheGenerationOfTheContractAssembly() =>
-        CachePaths.AbstractionsGeneration.ShouldBe(
-            AbstractionsCompatibility.GenerationOf(
-                typeof(IValidationRule).Assembly.GetName().Version!));
+    public void AbstractionsGeneration_IsTheDeclaredGeneration() =>
+        CachePaths.AbstractionsGeneration.ShouldBe("0.2");
 
     /// <summary>
     /// Every kind of policy value renders to something of its own.

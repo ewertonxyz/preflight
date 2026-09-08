@@ -85,4 +85,33 @@ public sealed class AbstractionsDependencyTests
         csproj.Descendants("PackageReference").ShouldBeEmpty();
         csproj.Descendants("ProjectReference").ShouldBeEmpty();
     }
+
+    /// <summary>
+    /// The assembly version follows the version the csproj declares.
+    /// </summary>
+    /// <remarks>
+    /// The csproj says in prose that <c>AssemblyVersion</c> is deliberately
+    /// left to follow <c>Version</c> rather than being pinned to
+    /// <c>major.0.0.0</c>, and that pinning it would collapse the first two
+    /// rows of the plugin compatibility table into "always loads". Until now
+    /// that was two statements of one fact with nothing tying them together:
+    /// somebody adding an <c>AssemblyVersion</c> property would have changed
+    /// which plugins load, and no test would have said so.
+    /// </remarks>
+    [Fact]
+    public void Abstractions_AssemblyVersionFollowsTheVersionDeclaredInItsCsproj()
+    {
+        var csproj = XDocument.Load(
+            PathFromRoot("src", AbstractionsAssemblyName, $"{AbstractionsAssemblyName}.csproj"));
+
+        var declared = Version.Parse(csproj.Descendants("Version").Single().Value);
+        var loaded = Assembly.Load(new AssemblyName(AbstractionsAssemblyName)).GetName().Version!;
+
+        // Compared on major, minor and build. A three-part declaration becomes a
+        // four-part assembly version with a zero revision, and the revision is
+        // not something anybody declares here.
+        loaded.Major.ShouldBe(declared.Major);
+        loaded.Minor.ShouldBe(declared.Minor);
+        loaded.Build.ShouldBe(Math.Max(declared.Build, 0));
+    }
 }

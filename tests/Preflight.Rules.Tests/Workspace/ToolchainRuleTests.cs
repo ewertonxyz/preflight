@@ -157,16 +157,21 @@ public sealed class ToolchainRuleTests
     /// "command not found" on stdout, or a launcher that exits silently. An
     /// empty <c>Actual</c> would render as a label with nothing after it, which
     /// reads as the report being broken rather than the tool being absent.
+    ///
+    /// The literal, not merely "not blank". The line it guards is a ternary
+    /// whose two arms both produce non-blank text, so a non-blank assertion
+    /// passes whichever arm ran and the branch that distinguishes them has
+    /// nobody watching it.
     /// </remarks>
     [Fact]
-    public async Task ExecuteAsync_WhenTheToolFailsSilently_StillSaysSomething()
+    public async Task ExecuteAsync_WhenTheToolFailsSilently_SaysTheCommandCouldNotBeRun()
     {
         var outcome = await Run(
             ManifestContaining(ManifestFor()),
             RunnerPrinting(string.Empty, exitCode: 1, standardError: string.Empty));
 
         outcome.Status.ShouldBe(RuleStatus.Failed);
-        outcome.Findings.ShouldHaveSingleItem().Actual.ShouldNotBeNullOrWhiteSpace();
+        outcome.Findings.ShouldHaveSingleItem().Actual.ShouldBe("the command could not be run");
     }
 
     /// <summary>
@@ -265,7 +270,8 @@ public sealed class ToolchainRuleTests
     }
 
     /// <summary>
-    /// A token with more than four components keeps the first four.
+    /// A token with more than four components keeps the first four, and the
+    /// four it kept are what the report shows.
     /// </summary>
     /// <remarks>
     /// <see cref="Version"/> holds four, and keeping the leading four is what
@@ -273,11 +279,20 @@ public sealed class ToolchainRuleTests
     /// refusing anything that is not exactly a version — reports a machine that
     /// has git installed as having none, and the developer it happens to has no
     /// way to tell that from the tool genuinely being absent.
+    ///
+    /// Asserted through the finding rather than against the parser alone,
+    /// because parsing the four and then reporting something else is a defect a
+    /// parser test cannot see.
     /// </remarks>
     [Fact]
-    public void ParseVersion_WithMoreComponentsThanVersionHolds_KeepsTheLeadingFour()
+    public async Task ExecuteAsync_WithMoreVersionComponentsThanVersionHolds_ReportsTheLeadingFour()
     {
-        ToolchainRule.ParseVersion("1.2.3.4.5").ShouldBe(new Version(1, 2, 3, 4));
+        var outcome = await Run(
+            ManifestContaining(ManifestFor(minimum: null, maximum: "1.0.0")),
+            RunnerPrinting("1.2.3.4.5"));
+
+        outcome.Status.ShouldBe(RuleStatus.Failed);
+        outcome.Findings.ShouldHaveSingleItem().Actual.ShouldBe("1.2.3.4");
     }
 
     /// <remarks>
@@ -423,5 +438,77 @@ public sealed class ToolchainRuleTests
             CancellationToken.None);
 
         fileSystem.Received().FileExists(Arg.Is<string>(path => path.EndsWith("tools.json", StringComparison.Ordinal)));
+    }
+
+    /// <summary>
+    /// The four failure texts, whole.
+    /// </summary>
+    /// <remarks>
+    /// Every other assertion in this file reaches for a fragment, which leaves
+    /// the sentence around the fragment free to change without anything going
+    /// red. These four strings are what a reader of a failing build actually
+    /// sees, and they are asserted entire so that a refactor which rewrites
+    /// them has to say so.
+    /// </remarks>
+    [Theory]
+    [InlineData(
+        "not-installed",
+        "'.NET SDK' is not available.",
+        "'dotnet' on PATH",
+        "no such executable",
+        "Install '.NET SDK' and make sure 'dotnet' is on PATH.")]
+    [InlineData(
+        "non-zero-exit",
+        "'.NET SDK' is not available.",
+        "'dotnet' on PATH",
+        "command not found",
+        "Install '.NET SDK' and make sure 'dotnet' is on PATH.")]
+    [InlineData(
+        "unreadable-version",
+        "Could not read a version from '.NET SDK'.",
+        "a version number on the first line of output",
+        "no version here",
+        "Check that 'dotnet --version' prints a version.")]
+    [InlineData(
+        "out-of-range",
+        "'.NET SDK' is outside the accepted version range.",
+        "at least 10.0.0, below 11.0.0",
+        "9.0.400",
+        "Install '.NET SDK' at a version inside the accepted range.")]
+    public async Task ExecuteAsync_ForEachFailureMode_ProducesTheExactFindingText(
+        string mode,
+        string message,
+        string expected,
+        string actual,
+        string remediation)
+    {
+        var outcome = await Run(ManifestContaining(ManifestFor()), RunnerFor(mode));
+
+        var finding = outcome.Findings.ShouldHaveSingleItem();
+
+        finding.Message.ShouldBe(message);
+        finding.Expected.ShouldBe(expected);
+        finding.Actual.ShouldBe(actual);
+        finding.Remediation.ShouldBe(remediation);
+    }
+
+    private static IProcessRunner RunnerFor(string mode)
+    {
+        if (mode != "not-installed")
+        {
+            return mode switch
+            {
+                "non-zero-exit" => RunnerPrinting(string.Empty, exitCode: 127, standardError: "command not found"),
+                "unreadable-version" => RunnerPrinting("no version here"),
+                _ => RunnerPrinting("9.0.400"),
+            };
+        }
+
+        var runner = Substitute.For<IProcessRunner>();
+
+        runner.RunAsync(Arg.Any<ProcessRequest>(), Arg.Any<CancellationToken>())
+            .Returns<Task<ProcessResult>>(_ => throw new InvalidOperationException("no such executable"));
+
+        return runner;
     }
 }

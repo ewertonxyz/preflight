@@ -1,5 +1,7 @@
 namespace Preflight.Core.Tests.Contract;
 
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using Preflight.Abstractions.Model;
 using Preflight.Abstractions.Rules;
 using Preflight.Abstractions.Services;
@@ -18,7 +20,7 @@ using Preflight.Abstractions.Services;
 public sealed class RuleContextTests
 {
     [Fact]
-    public void RuleContext_ExposesExactlyTheEightRequiredMembers_AndHasNoIChangeSourceProperty()
+    public void RuleContext_ExposesEightRequiredMembersAndOneOptionalProbe_AndHasNoIChangeSourceProperty()
     {
         var properties = typeof(RuleContext).GetProperties()
             .ToDictionary(property => property.Name, property => property.PropertyType);
@@ -33,6 +35,7 @@ public sealed class RuleContextTests
                 "Logger",
                 "FileSystem",
                 "Processes",
+                "Volumes",
             ],
             ignoreOrder: true);
 
@@ -44,7 +47,30 @@ public sealed class RuleContextTests
         properties["Logger"].ShouldBe(typeof(IRuleLogger));
         properties["FileSystem"].ShouldBe(typeof(IFileSystem));
         properties["Processes"].ShouldBe(typeof(IProcessRunner));
+        properties["Volumes"].ShouldBe(typeof(IVolumeProbe));
 
         properties.Values.ShouldNotContain(typeof(IChangeSource));
+    }
+
+    /// <summary>
+    /// The ninth member is the only one that is not required.
+    /// </summary>
+    /// <remarks>
+    /// This is the whole reason the volume probe arrived the way it did. A rule
+    /// author builds a context by hand in their own unit tests, and a required
+    /// member added here would break every one of those — to serve a capability
+    /// exactly one rule needs. A rule that finds it absent reports that it
+    /// checked nothing instead.
+    /// </remarks>
+    [Fact]
+    public void RuleContext_Volumes_IsNotRequired()
+    {
+        typeof(RuleContext).GetProperty("Volumes")!
+            .GetCustomAttribute<RequiredMemberAttribute>()
+            .ShouldBeNull("A required member here breaks every plugin author's own tests.");
+
+        typeof(RuleContext).GetProperty("FileSystem")!
+            .GetCustomAttribute<RequiredMemberAttribute>()
+            .ShouldNotBeNull("The four services every rule can count on stay required.");
     }
 }

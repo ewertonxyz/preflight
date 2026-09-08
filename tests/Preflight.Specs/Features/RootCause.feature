@@ -42,8 +42,14 @@ Feature: Root cause attribution
     # Disabling a root removes the cost of every rule that existed only to
     # serve it. Taking the closure first and subtracting the disabled after
     # would leave them running and able to fail the run.
+    #
+    # The platform SDK rule is disabled alongside the other two because it is a
+    # second root of this stage rather than a link in the same chain: it hangs
+    # off the toolchain, not off the build configuration, so that a missing
+    # configuration file cannot hide a missing SDK. This scenario used to encode
+    # the assumption that build-readiness was one chain, and it no longer is.
     Scenario: Disabling the root of a stage eliminates the whole chain
         Given the workspace needs git "999.0.0" or newer
-        When preflight is invoked with "run --stage build-readiness --set core.build.configuration:enabled=false --set core.build.compile-probe:enabled=false"
+        When preflight is invoked with "run --stage build-readiness --set core.build.configuration:enabled=false --set core.build.compile-probe:enabled=false --set core.build.platform-sdk:enabled=false"
         Then it exits with code 0
         And the report says "0 rules executed"

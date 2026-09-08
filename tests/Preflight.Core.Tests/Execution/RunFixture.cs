@@ -35,6 +35,7 @@ internal static class RunFixture
         ChangedFiles = [],
         FileSystem = Substitute.For<IFileSystem>(),
         Processes = Substitute.For<IProcessRunner>(),
+        Volumes = Substitute.For<IVolumeProbe>(),
         PolicyChain = ["preflight.base.json", "preflight.atlas.json"],
         Pipeline = "atlas",
         RunId = FixedRunId,
