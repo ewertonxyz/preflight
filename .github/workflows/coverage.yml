@@ -21,7 +21,11 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # A superseded pull request run costs nothing; only the head commit's verdict
+  # matters there. A superseded push run costs the verdict of a commit that is
+  # already on a shared branch - two merges a minute apart would leave the first
+  # one never judged, which is the commit somebody bisecting a red dev needs.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   coverage:
@@ -38,20 +42,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # global-json-file, not dotnet-version. global.json pins 10.0.400 with
-      # rollForward: latestFeature, which accepts 10.0.4xx and above only.
-      - name: Set up .NET
-        uses: actions/setup-dotnet@v6
-        with:
-          global-json-file: global.json
-
-      - name: Cache NuGet packages
-        uses: actions/cache@v6
-        with:
-          path: ~/.nuget/packages
-          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', 'global.json', '.config/dotnet-tools.json', '**/*.csproj') }}
-          restore-keys: |
-            nuget-${{ runner.os }}-
+      - name: Set up the .NET toolchain
+        uses: ./.github/actions/dotnet-toolchain
 
       # The script, not a reimplementation of it in YAML. It carries the exclude
       # list, the .Tests/.Specs discriminator, and the guard that fails a run
@@ -72,27 +64,62 @@ jobs:
           & .\scripts\coverage.ps1 -Configuration Release
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      # The uploader treats an input file it cannot find as a warning and
-      # uploads the rest, and fail_ci_if_error does not cover that: a path that
-      # matches nothing costs a quarter of the measurement and still leaves the
-      # job green. The collect step above names these four files, so their
-      # absence here means either it changed or the list below is stale.
-      - name: Check the reports exist
+      # What gets uploaded is read off what the step above actually wrote, and
+      # is never typed out here. The script discovers its test projects by their
+      # .Tests and .Specs suffix and fails a run that measured fewer than it
+      # found, so the contents of the raw directory are already the complete
+      # set. A list written by hand instead names today's four projects forever:
+      # the day a fifth arrives, the script measures it, this file uploads four,
+      # and the job is green over three quarters of the suite. The uploader does
+      # not catch that either - it treats an input file it cannot find as a
+      # warning and uploads the rest, which fail_ci_if_error does not cover.
+      #
+      # Nothing stale can be picked up. The script removes the raw directory
+      # before it collects, and on a fresh clone there is none to begin with, so
+      # every file listed here was written by the run that is uploading it.
+      #
+      # One line, comma-separated, and no whitespace anywhere near a comma. That
+      # is the only form the action accepts, and both of the obvious ways of
+      # writing several paths in YAML have already failed here:
+      #
+      #   files: |          a block scalar. The action's wrapper sets IFS=","
+      #                     before splitting this value, so newlines are not
+      #                     separators at all. All four paths arrived as ONE
+      #                     --file argument with newlines inside it, matching no
+      #                     file, and the run failed with "No coverage reports
+      #                     found" having uploaded nothing.
+      #
+      #   files: >-         a folded scalar of comma-separated paths. Folding
+      #                     turns each newline into a space, the wrapper splits
+      #                     on the comma and does not trim, and every path after
+      #                     the first arrived with a leading space. Three of the
+      #                     four went missing that way and the badge reported one
+      #                     test project as though it were the whole suite.
+      - name: List the coverage reports
+        id: reports
         shell: pwsh
         run: |
-          $expected = @(
-            'artifacts/coverage/raw/Preflight.Cli.Tests.cobertura.xml'
-            'artifacts/coverage/raw/Preflight.Core.Tests.cobertura.xml'
-            'artifacts/coverage/raw/Preflight.Rules.Tests.cobertura.xml'
-            'artifacts/coverage/raw/Preflight.Specs.cobertura.xml'
-          )
+          $rawDir = 'artifacts/coverage/raw'
 
-          $missing = @($expected | Where-Object { -not (Test-Path -LiteralPath $_) })
-
-          if ($missing.Count -gt 0) {
-            Write-Error "Coverage reports missing: $($missing -join ', ')"
+          if (-not (Test-Path -LiteralPath $rawDir)) {
+            Write-Error "Coverage collection wrote no $rawDir directory. There is nothing to upload."
             exit 1
           }
+
+          $reports = @(
+            Get-ChildItem -LiteralPath $rawDir -Filter '*.cobertura.xml' -File |
+              Sort-Object -Property Name |
+              ForEach-Object { "$rawDir/$($_.Name)" }
+          )
+
+          if ($reports.Count -eq 0) {
+            Write-Error "Coverage collection produced no report in $rawDir. There is nothing to upload."
+            exit 1
+          }
+
+          Write-Host "Reports to upload ($($reports.Count)): $($reports -join ', ')"
+          "files=$($reports -join ',')" |
+            Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       # ReportGenerator already writes this file; not using it would mean
       # generating a report for nobody.
@@ -144,45 +171,25 @@ jobs:
           Write-Host $note
           $note | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
 
-      # The four raw per-project reports, and this is measured rather than
-      # assumed. ReportGenerator's merged output records filename as the
-      # absolute path of the machine that measured, backslashes and all, and
-      # Codecov matches what it receives against the repository tree - so every
-      # file would land unmatched and the badge would be green over no data.
-      # That is why the merged report is no longer generated at all. The raw
-      # reports record filename="Preflight.Core/Changes/GitChangeSource.cs",
-      # relative and with forward slashes; .github/codecov.yml puts back the
-      # src/ prefix that <source> consumed. Codecov merges multiple uploads by
-      # taking the maximum hits per line, so nothing is counted twice.
+      # The raw per-project reports, and this is measured rather than assumed.
+      # ReportGenerator's merged output records filename as the absolute path of
+      # the machine that measured, backslashes and all, and Codecov matches what
+      # it receives against the repository tree - so every file would land
+      # unmatched and the badge would be green over no data. That is why the
+      # merged report is no longer generated at all. The raw reports record
+      # filename="Preflight.Core/Changes/GitChangeSource.cs", relative and with
+      # forward slashes; .github/codecov.yml puts back the src/ prefix that
+      # <source> consumed. Codecov merges multiple uploads by taking the maximum
+      # hits per line, so nothing is counted twice.
       #
-      # disable_search plus an explicit list, so a report added to the artifacts
-      # tree later never joins this upload by accident.
-      #
-      # One line, comma-separated, and no whitespace anywhere near a comma. This
-      # is not a style choice - it is the only form the action accepts, and both
-      # of the obvious alternatives have already failed here:
-      #
-      #   files: |          a block scalar. The action's wrapper sets IFS=","
-      #                     before splitting this value, so newlines are not
-      #                     separators at all. All four paths arrive as ONE
-      #                     --file argument with newlines inside it, matching no
-      #                     file, and the run fails with "No coverage reports
-      #                     found" having uploaded nothing.
-      #
-      #   files: >-         a folded scalar of comma-separated paths. Folding
-      #                     turns each newline into a space, the wrapper splits
-      #                     on the comma and does not trim, and every path after
-      #                     the first arrives with a leading space. Three of the
-      #                     four went missing that way and the badge reported one
-      #                     test project as though it were the whole suite.
-      #
-      # The single line is long. It is also the only version that has ever put
-      # four reports on Codecov.
+      # disable_search, so this upload carries the list the step above built out
+      # of what was measured, and nothing else the runner happens to find beside
+      # it.
       - name: Upload to Codecov
         if: steps.codecov_token.outputs.present == 'true'
         uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: artifacts/coverage/raw/Preflight.Cli.Tests.cobertura.xml,artifacts/coverage/raw/Preflight.Core.Tests.cobertura.xml,artifacts/coverage/raw/Preflight.Rules.Tests.cobertura.xml,artifacts/coverage/raw/Preflight.Specs.cobertura.xml
+          files: ${{ steps.reports.outputs.files }}
           disable_search: true
           fail_ci_if_error: true

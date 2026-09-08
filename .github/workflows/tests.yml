@@ -1,5 +1,9 @@
 name: Tests
 
+# The whole suite and nothing else: the unit tests, the command line's
+# end-to-end tests and the Gherkin specifications, run against a build this
+# workflow makes for itself. It says nothing about formatting and nothing about
+# coverage, so a failure here is always a behaviour that changed.
 on:
   push:
     branches: [main, dev]
@@ -12,7 +16,11 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # A superseded pull request run costs nothing; only the head commit's verdict
+  # matters there. A superseded push run costs the verdict of a commit that is
+  # already on a shared branch - two merges a minute apart would leave the first
+  # one never judged, which is the commit somebody bisecting a red dev needs.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   test:
@@ -23,18 +31,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Set up .NET
-        uses: actions/setup-dotnet@v6
-        with:
-          global-json-file: global.json
-
-      - name: Cache NuGet packages
-        uses: actions/cache@v6
-        with:
-          path: ~/.nuget/packages
-          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', 'global.json', '.config/dotnet-tools.json', '**/*.csproj') }}
-          restore-keys: |
-            nuget-${{ runner.os }}-
+      - name: Set up the .NET toolchain
+        uses: ./.github/actions/dotnet-toolchain
 
       - name: Restore
         run: dotnet restore
