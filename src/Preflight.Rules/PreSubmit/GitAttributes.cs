@@ -1,8 +1,9 @@
 namespace Preflight.Rules;
 
 /// <summary>
-/// The attributes file, read for the one question a rule asks it: which paths
-/// were declared to live in LFS.
+/// The attributes file, read for the two questions rules ask it: which paths
+/// were declared to live in LFS, and which line ending a path was declared to
+/// have.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -17,6 +18,16 @@ namespace Preflight.Rules;
 /// vendored files are not in LFS. Collapsing the file into a set of "LFS
 /// patterns" would lose the second line entirely and report a violation on a
 /// file the repository deliberately exempted.
+/// </para>
+/// <para>
+/// Last-rule-wins applies <em>per attribute</em>, so each question walks back to
+/// the last entry that mentions its own attribute and ignores entries that
+/// mention only the other. One shared walk was the obvious shape and is a silent
+/// regression the moment a second attribute exists: an LFS line followed by an
+/// ordinary line-ending line for the same pattern would answer "not tracked",
+/// and the rule that keeps a real binary out of the history would go quiet —
+/// with no branch changed anywhere, so nothing about the coverage would move
+/// either.
 /// </para>
 /// </remarks>
 internal sealed class GitAttributes
@@ -36,7 +47,17 @@ internal sealed class GitAttributes
     /// LFS line at all reports that nothing was checked rather than that
     /// everything passed.
     /// </remarks>
-    public bool DeclaresAnyLfsPattern => _entries.Any(entry => entry.Lfs);
+    public bool DeclaresAnyLfsPattern => _entries.Any(entry => entry.Lfs == true);
+
+    /// <summary>
+    /// Whether the file declared a line ending for any path at all.
+    /// </summary>
+    /// <remarks>
+    /// The counterpart of the question above, and asked for the same reason: an
+    /// attributes file that says nothing about line endings has to be
+    /// distinguishable from one that does and happened to match nothing.
+    /// </remarks>
+    public bool DeclaresAnyEol => _entries.Any(entry => entry.Eol is not null);
 
     /// <summary>
     /// Reads an attributes file.
@@ -71,9 +92,16 @@ internal sealed class GitAttributes
                 continue;
             }
 
-            if (LfsState(fields.AsSpan(1)) is { } lfs)
+            var attributes = fields.AsSpan(1);
+            var lfs = LfsState(attributes);
+            var eol = EolState(attributes);
+
+            // A line that answers neither question is not an entry at all.
+            // Recording it would give it a state nobody wrote, and
+            // last-rule-wins would then let it override the line above it.
+            if (lfs is not null || eol is not null)
             {
-                entries.Add(new Entry(GlobPattern.Compile(Translate(fields[0])), lfs));
+                entries.Add(new Entry(GlobPattern.Compile(Translate(fields[0])), lfs, eol));
             }
         }
 
@@ -87,24 +115,54 @@ internal sealed class GitAttributes
     /// A path relative to the workspace root, written with forward slashes.
     /// </param>
     /// <returns>
-    /// <see langword="true"/> when the last entry matching the path turns the
-    /// LFS filter on.
+    /// <see langword="true"/> when the last entry mentioning the LFS filter and
+    /// matching the path turns it on.
     /// </returns>
     public bool SendsToLfs(string relativePath)
     {
         ArgumentNullException.ThrowIfNull(relativePath);
 
-        // The last matching line wins, so the walk runs backwards and stops at
-        // the first hit rather than folding every match together.
+        return LastMatching(relativePath, entry => entry.Lfs) ?? false;
+    }
+
+    /// <summary>
+    /// Which line ending this path was declared to have.
+    /// </summary>
+    /// <param name="relativePath">
+    /// A path relative to the workspace root, written with forward slashes.
+    /// </param>
+    /// <returns>
+    /// What the last entry mentioning line endings and matching the path said.
+    /// </returns>
+    public EolRequirement EolFor(string relativePath)
+    {
+        ArgumentNullException.ThrowIfNull(relativePath);
+
+        return LastMatching(relativePath, entry => entry.Eol) ?? EolRequirement.Silent;
+    }
+
+    /// <summary>
+    /// What the last entry matching the path and mentioning this attribute said
+    /// about it.
+    /// </summary>
+    /// <remarks>
+    /// The walk runs backwards and stops at the first hit rather than folding
+    /// every match together, and it steps over entries that say nothing about
+    /// the attribute being asked for — which is what stops one question
+    /// answering the other's.
+    /// </remarks>
+    private T? LastMatching<T>(string relativePath, Func<Entry, T?> state)
+        where T : struct
+    {
         for (var index = _entries.Count - 1; index >= 0; index--)
         {
-            if (_entries[index].Pattern.Matches(relativePath))
+            if (state(_entries[index]) is { } value && _entries[index].Pattern.Matches(relativePath))
             {
-                return _entries[index].Lfs;
+                return value;
             }
         }
 
-        return false;
+        return null;
     }
 
     /// <summary>
@@ -112,8 +170,7 @@ internal sealed class GitAttributes
     /// </summary>
     /// <returns>
     /// <see langword="true"/> to turn it on, <see langword="false"/> to turn it
-    /// off, and <see langword="null"/> when the line does not mention it — in
-    /// which case the line is not an entry this type carries at all.
+    /// off, and <see langword="null"/> when the line does not mention it.
     /// </returns>
     /// <remarks>
     /// Compared token by token, and the value is compared exactly. A substring
@@ -131,6 +188,39 @@ internal sealed class GitAttributes
             {
                 "filter=lfs" => true,
                 "-filter" or "!filter" => false,
+                _ => state,
+            };
+        }
+
+        return state;
+    }
+
+    /// <summary>
+    /// Whether a line says anything about line endings, and what it says.
+    /// </summary>
+    /// <returns>
+    /// The requirement it declares, or <see langword="null"/> when the line does
+    /// not mention the question at all.
+    /// </returns>
+    /// <remarks>
+    /// A plain <c>text</c> or <c>text=auto</c> with no ending beside it answers
+    /// "silent" rather than nothing: the line does speak about text handling, so
+    /// it ends the walk, but what the client would actually write depends on a
+    /// machine-level setting and on the platform. Guessing there would make one
+    /// commit produce two verdicts on two machines.
+    /// </remarks>
+    private static EolRequirement? EolState(ReadOnlySpan<string> attributes)
+    {
+        EolRequirement? state = null;
+
+        foreach (var attribute in attributes)
+        {
+            state = attribute switch
+            {
+                "eol=lf" => EolRequirement.Lf,
+                "eol=crlf" => EolRequirement.Crlf,
+                "-text" or "!text" or "binary" => EolRequirement.Exempt,
+                "text" or "text=auto" => EolRequirement.Silent,
                 _ => state,
             };
         }
@@ -159,8 +249,8 @@ internal sealed class GitAttributes
     };
 
     /// <summary>
-    /// One line of an attributes file: a pattern, and whether it turns the LFS
-    /// filter on or off.
+    /// One line of an attributes file: a pattern, and what it says about each
+    /// question a rule asks. A null means the line was silent on that one.
     /// </summary>
-    private sealed record Entry(GlobPattern Pattern, bool Lfs);
+    private sealed record Entry(GlobPattern Pattern, bool? Lfs, EolRequirement? Eol);
 }

@@ -429,6 +429,35 @@ public static class CreateCommandHandler
           //   { "id": "Serilog", "version": "3.1.1", "restoredMarker": "packages/serilog" }
           "dependencies": []
 
+          // Optional. How the version control client has to be configured for
+          // this checkout. "expected" is compared exactly; leave it out when
+          // any non-empty value will do, which is how you check that a filter
+          // is installed without naming the program path it points at.
+          //
+          // Nothing found by a check without "expected" is ever printed, so a
+          // setting whose value is personal can be required without it
+          // reaching a build log.
+          //
+          // "vcs": {
+          //   "command": "git",
+          //   "settings": [
+          //     { "name": "core.longpaths", "expected": "true" },
+          //     { "name": "filter.lfs.clean" }
+          //   ]
+          // }
+
+          // Optional. The environment variables this workspace needs set.
+          //
+          // Names only, and that is deliberate rather than unfinished: with no
+          // way to say what a value should look like, the rule has nothing to
+          // print, and a secret can never reach a build log through it.
+          //
+          // "environment": ["ANDROID_NDK_ROOT", "UE_ROOT"]
+
+          // Optional. How much room each volume needs, in bytes.
+          //
+          // "freeSpace": [{ "path": ".", "minimumBytes": 10737418240 }]
+
           // Optional. How to compile-probe this workspace.
           //
           // {probeOutput} is replaced with a path outside the workspace,

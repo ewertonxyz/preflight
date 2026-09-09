@@ -13,10 +13,17 @@ Feature: Blocking and gating
     in a real process, where the observable is an exit code and a line of
     report.
 
-    The lever is core.workspace.toolchain: the only root of the workspace stage,
-    with core.workspace.dependencies, core.workspace.free-space and
-    core.workspace.approved-dependencies all depending on it. A version nothing
-    satisfies fails it on demand, with no compiler and no SDK involved.
+    The lever is core.workspace.toolchain, which everything in the stage that
+    starts a child process depends on: core.workspace.dependencies,
+    core.workspace.free-space, core.workspace.approved-dependencies,
+    core.workspace.vcs-configuration and core.workspace.submodule-pin. A version
+    nothing satisfies fails it on demand, with no compiler and no SDK involved.
+
+    It is not the only root of the stage. core.workspace.environment is the
+    other, and it hangs off nothing deliberately: it starts no process, so a
+    missing compiler makes the answer about an unset variable neither wrong nor
+    unreachable, and hanging it here would report an unset secret as "skipped
+    because the toolchain failed".
 
     Background:
         Given a workspace

@@ -113,37 +113,18 @@ public sealed class LfsPointerRule : IValidationRule
     }
 
     /// <remarks>
-    /// Reads in a loop rather than once. A stream is entitled to return fewer
-    /// bytes than were asked for, and does over a network share or behind a
-    /// filter driver — so a single read whose result was taken for the whole
-    /// head would call a legitimate pointer a blob, intermittently, on somebody
-    /// else's machine.
+    /// The limited read belongs to the shared probe, which several rules make
+    /// and which has the loop that survives a stream returning fewer bytes than
+    /// it was asked for. A second copy of that loop here would be a second place
+    /// the short read can come back, and only one of the two would have a test.
     /// </remarks>
     private static async Task<bool> IsPointerAsync(
         RuleContext context,
         string path,
         int probeBytes,
-        CancellationToken cancellationToken)
-    {
-        await using var stream = context.FileSystem.OpenRead(path);
-
-        var head = new byte[probeBytes];
-        var filled = 0;
-
-        while (filled < head.Length)
-        {
-            var read = await stream.ReadAsync(head.AsMemory(filled), cancellationToken);
-
-            if (read == 0)
-            {
-                break;
-            }
-
-            filled += read;
-        }
-
-        return LfsPointer.Recognises(head.AsSpan(0, filled));
-    }
+        CancellationToken cancellationToken) =>
+        LfsPointer.Recognises(
+            await TextProbe.ReadHeadAsync(context, path, probeBytes, cancellationToken));
 
     /// <remarks>
     /// The path and never the content. This rule opens files whose whole point

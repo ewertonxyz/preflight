@@ -1,6 +1,5 @@
 namespace Preflight.Core.Execution;
 
-using System.Collections;
 using Preflight.Abstractions.Services;
 
 /// <summary>
@@ -14,50 +13,25 @@ using Preflight.Abstractions.Services;
 /// reference an executable.
 /// </para>
 /// <para>
-/// The block is read once, when this is constructed, rather than on every call.
-/// Rules at one level of the graph run concurrently, and a live read would let
-/// two of them see different answers for the same name inside one run — a
-/// report that contradicts itself, produced by nothing anybody did wrong.
-/// </para>
-/// <para>
-/// Name lookup is the platform's own, which means it is case-insensitive on
-/// Windows and case-sensitive everywhere else. Choosing one and applying it
-/// everywhere would make the tool disagree with the shell that launched the
-/// build: a workspace declaring <c>path</c> would be told it is set on a Linux
-/// runner where nothing of that name exists.
+/// It asks the platform for each name rather than copying the block into a
+/// dictionary at construction. The copy was the first shape and it was wrong
+/// twice over. Name lookup has to match the shell that launched the build —
+/// case-insensitive on Windows, case-sensitive elsewhere — and the dictionary
+/// the runtime hands back compares ordinally on every platform, so the copy had
+/// to choose a comparer with a test of the operating system. That is a branch
+/// no single machine can take both sides of, which is a permanent hole in the
+/// count for a snapshot that protects against a mutation nothing in this tool
+/// performs: the one rule that reads the environment reads each name once, and
+/// no rule can write one.
 /// </para>
 /// </remarks>
 public sealed class ProcessEnvironmentProbe : IEnvironmentProbe
 {
-    private readonly Dictionary<string, string?> _block;
-
-    /// <summary>
-    /// Takes the picture of the process environment this probe answers from.
-    /// </summary>
-    public ProcessEnvironmentProbe()
-    {
-        // The platform's own comparer, so that lookup here matches lookup in
-        // the shell that started this process. It is the whole reason the block
-        // is copied into a dictionary rather than kept as the hashtable the
-        // runtime returns, which compares ordinally on every platform.
-        _block = new Dictionary<string, string?>(
-            OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
-
-        foreach (DictionaryEntry entry in Environment.GetEnvironmentVariables())
-        {
-            // A duplicate cannot arrive from the runtime, which already folds
-            // the block into a dictionary of its own; the indexer is used
-            // rather than Add so that a platform which one day disagrees keeps
-            // the last value instead of throwing mid-construction.
-            _block[(string)entry.Key] = entry.Value as string;
-        }
-    }
-
     /// <inheritdoc/>
     public string? Read(string name)
     {
         ArgumentNullException.ThrowIfNull(name);
 
-        return _block.GetValueOrDefault(name);
+        return Environment.GetEnvironmentVariable(name);
     }
 }

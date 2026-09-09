@@ -181,7 +181,10 @@ public sealed class CommandEndToEndTests : IDisposable
                 "core.workspace.toolchain": { "enabled": false },
                 "core.workspace.dependencies": { "enabled": false },
                 "core.workspace.free-space": { "enabled": false },
-                "core.workspace.approved-dependencies": { "enabled": false }
+                "core.workspace.approved-dependencies": { "enabled": false },
+                "core.workspace.environment": { "enabled": false },
+                "core.workspace.vcs-configuration": { "enabled": false },
+                "core.workspace.submodule-pin": { "enabled": false }
               }
             }
             """);
@@ -726,13 +729,13 @@ public sealed class CommandEndToEndTests : IDisposable
     /// missing SDK — two independent facts reported as one.
     /// </remarks>
     [Fact]
-    public void Graph_HangsTheThreeNewWorkspaceAndBuildRulesOffTheToolchain()
+    public void Graph_HangsEveryProcessStartingRuleOffTheToolchain()
     {
         Invoke("graph").ShouldBe(0);
 
         var printed = _output.ToString();
 
-        foreach (var id in NewRulesHangingOffTheToolchain)
+        foreach (var id in RulesHangingOffTheToolchain)
         {
             // The whole line, with the arrow, rather than the two ids
             // separately. A containment check on each would pass while the edge
@@ -741,12 +744,38 @@ public sealed class CommandEndToEndTests : IDisposable
         }
     }
 
-    private static readonly string[] NewRulesHangingOffTheToolchain =
+    /// <summary>
+    /// Every rule whose first question is whether a process can be started.
+    /// </summary>
+    /// <remarks>
+    /// The environment rule is deliberately absent, and its absence is asserted
+    /// below rather than left to be noticed: it starts no process, so a missing
+    /// compiler makes the answer about an unset variable neither wrong nor
+    /// unreachable — and hanging it here would report an unset secret as
+    /// "skipped because the toolchain failed", two independent causes served as
+    /// one.
+    /// </remarks>
+    private static readonly string[] RulesHangingOffTheToolchain =
     [
         "core.workspace.free-space",
         "core.workspace.approved-dependencies",
+        "core.workspace.vcs-configuration",
+        "core.workspace.submodule-pin",
         "core.build.platform-sdk",
     ];
+
+    /// <remarks>
+    /// The counterpart of the test above, and it is the half that would go
+    /// unnoticed: an edge added here is invisible until a toolchain failure
+    /// starts skipping a rule that had nothing to do with it.
+    /// </remarks>
+    [Fact]
+    public void Graph_LeavesTheEnvironmentRuleWithNoDependency()
+    {
+        Invoke("graph").ShouldBe(0);
+
+        _output.ToString().ShouldNotMatch(@"core\.workspace\.environment\s+<-");
+    }
 
     /// <summary>
     /// A rule added in this set explains itself.
@@ -760,14 +789,15 @@ public sealed class CommandEndToEndTests : IDisposable
     [Fact]
     public void Explain_ForARuleAddedInThisSet_PrintsItsDescriptorAndSettings()
     {
-        Invoke("explain", "core.workspace.free-space").ShouldBe(0);
+        Invoke("explain", "core.workspace.vcs-configuration").ShouldBe(0);
 
         var printed = _output.ToString();
 
-        printed.ShouldContain("core.workspace.free-space");
+        printed.ShouldContain("core.workspace.vcs-configuration");
         printed.ShouldContain("workspace", Case.Insensitive);
         printed.ShouldContain("core.workspace.toolchain");
     }
+
 
     /// <remarks>
     /// The rule graph makes this command's output diffable, so two runs produce

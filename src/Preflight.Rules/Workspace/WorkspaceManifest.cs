@@ -34,12 +34,21 @@ public sealed record WorkspaceManifest
     /// schema grants policy files. A manifest is edited by the same people
     /// under the same conditions, and a format that rejects a trailing comma
     /// teaches everyone to distrust the error message.
+    ///
+    /// A key nobody recognises is refused, which the policy schema has always
+    /// done and this file used to ignore. Ignoring it is the quietest failure
+    /// the tool can produce: a workspace declaring <c>enviroment</c> gets a
+    /// rule that reports it checked nothing, forever, with no message anywhere
+    /// saying why. The refusal arrives as the same "not valid JSON" finding a
+    /// syntax error does, which already names the file and offers the other
+    /// possibility.
     /// </remarks>
     private static readonly JsonSerializerOptions Options = new()
     {
         PropertyNameCaseInsensitive = true,
         ReadCommentHandling = JsonCommentHandling.Skip,
         AllowTrailingCommas = true,
+        UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
     };
 
     [JsonPropertyName("tools")]
@@ -69,6 +78,33 @@ public sealed record WorkspaceManifest
     /// </remarks>
     [JsonPropertyName("freeSpace")]
     public IReadOnlyList<FreeSpaceRequirement> FreeSpace { get; init; } = [];
+
+    /// <summary>
+    /// How the version control client has to be configured for this workspace.
+    /// </summary>
+    /// <remarks>
+    /// A fact about the repository rather than a decision about how strictly it
+    /// is validated, like everything else here: a repository holding paths
+    /// longer than the Windows limit needs long paths turned on wherever it is
+    /// cloned, and that does not change with the production overlay in force.
+    /// </remarks>
+    [JsonPropertyName("vcs")]
+    public VcsRequirement? Vcs { get; init; }
+
+    /// <summary>
+    /// The environment variables this workspace needs set.
+    /// </summary>
+    /// <remarks>
+    /// Names alone, with no way to declare what a value should look like, and
+    /// that is a decision rather than a shape nobody got round to enriching. A
+    /// rule that could be told what a value must match would have to quote the
+    /// value it found in order to explain itself, and every string a finding
+    /// carries reaches a build log that far more people read than ran the
+    /// build. With names alone the rule has nothing to print, and the guarantee
+    /// is structural instead of being a comment somebody has to keep obeying.
+    /// </remarks>
+    [JsonPropertyName("environment")]
+    public IReadOnlyList<string> Environment { get; init; } = [];
 
     /// <summary>
     /// Reads and parses the manifest.
