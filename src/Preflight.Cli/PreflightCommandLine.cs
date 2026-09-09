@@ -164,6 +164,7 @@ public static class PreflightCommandLine
             FileSystem = new PhysicalFileSystem(),
             Processes = new ProcessRunner(),
             Volumes = new PhysicalVolumeProbe(),
+            EnvironmentProbe = new ProcessEnvironmentProbe(),
             Children = new ChildProcessLauncher(),
             Environment = reader,
             Console = ConsoleCapabilities.Detect() with { Output = output },

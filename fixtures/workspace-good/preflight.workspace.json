@@ -28,6 +28,23 @@
     }
   ],
 
+  // Two settings every checkout of this client has, exercising both shapes an
+  // entry can take: one with an expected value and one that only has to be
+  // there. Never a setting somebody has to have configured — a floor like
+  // "long paths on" would assert the machine running the suite rather than
+  // anything about this directory.
+  "vcs": {
+    "settings": [
+      { "name": "core.bare", "expected": "false" },
+      { "name": "core.repositoryformatversion" }
+    ]
+  },
+
+  // A variable every operating system sets for every process. Naming one a
+  // build machine happens to define would make this fixture pass on the agent
+  // and fail on a laptop, which is the opposite of what it is for.
+  "environment": ["PATH"],
+
   // A probe that succeeds and does nothing else, mirroring the failing one in
   // the broken fixture beside it. A real compiler here would tie the fixture to
   // whatever happens to be installed, and the rule's job is to read a compiler's

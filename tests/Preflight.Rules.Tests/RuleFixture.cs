@@ -10,7 +10,7 @@ using Preflight.Abstractions.Services;
 /// </summary>
 /// <remarks>
 /// <para>
-/// <see cref="RuleContext"/> has nine properties, eight of them required, and
+/// <see cref="RuleContext"/> has ten properties, eight of them required, and
 /// most rule tests care about one or two. Without this, every test would open
 /// with a dozen lines of arrange in which the line that matters is invisible.
 /// </para>
@@ -33,6 +33,7 @@ internal static class RuleFixture
         IFileSystem? fileSystem = null,
         IProcessRunner? processes = null,
         IVolumeProbe? volumes = null,
+        IEnvironmentProbe? environment = null,
         ValidationStage stage = ValidationStage.PreSubmit,
         BuildTarget? target = null,
         DirectoryInfo? workspaceRoot = null) => new()
@@ -52,6 +53,12 @@ internal static class RuleFixture
             // reachable only by a test that opts out of the default — which is
             // the test nobody writes.
             Volumes = volumes,
+
+            // Null by default too, and for the argument written above it. A
+            // host that offers no environment probe is a specified input with a
+            // specified answer, and a substitute here would make that case
+            // reachable only by a test that opts out of the default.
+            Environment = environment,
         };
 
     /// <summary>

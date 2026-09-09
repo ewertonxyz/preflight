@@ -10,7 +10,7 @@ using Preflight.Rules;
 using Preflight.TestSupport;
 
 /// <summary>
-/// Runs the twelve rules against real directories on real disk.
+/// Runs the whole built-in set against real directories on real disk.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -22,9 +22,10 @@ using Preflight.TestSupport;
 /// </para>
 /// <para>
 /// It reaches the shipped <see cref="PhysicalFileSystem"/>,
-/// <see cref="ProcessRunner"/> and <see cref="PhysicalVolumeProbe"/>, which
-/// live in <c>Preflight.Core</c> precisely so this layer could exist without a
-/// test project referencing an executable.
+/// <see cref="ProcessRunner"/>, <see cref="PhysicalVolumeProbe"/> and
+/// <see cref="ProcessEnvironmentProbe"/>, which live in <c>Preflight.Core</c>
+/// precisely so this layer could exist without a test project referencing an
+/// executable.
 /// </para>
 /// </remarks>
 public sealed class BuiltInRulesIntegrationTests
@@ -32,6 +33,7 @@ public sealed class BuiltInRulesIntegrationTests
     private static readonly PhysicalFileSystem FileSystem = new();
     private static readonly ProcessRunner Processes = new();
     private static readonly PhysicalVolumeProbe Volumes = new();
+    private static readonly ProcessEnvironmentProbe Environment = new();
 
     private const string FixtureRoot = "fixtures";
 
@@ -45,7 +47,31 @@ public sealed class BuiltInRulesIntegrationTests
         "companion-file",
         "approved-dependencies",
         "platform-sdk",
+        "line-endings",
+        "mutable-reference",
+        "merge-artifact",
     ];
+
+    /// <summary>
+    /// The rules that cannot reach a pass against the good fixture, and why
+    /// each one cannot.
+    /// </summary>
+    /// <remarks>
+    /// Named one at a time with the reason beside the name, and never a blanket
+    /// "not applicable is acceptable". The point of the test they exempt is
+    /// that a rule reporting it checked nothing is not a rule that passed, and
+    /// an exemption written as a general tolerance would hand that back to
+    /// every rule at once, including the ones the test was written to catch.
+    ///
+    /// One entry: this repository has no submodule, and adding one to the
+    /// fixture changes what every pipeline has to clone in order to run the
+    /// suite at all.
+    /// </remarks>
+    private static readonly Dictionary<string, string> NotApplicableOnTheGoodFixture = new(StringComparer.Ordinal)
+    {
+        ["core.workspace.submodule-pin"] =
+            "this repository has no submodule, and adding one changes what every checkout must clone",
+    };
 
     /// <summary>
     /// One broken fixture, and everything needed to run the rules against it.
@@ -103,12 +129,39 @@ public sealed class BuiltInRulesIntegrationTests
         // An impossible floor rather than a command nobody has. Naming an
         // executable that does not exist would pass on the first machine where
         // somebody happens to have a binary by that name.
-        _ => new BrokenCase(
+        "platform-sdk" => new BrokenCase(
             name,
             "core.build.platform-sdk",
             RuleStatus.Failed,
             Configured(sdkMinimum: "999.0.0"),
             []),
+
+        "line-endings" => new BrokenCase(
+            name,
+            "core.presubmit.line-endings",
+            RuleStatus.Failed,
+            Configured(),
+            [RuleFixture.Added("src/build.sh")]),
+
+        "mutable-reference" => new BrokenCase(
+            name,
+            "core.presubmit.mutable-reference",
+            RuleStatus.Failed,
+            Configured(),
+            [RuleFixture.Added("ci/pipeline.yml")]),
+
+        "merge-artifact" => new BrokenCase(
+            name,
+            "core.presubmit.merge-artifact",
+            RuleStatus.Failed,
+            Configured(),
+            [RuleFixture.Added("src/Program.cs")]),
+
+        // Written out, with a default that throws rather than a catch-all. With
+        // this many cases a mistyped name falling through would run some other
+        // fixture's arrangement and report green about a directory nobody
+        // checked.
+        _ => throw new ArgumentOutOfRangeException(nameof(name), name, "No broken fixture by that name."),
     };
 
     /// <summary>
@@ -120,6 +173,7 @@ public sealed class BuiltInRulesIntegrationTests
         RuleFixture.Added("art/hero.png"),
         RuleFixture.Added("art/hero.png.meta"),
         RuleFixture.Added("src/Program.cs"),
+        RuleFixture.Added("ci/pipeline.yml"),
     ];
 
     private static readonly string[] PngMetaPair = ["**/*.png -> {dir}/{name}.{ext}.meta"];
@@ -127,6 +181,10 @@ public sealed class BuiltInRulesIntegrationTests
     private static readonly string[] SerilogApproved = ["Serilog@3.1.1"];
 
     private static readonly string[] VersionArgument = ["--version"];
+
+    private static readonly string[] SourceIsLf = ["**/*.cs", "**/*.sh"];
+
+    private static readonly string[] ActionPin = [@"**/*.yml -> uses: \S+@(\S+)"];
 
     /// <summary>
     /// The settings that switch on the rules which check nothing by default.
@@ -146,6 +204,8 @@ public sealed class BuiltInRulesIntegrationTests
             ["sdk.name"] = "git",
             ["sdk.arguments"] = VersionArgument,
             ["sdk.minimumVersion"] = sdkMinimum,
+            ["lf"] = SourceIsLf,
+            ["pinned"] = ActionPin,
         });
 
     private static DirectoryInfo Fixture(params string[] segments) =>
@@ -166,11 +226,12 @@ public sealed class BuiltInRulesIntegrationTests
             FileSystem = FileSystem,
             Processes = Processes,
 
-            // The shipped probe, not a substitute. Leaving it out compiles
-            // perfectly and makes the free-space rule report that it checked
+            // The shipped probes, not substitutes. Leaving either out compiles
+            // perfectly and makes the rule that needs it report that it checked
             // nothing on every fixture, which is exactly the silence this layer
             // exists to break.
             Volumes = Volumes,
+            Environment = Environment,
         };
 
     private static Task<RuleOutcome> Run(
@@ -185,9 +246,13 @@ public sealed class BuiltInRulesIntegrationTests
     /// </summary>
     /// <remarks>
     /// <c>NotApplicable</c> fails this test, and that is the whole point of it.
-    /// Half of the twelve check nothing until they are configured, so a run that
+    /// Half the set checks nothing until it is configured, so a run that
     /// accepted n/a would be green having exercised none of them — which is what
     /// the companion test below, on its own, would have allowed.
+    ///
+    /// The exemptions are named one by one with the reason for each, rather
+    /// than the test being relaxed to accept n/a in general. A general
+    /// tolerance would hand the same escape to every rule.
     /// </remarks>
     [Fact]
     public async Task EveryRule_AgainstTheGoodWorkspace_ReachesItsPositivePath()
@@ -198,11 +263,84 @@ public sealed class BuiltInRulesIntegrationTests
         {
             var outcome = await Run(rule, root, Configured(), GoodChanges());
 
+            if (NotApplicableOnTheGoodFixture.TryGetValue(rule.Descriptor.Id.Value, out var reason))
+            {
+                outcome.Status.ShouldBe(
+                    RuleStatus.NotApplicable,
+                    $"{rule.Descriptor.Id} is exempt because {reason}, so it must report exactly that.");
+
+                continue;
+            }
+
             outcome.Status.ShouldBe(
                 RuleStatus.Passed,
                 $"{rule.Descriptor.Id} on the good fixture: {Describe(outcome)}");
         }
     }
+
+    /// <summary>
+    /// Exactly which rules reach a verdict when nothing is in policy.
+    /// </summary>
+    /// <remarks>
+    /// Two different things get a rule as far as a verdict, and the list makes
+    /// the difference visible. Most of these are here because the fixture's
+    /// <em>manifest</em> declares what they check — which tools, which
+    /// dependencies, which settings, which variables — and a workspace that
+    /// declared none of it would leave them silent. Only two are here without
+    /// having been told anything at all: nobody names a file after a reserved
+    /// device on purpose, and nobody commits a conflict marker on purpose, so
+    /// requiring configuration first would be asking somebody to switch on a
+    /// search for a thing that is never deliberate.
+    ///
+    /// Asserted as an exact set rather than as "at least these", because the
+    /// property worth defending is that the list does not quietly grow. A rule
+    /// that starts reporting on an unconfigured repository is a decision
+    /// somebody has to argue, and this is the line that makes them.
+    /// </remarks>
+    [Fact]
+    public async Task AgainstTheGoodWorkspace_WithNothingInPolicy_ExactlyTheseRulesReachAVerdict()
+    {
+        var root = Fixture("workspace-good");
+        var reporting = new List<string>();
+
+        foreach (var rule in BuiltInRuleDescriptorsTests.Discovered())
+        {
+            var outcome = await Run(rule, root, changed: GoodChanges());
+
+            if (outcome.Status != RuleStatus.NotApplicable)
+            {
+                reporting.Add(rule.Descriptor.Id.Value);
+            }
+        }
+
+        reporting.Order(StringComparer.Ordinal).ShouldBe([
+            "core.build.compile-probe",
+            "core.build.configuration",
+            "core.presubmit.forbidden-paths",
+            "core.presubmit.large-file",
+            "core.presubmit.merge-artifact",
+            "core.presubmit.path-portability",
+            "core.workspace.dependencies",
+            "core.workspace.environment",
+            "core.workspace.free-space",
+            "core.workspace.toolchain",
+            "core.workspace.vcs-configuration",
+        ]);
+    }
+
+    /// <summary>
+    /// Every exemption names a rule that exists.
+    /// </summary>
+    /// <remarks>
+    /// An exemption left behind after a rule was renamed is an exemption
+    /// nothing uses and nobody notices, and the test above would then be
+    /// excusing a rule that is no longer there while demanding a pass from the
+    /// one it was written for.
+    /// </remarks>
+    [Fact]
+    public void EveryExemption_NamesARuleInTheSet() =>
+        NotApplicableOnTheGoodFixture.Keys.ShouldBeSubsetOf(
+            BuiltInRuleDescriptorsTests.Discovered().Select(rule => rule.Descriptor.Id.Value));
 
     /// <summary>
     /// The good fixture satisfies every rule even when nothing is configured.

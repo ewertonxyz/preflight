@@ -20,7 +20,7 @@ using Preflight.Abstractions.Services;
 public sealed class RuleContextTests
 {
     [Fact]
-    public void RuleContext_ExposesEightRequiredMembersAndOneOptionalProbe_AndHasNoIChangeSourceProperty()
+    public void RuleContext_ExposesEightRequiredMembersAndTwoOptionalProbes_AndHasNoIChangeSourceProperty()
     {
         var properties = typeof(RuleContext).GetProperties()
             .ToDictionary(property => property.Name, property => property.PropertyType);
@@ -36,6 +36,7 @@ public sealed class RuleContextTests
                 "FileSystem",
                 "Processes",
                 "Volumes",
+                "Environment",
             ],
             ignoreOrder: true);
 
@@ -48,24 +49,27 @@ public sealed class RuleContextTests
         properties["FileSystem"].ShouldBe(typeof(IFileSystem));
         properties["Processes"].ShouldBe(typeof(IProcessRunner));
         properties["Volumes"].ShouldBe(typeof(IVolumeProbe));
+        properties["Environment"].ShouldBe(typeof(IEnvironmentProbe));
 
         properties.Values.ShouldNotContain(typeof(IChangeSource));
     }
 
     /// <summary>
-    /// The ninth member is the only one that is not required.
+    /// The two probes are the only members that are not required.
     /// </summary>
     /// <remarks>
-    /// This is the whole reason the volume probe arrived the way it did. A rule
+    /// This is the whole reason both of them arrived the way they did. A rule
     /// author builds a context by hand in their own unit tests, and a required
     /// member added here would break every one of those — to serve a capability
-    /// exactly one rule needs. A rule that finds it absent reports that it
+    /// exactly one rule needs. A rule that finds one absent reports that it
     /// checked nothing instead.
     /// </remarks>
-    [Fact]
-    public void RuleContext_Volumes_IsNotRequired()
+    [Theory]
+    [InlineData("Volumes")]
+    [InlineData("Environment")]
+    public void RuleContext_TheOptionalProbes_AreNotRequired(string member)
     {
-        typeof(RuleContext).GetProperty("Volumes")!
+        typeof(RuleContext).GetProperty(member)!
             .GetCustomAttribute<RequiredMemberAttribute>()
             .ShouldBeNull("A required member here breaks every plugin author's own tests.");
 

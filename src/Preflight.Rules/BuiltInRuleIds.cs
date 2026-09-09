@@ -37,4 +37,16 @@ public static class BuiltInRuleIds
     public static readonly RuleId ApprovedDependencies = new("core.workspace.approved-dependencies");
 
     public static readonly RuleId PlatformSdk = new("core.build.platform-sdk");
+
+    public static readonly RuleId VcsConfiguration = new("core.workspace.vcs-configuration");
+
+    public static readonly RuleId Environment = new("core.workspace.environment");
+
+    public static readonly RuleId SubmodulePin = new("core.workspace.submodule-pin");
+
+    public static readonly RuleId LineEndings = new("core.presubmit.line-endings");
+
+    public static readonly RuleId MutableReference = new("core.presubmit.mutable-reference");
+
+    public static readonly RuleId MergeArtifact = new("core.presubmit.merge-artifact");
 }

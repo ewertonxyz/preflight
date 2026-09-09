@@ -46,6 +46,18 @@ public sealed record RunRequest
     public required IVolumeProbe Volumes { get; init; }
 
     /// <summary>
+    /// Reads the environment block the tool was started with.
+    /// </summary>
+    /// <remarks>
+    /// Required here and optional on the rule context, for the reason the
+    /// volume probe above is: this record is assembled only by whoever hosts
+    /// the tool, so requiring it makes a host that forgot to wire the probe
+    /// fail to compile rather than leave the rule that needs it reporting "not
+    /// applicable" forever.
+    /// </remarks>
+    public required IEnvironmentProbe Environment { get; init; }
+
+    /// <summary>
     /// Where cached results live, or <see langword="null"/> for no caching.
     /// </summary>
     /// <remarks>

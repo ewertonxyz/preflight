@@ -425,6 +425,29 @@ public sealed class LfsPointerRuleTests
         outcome.Status.ShouldBe(RuleStatus.NotApplicable);
     }
 
+    /// <summary>
+    /// A later line about line endings does not take a file out of LFS.
+    /// </summary>
+    /// <remarks>
+    /// Last-rule-wins applies per attribute, not per line. A file declared to
+    /// live in LFS and then given a line-ending requirement is still in LFS,
+    /// and a reader that stopped at the last line matching the <em>path</em>
+    /// would answer "not tracked" and leave this rule silent about a real blob
+    /// — a false green produced without changing a single branch, so coverage
+    /// would still read as complete. Written from the rule's side, against the
+    /// most ordinary pair of lines an attributes file has.
+    /// </remarks>
+    [Fact]
+    public async Task ExecuteAsync_WithALineEndingEntryAfterTheLfsEntry_StillReportsARealBlob()
+    {
+        var outcome = await Run(
+            [Added("art/a.psd")],
+            "*.psd filter=lfs\n*.psd text eol=lf",
+            new Dictionary<string, byte[]> { ["art/a.psd"] = RealBlob() });
+
+        outcome.Status.ShouldBe(RuleStatus.Failed);
+    }
+
     /// <remarks>
     /// A pattern on its own says nothing about any attribute, so it is not an
     /// entry at all. Recording it as one would give it a filter state nobody

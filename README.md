@@ -401,7 +401,7 @@ The badge at the top is the number Codecov computes from those same four reports
 src/
   Preflight.Abstractions   The plugin contract — Rules/, Services/, Model/. BCL only.
   Preflight.Core           Graph, execution, policy, history, cache, plugin loading.
-  Preflight.Rules          The twelve built-in rules.
+  Preflight.Rules          The eighteen built-in rules.
   Preflight.Cli            Argument parsing, reporters, exit codes, packaging.
 tests/                     Core, Rules, Cli, Specs (Gherkin), TestSupport.
 samples/                   A worked plugin: one rule, one project reference.
@@ -451,11 +451,17 @@ it back, and the one place their shared option names are spelled.
 | `core.workspace.dependencies` | workspace | toolchain |
 | `core.workspace.free-space` | workspace | toolchain |
 | `core.workspace.approved-dependencies` | workspace | toolchain |
+| `core.workspace.vcs-configuration` | workspace | toolchain |
+| `core.workspace.submodule-pin` | workspace | toolchain |
+| `core.workspace.environment` | workspace | — |
 | `core.presubmit.forbidden-paths` | pre-submit | — |
 | `core.presubmit.large-file` | pre-submit | — |
 | `core.presubmit.lfs-pointer` | pre-submit | — |
 | `core.presubmit.path-portability` | pre-submit | — |
 | `core.presubmit.companion-file` | pre-submit | — |
+| `core.presubmit.line-endings` | pre-submit | — |
+| `core.presubmit.mutable-reference` | pre-submit | — |
+| `core.presubmit.merge-artifact` | pre-submit | — |
 | `core.build.configuration` | build-readiness | toolchain |
 | `core.build.platform-sdk` | build-readiness | toolchain |
 | `core.build.compile-probe` | build-readiness | configuration |
@@ -465,9 +471,14 @@ the ones that project writes. What is here is the set that needs no knowledge of
 format or a studio's conventions: a binary that could open a `.uasset` would have stopped being
 an orchestrator.
 
-All but one check nothing until somebody configures them, so a repository that was green stays
-green. `core.presubmit.path-portability` is the exception — it ships with real limits and will
-report on a repository nobody has checked for them.
+All but two check nothing until somebody configures them, so a repository that was green stays
+green. `core.presubmit.path-portability` and `core.presubmit.merge-artifact` are the exceptions
+— they ship with real defaults and will report on a repository nobody has checked. What lets a
+rule do that is a strict criterion, not a judgement call: what it looks for has to be something
+nobody ever does on purpose, and the false-positive rate has to be arguable as zero rather than
+as low. Nobody names a file after a reserved device by accident, and nobody commits a conflict
+marker by accident. A line of equals signs is not one of the markers looked for, because that
+is how a heading is underlined.
 
 ---
 
@@ -492,7 +503,7 @@ line.
 
 | | |
 |---|---|
-| Version | 0.2.0 — below 1.0 deliberately; nothing is published under a stability promise |
+| Version | 0.3.0 — below 1.0 deliberately; nothing is published under a stability promise |
 | Target | .NET 10, nullable enabled, warnings as errors, analysers at `latest-recommended` |
 | Platform | Windows today; nothing in the design is Windows-specific |
 
@@ -500,12 +511,14 @@ The tool works end to end, and every subsystem has been through a review of its 
 plugin contract, the built-in rules, the command line, and the core (graph, execution, policy,
 history and cache), along with the test suites that hold them.
 
-The contract moved from 0.1.1 to 0.2.0 to make room for reading free space on a volume, which
-none of the four services on a rule's context could answer. It arrived as a new optional
-interface rather than a member on the file-system interface, because a member added to
-something every plugin implements breaks every compiled plugin while a new type breaks none.
-Plugins built against 0.1.x must be recompiled; the loader refuses an older one by naming both
-versions rather than letting it fail later as a type load error.
+The contract has moved twice for the same reason, and each time it arrived as a new optional
+interface rather than a member on one every plugin implements — because a member added there
+breaks every compiled plugin while a new type breaks none. 0.1.1 to 0.2.0 made room for reading
+free space on a volume; 0.2.0 to 0.3.0 makes room for reading the environment the tool was
+started with, so that a workspace can declare the variables a build needs and have somebody told
+before the build spends forty minutes finding out. Plugins built against an earlier generation
+must be recompiled; the loader refuses an older one by naming both versions rather than letting
+it fail later as a type load error.
 
 ---
 

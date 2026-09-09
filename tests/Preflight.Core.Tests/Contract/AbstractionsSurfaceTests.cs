@@ -127,6 +127,32 @@ public sealed class AbstractionsSurfaceTests
             "Reading a volume is a capability a host may offer, not a kind of file system.");
     }
 
+    /// <summary>
+    /// The environment probe stays one member wide, and stays synchronous.
+    /// </summary>
+    /// <remarks>
+    /// The signature is the decision. A volume probe measures a path the
+    /// workspace declared, which can sit on a dead network share, so it is
+    /// asynchronous and cancellable; an environment block is a dictionary this
+    /// process was handed at start-up, so there is nothing to wait for and an
+    /// asynchronous signature would promise a cancellation that never arrives.
+    /// Copying the neighbouring shape would be the easy mistake, and this is
+    /// where it is refused.
+    /// </remarks>
+    [Fact]
+    public void IEnvironmentProbe_ExposesExactlyRead_Synchronously()
+    {
+        MethodNamesOf<IEnvironmentProbe>().ShouldBe(["Read"]);
+
+        var read = typeof(IEnvironmentProbe).GetMethod("Read")!;
+
+        read.ReturnType.ShouldBe(typeof(string));
+        read.GetParameters().Select(parameter => parameter.ParameterType).ShouldBe([typeof(string)]);
+
+        typeof(IVolumeProbe).IsAssignableFrom(typeof(IEnvironmentProbe)).ShouldBeFalse(
+            "Measuring a disk and reading an environment are not one responsibility.");
+    }
+
     /// <remarks>
     /// A record and not a struct. It is returned through a nullable reference —
     /// "no measurement" is a specified answer the rule branches on — and a

@@ -50,11 +50,17 @@ public sealed class BuiltInRuleDescriptorsTests
             "core.presubmit.forbidden-paths",
             "core.presubmit.large-file",
             "core.presubmit.lfs-pointer",
+            "core.presubmit.line-endings",
+            "core.presubmit.merge-artifact",
+            "core.presubmit.mutable-reference",
             "core.presubmit.path-portability",
             "core.workspace.approved-dependencies",
             "core.workspace.dependencies",
+            "core.workspace.environment",
             "core.workspace.free-space",
+            "core.workspace.submodule-pin",
             "core.workspace.toolchain",
+            "core.workspace.vcs-configuration",
         ]);
     }
 
@@ -84,6 +90,17 @@ public sealed class BuiltInRuleDescriptorsTests
         true,
         false)]
     [InlineData("core.build.platform-sdk", ValidationStage.BuildReadiness, "core.workspace.toolchain", true, false)]
+    [InlineData(
+        "core.workspace.vcs-configuration",
+        ValidationStage.Workspace,
+        "core.workspace.toolchain",
+        true,
+        false)]
+    [InlineData("core.workspace.environment", ValidationStage.Workspace, "", true, false)]
+    [InlineData("core.workspace.submodule-pin", ValidationStage.Workspace, "core.workspace.toolchain", true, false)]
+    [InlineData("core.presubmit.line-endings", ValidationStage.PreSubmit, "", true, false)]
+    [InlineData("core.presubmit.mutable-reference", ValidationStage.PreSubmit, "", true, false)]
+    [InlineData("core.presubmit.merge-artifact", ValidationStage.PreSubmit, "", true, false)]
     public void Descriptor_DeclaresItsStageDependencyBlockingAndGating(
         string id,
         ValidationStage stage,
@@ -108,17 +125,44 @@ public sealed class BuiltInRuleDescriptorsTests
     }
 
     /// <summary>
+    /// Every rule has a row in the table above.
+    /// </summary>
+    /// <remarks>
+    /// Without this, a rule added without a row is a rule whose stage,
+    /// dependency, blocking and gating nobody ever asserts — and the way that
+    /// arrives is a set growing by six at once, where one omission reads as
+    /// five rows having been added carefully.
+    /// </remarks>
+    [Fact]
+    public void EveryDiscoveredRule_HasARowInTheDescriptorTable()
+    {
+        var rows = typeof(BuiltInRuleDescriptorsTests)
+            .GetMethod(nameof(Descriptor_DeclaresItsStageDependencyBlockingAndGating))!
+            .GetCustomAttributes<InlineDataAttribute>()
+            .Select(row => (string)row.Data[0]!)
+            .Order(StringComparer.Ordinal);
+
+        rows.ShouldBe(
+            Discovered().Select(rule => rule.Descriptor.Id.Value).Order(StringComparer.Ordinal),
+            "A descriptor with no row has nothing asserted about it at all.");
+    }
+
+    /// <summary>
     /// The shape the descriptors add up to.
     /// </summary>
     /// <remarks>
-    /// Five independent roots at pre-submit, and a chain three deep ending at
-    /// the expensive rule. Asserted separately from the table above because the
-    /// two are one fact stated twice, and either can be edited without the
-    /// other: a dependency moved one row up still produces a table that reads
-    /// fine and a graph that no longer defers the compile.
+    /// Every independent root, and a chain three deep ending at the expensive
+    /// rule. Asserted separately from the table above because the two are one
+    /// fact stated twice, and either can be edited without the other: a
+    /// dependency moved one row up still produces a table that reads fine and a
+    /// graph that no longer defers the compile.
+    ///
+    /// The roots are not all pre-submit, which the old name of this test
+    /// claimed and the list never did: the toolchain rule has always been one,
+    /// and the environment rule is the second from its stage.
     /// </remarks>
     [Fact]
-    public void Descriptors_ProduceFivePreSubmitRootsAndAChainEndingAtTheProbe()
+    public void Descriptors_ProduceTheIndependentRootsAndAChainEndingAtTheProbe()
     {
         var descriptors = Discovered().Select(rule => rule.Descriptor).ToArray();
 
@@ -132,7 +176,11 @@ public sealed class BuiltInRuleDescriptorsTests
             "core.presubmit.forbidden-paths",
             "core.presubmit.large-file",
             "core.presubmit.lfs-pointer",
+            "core.presubmit.line-endings",
+            "core.presubmit.merge-artifact",
+            "core.presubmit.mutable-reference",
             "core.presubmit.path-portability",
+            "core.workspace.environment",
             "core.workspace.toolchain",
         ]);
 

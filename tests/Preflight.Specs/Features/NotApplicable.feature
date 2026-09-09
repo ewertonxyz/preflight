@@ -22,9 +22,14 @@ Feature: Not applicable is not passed
     # ran because a versioned file said so — the run succeeds, and the summary
     # says in words that nothing was checked, because that line is how somebody
     # finds an overlay that disabled everything.
+    #
+    # Every rule of the stage is named, including the ones whose only dependency
+    # is already disabled. Leaving those to be skipped by the dependency would
+    # test skip propagation instead of the empty run, and the two produce
+    # different summaries.
     Scenario: Every rule of the stage disabled succeeds, out loud
         Given the workspace needs git "2.0.0" or newer
-        When preflight is invoked with "run --stage workspace --set core.workspace.toolchain:enabled=false --set core.workspace.dependencies:enabled=false --set core.workspace.free-space:enabled=false --set core.workspace.approved-dependencies:enabled=false"
+        When preflight is invoked with "run --stage workspace --set core.workspace.toolchain:enabled=false --set core.workspace.dependencies:enabled=false --set core.workspace.free-space:enabled=false --set core.workspace.approved-dependencies:enabled=false --set core.workspace.environment:enabled=false --set core.workspace.vcs-configuration:enabled=false --set core.workspace.submodule-pin:enabled=false"
         Then it exits with code 0
         And the report says "0 rules executed"
         And the report says "disabled by policy"
@@ -50,3 +55,37 @@ Feature: Not applicable is not passed
         When preflight is invoked with "run --stage workspace"
         Then it exits with code 1
         And the report says "core.workspace.free-space"
+
+    # The only place the environment probe is proved end to end, and the reason
+    # is the same one the free-space scenario above gives: every layer below
+    # this substitutes the probe, so all of them stay green with the shipped one
+    # never handed to a rule at all — and a rule that never receives it reports
+    # that it checked nothing, forever, in silence.
+    #
+    # The name is one nothing sets, so the verdict does not depend on the
+    # machine. The pair of scenarios is what makes the assertion real: the same
+    # manifest passes once the runner defines the variable, which is the only
+    # way to tell "the probe read a real block" from "the rule always fails".
+    Scenario: A declared environment variable that is not set blocks the run
+        Given the file "preflight.workspace.json" contains
+            """
+            {
+              "tools": [],
+              "environment": ["PREFLIGHT_SPEC_NOTHING_SETS_THIS"]
+            }
+            """
+        When preflight is invoked with "run --stage workspace"
+        Then it exits with code 1
+        And the report says "core.workspace.environment"
+
+    Scenario: A declared environment variable that is set lets the run through
+        Given the environment variable "PREFLIGHT_SPEC_NOTHING_SETS_THIS" is "a value"
+        And the file "preflight.workspace.json" contains
+            """
+            {
+              "tools": [],
+              "environment": ["PREFLIGHT_SPEC_NOTHING_SETS_THIS"]
+            }
+            """
+        When preflight is invoked with "run --stage workspace"
+        Then it exits with code 0
