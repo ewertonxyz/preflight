@@ -51,18 +51,28 @@ public sealed class RuleExecutorTests
     }
 
     /// <summary>
-    /// The volume probe reaches the rule.
+    /// Everything the request carries through reaches the rule, and it is the
+    /// same object.
     /// </summary>
     /// <remarks>
     /// The one link in the chain a compiler cannot check. Every property from
-    /// the command line down to this request is required, so a host that
-    /// forgot the probe does not build — but the line that copies it into the
-    /// context is an ordinary assignment, and leaving it out would compile
-    /// perfectly and leave the free-space rule reporting that it checked
-    /// nothing, on every run, forever.
+    /// the command line down to this request is required, so a host that forgot
+    /// a probe does not build — but the line that copies it into the context is
+    /// an ordinary assignment, and leaving it out would compile perfectly and
+    /// leave the rule that needs it reporting that it checked nothing, on every
+    /// run, forever.
+    ///
+    /// Driven by reflection over the pairs of properties that share a name and
+    /// a type, so that the next service is covered the day it is added rather
+    /// than the day somebody remembers to copy this test. The policy reader and
+    /// the logger are absent from the pairing because they are derived per rule
+    /// rather than carried through, and their types differ on the two sides,
+    /// which is what leaves them out without a name having to be excluded by
+    /// hand. The change set joins the services because it travels the same way
+    /// and is broken the same way — by an assignment nobody wrote.
     /// </remarks>
     [Fact]
-    public async Task ExecuteAsync_DeliversTheVolumeProbeFromTheRequestToTheRule()
+    public async Task ExecuteAsync_DeliversEveryCarriedServiceFromTheRequestToTheRule()
     {
         var rule = FakeRule.Passing("core.a.alpha");
         var request = Request([rule]);
@@ -70,7 +80,48 @@ public sealed class RuleExecutorTests
         await Execute(request);
 
         rule.SeenContext.ShouldNotBeNull();
-        rule.SeenContext!.Volumes.ShouldBeSameAs(request.Volumes);
+
+        var carried = typeof(RuleContext).GetProperties()
+            .Where(property => property.PropertyType.IsInterface)
+            .Select(property => (property, source: typeof(RunRequest).GetProperty(property.Name)))
+            .Where(pair => pair.source is not null && pair.source.PropertyType == pair.property.PropertyType)
+            .ToArray();
+
+        carried.Select(pair => pair.property.Name).ShouldBe(
+            ["ChangedFiles", "FileSystem", "Processes", "Volumes", "Environment"],
+            ignoreOrder: true,
+            "Anything carried from the request to the context is something this test must cover.");
+
+        foreach (var (property, source) in carried)
+        {
+            property.GetValue(rule.SeenContext)
+                .ShouldBeSameAs(source!.GetValue(request), property.Name);
+        }
+    }
+
+    /// <summary>
+    /// A rule that needs the environment probe finds it there.
+    /// </summary>
+    /// <remarks>
+    /// Written from the rule's side as well as from reflection, because the two
+    /// fail differently: the reflection above compares object identity and
+    /// would still pass if the context were built for a different rule, while
+    /// this one is the rule itself refusing to run without what it was
+    /// promised.
+    /// </remarks>
+    [Fact]
+    public async Task ExecuteAsync_LetsARuleThatDemandsTheEnvironmentProbeSucceed()
+    {
+        var rule = FakeRule.Custom(
+            "core.a.alpha",
+            (context, _) => Task.FromResult(
+                context.Environment is null
+                    ? RuleOutcome.Failed(new Finding { Message = "no environment probe" })
+                    : RuleOutcome.Passed()));
+
+        var result = await Execute(Request([rule]));
+
+        result.Executions.Single().Status.ShouldBe(RuleStatus.Passed);
     }
 
     [Fact]

@@ -231,5 +231,6 @@ public sealed class RuleExecutor
         FileSystem = request.FileSystem,
         Processes = request.Processes,
         Volumes = request.Volumes,
+        Environment = request.Environment,
     };
 }

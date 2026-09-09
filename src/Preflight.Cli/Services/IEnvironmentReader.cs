@@ -13,9 +13,14 @@ namespace Preflight.Cli.Services;
 /// concurrently, since xUnit v3 parallelises classes within an assembly.
 /// </para>
 /// <para>
-/// Internal to the CLI on purpose. Environment inspection belongs to the host,
-/// and <c>Preflight.Abstractions</c> is a versioned contract that should not
-/// grow a member because a test needed one.
+/// In the CLI on purpose, and it stays here even though the contract now also
+/// carries an environment probe a rule receives. The two answer different
+/// questions: this one tells the host whether it is running on a build machine
+/// and where the tool is installed, and the other is a capability handed to a
+/// rule that checks the variables a workspace declares. Merging them would put
+/// continuous-integration detection inside the versioned contract every plugin
+/// compiles against, and would let a rule ask a question that is the host's to
+/// answer.
 /// </para>
 /// </remarks>
 public interface IEnvironmentReader

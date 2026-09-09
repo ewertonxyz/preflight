@@ -49,6 +49,18 @@ public sealed record CommandEnvironment
     /// </remarks>
     public required IVolumeProbe Volumes { get; init; }
 
+    /// <summary>How a rule reads the environment the tool was started with.</summary>
+    /// <remarks>
+    /// Named apart from <see cref="Environment"/> beside it because the two
+    /// answer different questions and neither replaces the other. That one
+    /// tells the host whether it is running on a build machine and where the
+    /// tool is installed; this one is a capability handed down to a rule that
+    /// checks whether the variables a workspace declares are set. Folding them
+    /// together would put continuous-integration detection inside the versioned
+    /// contract every plugin compiles against.
+    /// </remarks>
+    public required IEnvironmentProbe EnvironmentProbe { get; init; }
+
     /// <summary>
     /// How <c>measure</c> starts a child process and gets out of its way.
     /// </summary>

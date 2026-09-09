@@ -54,6 +54,9 @@ public sealed class AbstractionsCompatibilityTests
     [InlineData("0.1.0", "0.1.1", true)]
     [InlineData("0.1.0", "0.2.0", false)]
     [InlineData("0.2.0", "0.1.0", false)]
+    [InlineData("0.2.0", "0.3.0", false)]
+    [InlineData("0.3.0", "0.2.0", false)]
+    [InlineData("0.3.0", "0.3.1", true)]
     public void IsCompatible_AcrossTheVersionMatrix_MatchesTheRefusalTable(
         string plugin,
         string host,
@@ -78,6 +81,7 @@ public sealed class AbstractionsCompatibilityTests
     [InlineData("2.7.3", "2")]
     [InlineData("0.1.1", "0.1")]
     [InlineData("0.2.0", "0.2")]
+    [InlineData("0.3.0", "0.3")]
     [InlineData("0.0.5", "0.0")]
     public void GenerationOf_NamesTheLineTwoVersionsShareOrDoNot(string version, string expected) =>
         AbstractionsCompatibility.GenerationOf(Version.Parse(version)).ShouldBe(expected);

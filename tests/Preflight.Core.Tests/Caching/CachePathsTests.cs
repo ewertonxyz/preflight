@@ -119,7 +119,7 @@ public sealed class CachePathsTests
     /// </remarks>
     [Fact]
     public void AbstractionsGeneration_IsTheDeclaredGeneration() =>
-        CachePaths.AbstractionsGeneration.ShouldBe("0.2");
+        CachePaths.AbstractionsGeneration.ShouldBe("0.3");
 
     /// <summary>
     /// Every kind of policy value renders to something of its own.

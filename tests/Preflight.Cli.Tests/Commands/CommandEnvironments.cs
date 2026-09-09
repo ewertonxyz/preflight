@@ -113,6 +113,7 @@ public static class CommandEnvironments
             FileSystem = new PhysicalFileSystem(),
             Processes = new ProcessRunner(),
             Volumes = new PhysicalVolumeProbe(),
+            EnvironmentProbe = new ProcessEnvironmentProbe(),
             Children = children ?? new ChildProcessLauncher(),
             Environment = reader ?? NoCi(),
             Console = new ConsoleCapabilities(
