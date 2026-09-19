@@ -372,7 +372,7 @@ rule's own assembly, so a rebuilt plugin is never handed its predecessor's verdi
 Restore, format check, build under warnings-as-errors, the whole suite, then coverage,
 stopping at the first failure.
 
-The suite is **1769 tests**: unit, contract, exact-console-bytes, and Gherkin scenarios
+The suite is **2369 tests**: unit, contract, exact-console-bytes, and Gherkin scenarios
 driving the published executable.
 
 Coverage is collected per test project with `coverlet.console` and rendered with
@@ -386,12 +386,39 @@ The script fails if it measured zero assemblies. A coverage run reporting succes
 measured nothing is the same defect this tool exists to prevent, aimed at its own
 instrumentation.
 
-The suite holds **100% line, branch and method coverage** — 5,404 lines, 1,784 branches and
-616 methods, all covered. That is a floor the reports are checked against, not an aspiration:
+The suite holds **100% line, branch and method coverage** — 6,648 lines, 2,251 branches and
+753 methods, all covered. That is a floor the reports are checked against, not an aspiration:
 where a branch is genuinely unreachable it is either removed, folded into a real case, or
 excluded with the reason written at the exclusion. It is never covered by a fabricated test.
 
 The badge at the top is the number Codecov computes from those same four reports.
+
+```powershell
+.\scripts\mutate.ps1
+```
+
+Coverage says every line ran. It cannot say that any test would fail if a line were wrong,
+and those are different claims. This script asks the second one: it changes an operator or a
+literal in a source project, runs the tests that reach it, and reports the changes no test
+noticed. `dotnet-stryker` does the work, pinned beside the two coverage tools.
+
+It is **not a gate**. No score threshold is configured and none will be: a mutation score
+never reaches 100%, because a change that cannot alter observable behaviour survives
+legitimately, so a threshold here is a number to negotiate rather than a bar to clear. What
+the script does refuse is a project that produced testable changes and had none of them
+caught — every test passing against every single change means the switch never reached the
+test process, which is an instrument failure wearing the costume of a result.
+
+The run takes tens of minutes per source project, which is why it is not part of `verify.ps1`
+and not in CI: nothing waits on it and it gates nothing. It is also silent for that whole time,
+because the tool's only progress output is a console bar that writes nothing once the output is
+redirected. `-Project` runs a single source project.
+
+It defaults to a quarter of the machine's logical processors, below what the machine could
+bear. Each concurrent mutant holds a live test host per test assembly, and at the tool's own
+default of half the processors that measured out at 86 processes and six gigabytes held for
+most of an hour — on the machine somebody is trying to work on. `-Concurrency` raises it when
+nobody is sitting behind it.
 
 ---
 
