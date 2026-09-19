@@ -7,7 +7,8 @@ using static Preflight.TestSupport.RepositoryLayout;
 
 /// <summary>
 /// Guards what this repository publishes: no file it tracks names an assistant,
-/// and none cites a document its readers do not have.
+/// none cites a document its readers do not have, and the files that are
+/// compared byte for byte still hold the bytes they are meant to hold.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -192,6 +193,92 @@ public sealed class PublishedTreeTests
                where parts.Length == 2
                select (parts[0].Trim(), parts[1]),
         ]);
+
+    /// <summary>
+    /// No golden file carries a carriage return.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The file set is the same pathspec the attributes file uses to keep these
+    /// files out of end-of-line conversion, so this guard and the line it
+    /// guards cover exactly the same files. What is asserted is the bytes on
+    /// disk — the same bytes the reporter tests compare on the next line — and
+    /// never the version control configuration that delivered them. A test
+    /// reading the attributes file would pass on a clone whose attributes are
+    /// right and whose checkout had already converted the files, and that clone
+    /// is the case worth catching.
+    /// </para>
+    /// <para>
+    /// Verify does refuse a verified file containing a carriage return, so a
+    /// conversion cannot pass unnoticed. It refuses once per test, though, so
+    /// the symptom is every reporter test failing together; and the remedy it
+    /// prints is <c>text eol=lf working-tree-encoding=UTF-8</c>, which is not
+    /// the one this repository chose. One failure, naming every file it found
+    /// and naming this repository's own answer, is what this adds.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void Goldens_CarryNoCarriageReturn() =>
+        Git("ls-files", "--", GoldenFiles)
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .Select(path => path.Trim())
+            .Where(ContainsCarriageReturn)
+            .ShouldBeEmpty(
+                "a golden checked out as CRLF fails every reporter test at once, and that " +
+                "reads as the other machine being broken. The likely cause is " +
+                $"'{GoldenFiles} -text' having left .gitattributes.");
+
+    /// <summary>
+    /// The broken line-endings fixture still carries its carriage returns.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The same missing attribute line has two opposite symptoms: a golden
+    /// gains a carriage return it must not have, and this fixture loses the
+    /// ones it must keep. Those bytes are the defect the line-endings rule
+    /// exists to find — normalised away, the broken fixture stops being broken
+    /// and the rule starts approving it.
+    /// </para>
+    /// <para>
+    /// The integration suite already fails in that case, because it asserts
+    /// that the rule reports this file. It fails pointing at the rule; this
+    /// fails pointing at the cause. The path is written out rather than found
+    /// by scanning the fixtures for any file with a carriage return, because an
+    /// assertion that any file can satisfy stops guarding the one that matters.
+    /// A path that is renamed away fails here as a missing file, which is a
+    /// finding rather than something to accommodate.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void TheBrokenLineEndingsFixture_KeepsItsCarriageReturns() =>
+        ContainsCarriageReturn(BrokenLineEndingsFixture).ShouldBeTrue(
+            $"'{BrokenLineEndingsFixture}' carries CRLF because that is the defect the " +
+            "line-endings rule exists to find. Normalised to LF it is no longer broken, the " +
+            "rule approves it, and the integration test that expects a failure has nothing " +
+            "to fail on. The likely cause is 'fixtures/** -text' having left .gitattributes.");
+
+    /// <summary>
+    /// The pathspec matching every golden file, spelled as the attributes file
+    /// spells it.
+    /// </summary>
+    private const string GoldenFiles = "tests/**/*.verified.txt";
+
+    /// <summary>
+    /// The one fixture whose carriage returns are the defect under test.
+    /// </summary>
+    private const string BrokenLineEndingsFixture =
+        "fixtures/workspace-broken/line-endings/src/build.sh";
+
+    /// <remarks>
+    /// The bytes, and not the lines. The cache this class already keeps reads
+    /// every file with <see cref="File.ReadAllLines(string)"/>, which drops the
+    /// carriage return along with the newline — useful for the guards that
+    /// match text, and useless here, because the dropped byte is the one being
+    /// counted. Reading a few files again is cheaper than a second cache, and a
+    /// guard that cannot fail is the defect this one was written to avoid.
+    /// </remarks>
+    private static bool ContainsCarriageReturn(string relativePath) =>
+        File.ReadAllBytes(PathFromRoot(relativePath)).Contains((byte)'\r');
 
     /// <summary>
     /// The one file the scan skips: this one.
